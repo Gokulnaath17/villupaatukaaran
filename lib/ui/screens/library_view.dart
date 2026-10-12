@@ -9,23 +9,68 @@ import '../theme/theme_controller.dart';
 import '../widgets/boxy_card.dart';
 import '../widgets/song_tile.dart';
 
-/// Single unified Library page containing Playlists, Liked Songs, and Cached Tracks
+/// Categories supported in the unified Library
+enum LibraryCategory {
+  all,
+  downloaded,
+  cached,
+  local,
+  liked,
+  playlists,
+}
+
+/// Unified Library page supporting All, Downloaded, Cached, Local, Liked, and Playlists
 class LibraryView extends StatefulWidget {
-  const LibraryView({super.key});
+  final LibraryCategory initialCategory;
+  final String? playlistId;
+
+  const LibraryView({
+    super.key,
+    this.initialCategory = LibraryCategory.all,
+    this.playlistId,
+  });
 
   @override
   State<LibraryView> createState() => _LibraryViewState();
 }
 
 class _LibraryViewState extends State<LibraryView> {
-  int _selectedTab = 0; // 0: Playlists, 1: Liked, 2: Cached
+  late LibraryCategory _selectedCategory;
   PlaylistItem? _viewingPlaylist;
 
   @override
   void initState() {
     super.initState();
+    _selectedCategory = widget.initialCategory;
     if (Get.isRegistered<LibraryService>()) {
       Get.find<LibraryService>().refreshAll();
+      _resolveInitialPlaylist();
+    }
+  }
+
+  void _resolveInitialPlaylist() {
+    if (widget.playlistId != null) {
+      final playlists = Get.find<LibraryService>().playlists;
+      final pl = playlists.firstWhereOrNull((p) => p.id == widget.playlistId);
+      if (pl != null) {
+        _viewingPlaylist = pl;
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant LibraryView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialCategory != widget.initialCategory || oldWidget.playlistId != widget.playlistId) {
+      setState(() {
+        _selectedCategory = widget.initialCategory;
+        if (widget.playlistId != null) {
+          final playlists = Get.find<LibraryService>().playlists;
+          _viewingPlaylist = playlists.firstWhereOrNull((p) => p.id == widget.playlistId);
+        } else if (_selectedCategory != LibraryCategory.playlists) {
+          _viewingPlaylist = null;
+        }
+      });
     }
   }
 
@@ -34,300 +79,194 @@ class _LibraryViewState extends State<LibraryView> {
     final libraryService = Get.find<LibraryService>();
     final playerController = Get.find<PlayerController>();
 
-    return Column(
-      children: [
-        // Sub-Navigation Tabs Header (Playlists, Liked, Cached)
-        Container(
-          decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: AppTheme.border)),
-          ),
-          child: Row(
-            children: [
-              _buildTabButton('PLAYLISTS', 0, Icons.queue_music, libraryService),
-              _buildTabButton('LIKED SONGS', 1, Icons.favorite, libraryService),
-              _buildTabButton('CACHED TRACKS', 2, Icons.offline_pin, libraryService),
-            ],
-          ),
-        ),
+    return Obx(() {
+      if (_viewingPlaylist != null) {
+        return _buildPlaylistDetail(libraryService, playerController);
+      }
 
-        // Main Tab Content Area
-        Expanded(
-          child: Obx(() {
-            // If user clicked into a specific playlist detail
-            if (_viewingPlaylist != null) {
-              return _buildPlaylistDetail(libraryService, playerController);
-            }
-
-            switch (_selectedTab) {
-              case 0:
-                return _buildPlaylistsTab(libraryService);
-              case 1:
-                return _buildLikedSongsTab(libraryService, playerController);
-              case 2:
-                return _buildCachedSongsTab(libraryService, playerController);
-              default:
-                return const SizedBox.shrink();
-            }
-          }),
-        ),
-      ],
-    );
+      switch (_selectedCategory) {
+        case LibraryCategory.all:
+          return _buildAllSongsTab(libraryService, playerController);
+        case LibraryCategory.downloaded:
+          return _buildDownloadedSongsTab(libraryService, playerController);
+        case LibraryCategory.cached:
+          return _buildCachedSongsTab(libraryService, playerController);
+        case LibraryCategory.local:
+          return _buildLocalSongsTab(libraryService, playerController);
+        case LibraryCategory.liked:
+          return _buildLikedSongsTab(libraryService, playerController);
+        case LibraryCategory.playlists:
+          return _buildPlaylistsTab(libraryService);
+      }
+    });
   }
 
-  Widget _buildTabButton(String label, int index, IconData icon, LibraryService libraryService) {
-    final isSelected = _selectedTab == index && _viewingPlaylist == null;
 
-    return Expanded(
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            _selectedTab = index;
-            _viewingPlaylist = null;
-          });
-          libraryService.refreshAll();
-        },
-        borderRadius: BorderRadius.zero,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? AppTheme.yellowAccent.withOpacity(0.08) : Colors.transparent,
-            border: Border(
-              bottom: BorderSide(
-                color: isSelected ? AppTheme.yellowAccent : Colors.transparent,
-                width: 2.5,
-              ),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 16,
-                color: isSelected ? AppTheme.yellowAccent : AppTheme.textMuted,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  color: isSelected ? AppTheme.yellowAccent : AppTheme.textSecondary,
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                  letterSpacing: 0.8,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // 1. Playlists Tab
-  Widget _buildPlaylistsTab(LibraryService libraryService) {
-    final playlists = libraryService.playlists;
+  // 1. ALL SONGS TAB
+  Widget _buildAllSongsTab(LibraryService libraryService, PlayerController playerController) {
+    final songs = libraryService.allSongs;
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
       children: [
-        // Action Bar
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'YOUR PLAYLISTS (${playlists.length})',
-              style: const TextStyle(
-                color: AppTheme.textPrimary,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.8,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'ALL SONGS (${songs.length})',
+                  style: const TextStyle(
+                    color: AppTheme.textWhite,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                const Text(
+                  'Combined library of liked, cached, downloaded, and local tracks',
+                  style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                ),
+              ],
+            ),
+            if (songs.isNotEmpty)
+              BoxyButton(
+                label: 'PLAY ALL',
+                icon: Icons.play_arrow_rounded,
+                isPrimary: true,
+                onPressed: () => playerController.playSong(songs.first, queueContext: songs),
               ),
-            ),
-            BoxyButton(
-              label: 'NEW PLAYLIST',
-              icon: Icons.add,
-              isPrimary: true,
-              onPressed: () => _showCreatePlaylistDialog(libraryService),
-            ),
           ],
         ),
         const SizedBox(height: 16),
-
-        if (playlists.isEmpty)
+        if (songs.isEmpty)
           const Center(
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 40),
               child: Text(
-                'No playlists yet.\nClick "NEW PLAYLIST" to create one.',
+                'Your library is empty.\nExplore songs or play music to populate your library.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
               ),
             ),
           )
         else
-          ...playlists.map((playlist) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: BoxyCard(
-                padding: const EdgeInsets.all(10),
-                onTap: () {
-                  setState(() => _viewingPlaylist = playlist);
-                },
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: AppTheme.black,
-                        border: Border.all(color: AppTheme.border),
-                      ),
-                      child: playlist.thumbnailUrl != null
-                          ? Image.network(
-                              playlist.thumbnailUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
-                                  Image.asset(AppAssets.defaultCover, fit: BoxFit.cover),
-                            )
-                          : Image.asset(AppAssets.defaultCover, fit: BoxFit.cover),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            playlist.title,
-                            style: const TextStyle(
-                              color: AppTheme.textPrimary,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${playlist.songCount} songs',
-                            style: const TextStyle(
-                              color: AppTheme.textMuted,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 18, color: AppTheme.textMuted),
-                      onPressed: () => libraryService.deletePlaylist(playlist.id),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
-      ],
-    );
-  }
-
-  // 2. Liked Songs Tab
-  Widget _buildLikedSongsTab(LibraryService libraryService, PlayerController playerController) {
-    final liked = libraryService.likedSongs;
-
-    return ListView(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: AppTheme.border)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'LIKED SONGS (${liked.length})',
-                style: const TextStyle(
-                  color: AppTheme.yellowAccent,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
-                ),
-              ),
-              if (liked.isNotEmpty)
-                BoxyButton(
-                  label: 'PLAY ALL',
-                  icon: Icons.play_arrow,
-                  isPrimary: true,
-                  onPressed: () => playerController.playSong(liked.first, queueContext: liked),
-                ),
-            ],
-          ),
-        ),
-        if (liked.isEmpty)
-          const Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 40),
-              child: Text(
-                'No liked songs yet.\nHeart any song to save it here.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
-              ),
-            ),
-          )
-        else
-          ...liked.asMap().entries.map((e) {
+          ...songs.asMap().entries.map((e) {
             return SongTile(
               song: e.value,
               showIndex: true,
               index: e.key,
-              onTap: () => playerController.playSong(e.value, queueContext: liked, index: e.key),
+              onTap: () => playerController.playSong(e.value, queueContext: songs, index: e.key),
             );
           }),
       ],
     );
   }
 
-  // 3. Cached Tracks Tab
+  // 2. DOWNLOADED TAB
+  Widget _buildDownloadedSongsTab(LibraryService libraryService, PlayerController playerController) {
+    final downloaded = libraryService.downloadedSongs;
+
+    return ListView(
+      padding: const EdgeInsets.all(24),
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'DOWNLOADED SONGS (${downloaded.length})',
+                  style: const TextStyle(
+                    color: AppTheme.textWhite,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                const Text(
+                  'Saved tracks available for permanently offline playback',
+                  style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                ),
+              ],
+            ),
+            if (downloaded.isNotEmpty)
+              BoxyButton(
+                label: 'PLAY ALL',
+                icon: Icons.play_arrow_rounded,
+                isPrimary: true,
+                onPressed: () => playerController.playSong(downloaded.first, queueContext: downloaded),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (downloaded.isEmpty)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 40),
+              child: Text(
+                'No downloaded songs yet.\nUse the 3-dot menu on any song to save offline.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+              ),
+            ),
+          )
+        else
+          ...downloaded.asMap().entries.map((e) {
+            return SongTile(
+              song: e.value,
+              showIndex: true,
+              index: e.key,
+              onTap: () => playerController.playSong(e.value, queueContext: downloaded, index: e.key),
+            );
+          }),
+      ],
+    );
+  }
+
+  // 3. CACHED SONGS TAB
   Widget _buildCachedSongsTab(LibraryService libraryService, PlayerController playerController) {
     final cached = libraryService.cachedSongs;
 
     return ListView(
+      padding: const EdgeInsets.all(24),
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: AppTheme.border)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'CACHED OFFLINE TRACKS (${cached.length})',
-                    style: const TextStyle(
-                      color: AppTheme.yellowAccent,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.8,
-                    ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'CACHED OFFLINE TRACKS (${cached.length})',
+                  style: const TextStyle(
+                    color: AppTheme.textWhite,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
                   ),
-                  const SizedBox(height: 2),
-                  const Text(
-                    'Instant offline playback with 0 buffering',
-                    style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
-                  ),
-                ],
-              ),
-              if (cached.isNotEmpty)
-                BoxyButton(
-                  label: 'PLAY ALL OFFLINE',
-                  icon: Icons.play_arrow,
-                  isPrimary: true,
-                  onPressed: () => playerController.playSong(cached.first, queueContext: cached),
                 ),
-            ],
-          ),
+                const SizedBox(height: 2),
+                const Text(
+                  'Auto-cached in the local vault for instant zero-buffer replays',
+                  style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                ),
+              ],
+            ),
+            if (cached.isNotEmpty)
+              BoxyButton(
+                label: 'PLAY ALL OFFLINE',
+                icon: Icons.play_arrow_rounded,
+                isPrimary: true,
+                onPressed: () => playerController.playSong(cached.first, queueContext: cached),
+              ),
+          ],
         ),
+        const SizedBox(height: 16),
         if (cached.isEmpty)
           const Center(
             child: Padding(
@@ -352,56 +291,284 @@ class _LibraryViewState extends State<LibraryView> {
     );
   }
 
+  // 4. LOCAL SONGS TAB
+  Widget _buildLocalSongsTab(LibraryService libraryService, PlayerController playerController) {
+    final local = libraryService.localSongs;
+
+    return ListView(
+      padding: const EdgeInsets.all(24),
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'LOCAL FILES (${local.length})',
+                  style: const TextStyle(
+                    color: AppTheme.textWhite,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                const Text(
+                  'Audio files scanned from your configured Music folder',
+                  style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                ),
+              ],
+            ),
+            if (local.isNotEmpty)
+              BoxyButton(
+                label: 'PLAY ALL',
+                icon: Icons.play_arrow_rounded,
+                isPrimary: true,
+                onPressed: () => playerController.playSong(local.first, queueContext: local),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (local.isEmpty)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 40),
+              child: Text(
+                'No local audio files detected in your Music directory.\nYou can configure your Music path in Settings.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+              ),
+            ),
+          )
+        else
+          ...local.asMap().entries.map((e) {
+            return SongTile(
+              song: e.value,
+              showIndex: true,
+              index: e.key,
+              onTap: () => playerController.playSong(e.value, queueContext: local, index: e.key),
+            );
+          }),
+      ],
+    );
+  }
+
+  // 5. LIKED SONGS TAB
+  Widget _buildLikedSongsTab(LibraryService libraryService, PlayerController playerController) {
+    final liked = libraryService.likedSongs;
+
+    return ListView(
+      padding: const EdgeInsets.all(24),
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'LIKED SONGS (${liked.length})',
+                  style: const TextStyle(
+                    color: AppTheme.textWhite,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                const Text(
+                  'Your favorite bards, tracks, and villu paatu recordings',
+                  style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                ),
+              ],
+            ),
+            if (liked.isNotEmpty)
+              BoxyButton(
+                label: 'PLAY ALL',
+                icon: Icons.play_arrow_rounded,
+                isPrimary: true,
+                onPressed: () => playerController.playSong(liked.first, queueContext: liked),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (liked.isEmpty)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 40),
+              child: Text(
+                'No liked songs yet.\nHeart any song to save it here.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+              ),
+            ),
+          )
+        else
+          ...liked.asMap().entries.map((e) {
+            return SongTile(
+              song: e.value,
+              showIndex: true,
+              index: e.key,
+              onTap: () => playerController.playSong(e.value, queueContext: liked, index: e.key),
+            );
+          }),
+      ],
+    );
+  }
+
+  // 6. PLAYLISTS TAB
+  Widget _buildPlaylistsTab(LibraryService libraryService) {
+    final playlists = libraryService.playlists;
+
+    return ListView(
+      padding: const EdgeInsets.all(24),
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'YOUR PLAYLISTS (${playlists.length})',
+              style: const TextStyle(
+                color: AppTheme.textWhite,
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+              ),
+            ),
+            BoxyButton(
+              label: 'NEW PLAYLIST',
+              icon: Icons.add_rounded,
+              isPrimary: true,
+              onPressed: () => _showCreatePlaylistDialog(libraryService),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (playlists.isEmpty)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 40),
+              child: Text(
+                'No playlists yet.\nClick "NEW PLAYLIST" to create one.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+              ),
+            ),
+          )
+        else
+          ...playlists.map((playlist) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              child: BoxyCard(
+                padding: const EdgeInsets.all(12),
+                borderRadius: AppTheme.radiusMedium,
+                onTap: () {
+                  setState(() => _viewingPlaylist = playlist);
+                },
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        color: const Color(0xFF252838),
+                        child: playlist.thumbnailUrl != null
+                            ? Image.network(
+                                playlist.thumbnailUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) =>
+                                    Image.asset(AppAssets.defaultCover, fit: BoxFit.cover),
+                              )
+                            : Image.asset(AppAssets.defaultCover, fit: BoxFit.cover),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            playlist.title,
+                            style: const TextStyle(
+                              color: AppTheme.textWhite,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            '${playlist.songCount} songs',
+                            style: const TextStyle(
+                              color: AppTheme.textMuted,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppTheme.textMuted),
+                      splashRadius: 18,
+                      onPressed: () => libraryService.deletePlaylist(playlist.id),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+      ],
+    );
+  }
+
   // Playlist detail view
   Widget _buildPlaylistDetail(LibraryService libraryService, PlayerController playerController) {
     final playlist = _viewingPlaylist!;
 
     return ListView(
+      padding: const EdgeInsets.all(24),
       children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: AppTheme.border)),
-          ),
-          child: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back, color: AppTheme.yellowAccent),
-                onPressed: () => setState(() => _viewingPlaylist = null),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      playlist.title,
-                      style: const TextStyle(
-                        color: AppTheme.textPrimary,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
+        Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back_rounded, color: AppTheme.blueAccent),
+              splashRadius: 18,
+              onPressed: () => setState(() => _viewingPlaylist = null),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    playlist.title,
+                    style: const TextStyle(
+                      color: AppTheme.textWhite,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
                     ),
-                    Text(
-                      '${playlist.songCount} songs',
-                      style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-              if (playlist.songs.isNotEmpty)
-                BoxyButton(
-                  label: 'PLAY ALL',
-                  icon: Icons.play_arrow,
-                  isPrimary: true,
-                  onPressed: () => playerController.playSong(
-                    playlist.songs.first,
-                    queueContext: playlist.songs,
                   ),
+                  Text(
+                    '${playlist.songCount} songs',
+                    style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            if (playlist.songs.isNotEmpty)
+              BoxyButton(
+                label: 'PLAY ALL',
+                icon: Icons.play_arrow_rounded,
+                isPrimary: true,
+                onPressed: () => playerController.playSong(
+                  playlist.songs.first,
+                  queueContext: playlist.songs,
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
+        const SizedBox(height: 16),
         if (playlist.songs.isEmpty)
           const Center(
             child: Padding(
@@ -437,18 +604,18 @@ class _LibraryViewState extends State<LibraryView> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          backgroundColor: AppTheme.cardSurface,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.zero,
-            side: BorderSide(color: AppTheme.border),
+          backgroundColor: AppTheme.windowBg,
+          shape: RoundedRectangleBorder(
+            borderRadius: AppTheme.radiusLarge,
+            side: const BorderSide(color: AppTheme.borderHighlight),
           ),
           title: const Text(
             'CREATE NEW PLAYLIST',
             style: TextStyle(
-              color: AppTheme.yellowAccent,
+              color: AppTheme.blueAccent,
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              letterSpacing: 1,
+              letterSpacing: 0.8,
             ),
           ),
           content: TextField(
@@ -459,10 +626,10 @@ class _LibraryViewState extends State<LibraryView> {
               hintText: 'Playlist Name',
               hintStyle: TextStyle(color: AppTheme.textMuted),
               enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: AppTheme.border),
+                borderSide: BorderSide(color: AppTheme.borderSubtle),
               ),
               focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: AppTheme.yellowAccent),
+                borderSide: BorderSide(color: AppTheme.blueAccent),
               ),
             ),
           ),
@@ -481,7 +648,7 @@ class _LibraryViewState extends State<LibraryView> {
                   }
                 }
               },
-              child: const Text('CREATE', style: TextStyle(color: AppTheme.yellowAccent)),
+              child: const Text('CREATE', style: TextStyle(color: AppTheme.blueAccent)),
             ),
           ],
         );

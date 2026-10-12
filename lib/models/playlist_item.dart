@@ -53,13 +53,23 @@ class PlaylistItem {
   }
 
   factory PlaylistItem.fromJson(Map<dynamic, dynamic> json) {
+    int count = 0;
+    if (json['songCount'] is int) {
+      count = json['songCount'] as int;
+    } else if (json['songCount'] is num) {
+      count = (json['songCount'] as num).toInt();
+    } else if (json['songCount'] != null) {
+      count = int.tryParse(json['songCount'].toString()) ?? 0;
+    } else if (json['songs'] is List) {
+      count = (json['songs'] as List).length;
+    }
+
     return PlaylistItem(
-      id: (json['id'] ?? '') as String,
-      title: (json['title'] ?? 'Untitled Playlist') as String,
+      id: (json['id'] ?? '').toString(),
+      title: (json['title'] ?? 'Untitled Playlist').toString(),
       description: json['description']?.toString(),
       thumbnailUrl: json['thumbnailUrl']?.toString(),
-      songCount: (json['songCount'] as int?) ??
-          (json['songs'] is List ? (json['songs'] as List).length : 0),
+      songCount: count,
       songs: json['songs'] is List
           ? (json['songs'] as List)
               .map((s) => SongItem.fromJson(s as Map<dynamic, dynamic>))

@@ -16,11 +16,11 @@ class SettingsView extends StatelessWidget {
     final controller = Get.find<SettingsController>();
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
       children: [
         // Section: Storage Folders
-        _buildSectionHeader('STORAGE & BASE DIRECTORIES', Icons.folder_open),
-        const SizedBox(height: 10),
+        _buildSectionHeader('STORAGE & BASE DIRECTORIES', Icons.folder_open_rounded),
+        const SizedBox(height: 12),
 
         // Base Audio Directory
         Obx(() => _buildFolderTile(
@@ -28,7 +28,7 @@ class SettingsView extends StatelessWidget {
               subtitle: controller.audioDir.value,
               onBrowse: controller.pickAudioDirectory,
             )),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
 
         // Base Video Directory
         Obx(() => _buildFolderTile(
@@ -36,7 +36,7 @@ class SettingsView extends StatelessWidget {
               subtitle: controller.videoDir.value,
               onBrowse: controller.pickVideoDirectory,
             )),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
 
         // Cache Directory
         Obx(() => _buildFolderTile(
@@ -44,17 +44,18 @@ class SettingsView extends StatelessWidget {
               subtitle: controller.cacheDir.value,
               onBrowse: controller.pickCacheDirectory,
             )),
-        const SizedBox(height: 24),
+        const SizedBox(height: 28),
 
         // Section: Cache Management
-        _buildSectionHeader('STREAMING CACHE & PERFORMANCE', Icons.speed),
-        const SizedBox(height: 10),
+        _buildSectionHeader('STREAMING CACHE & PERFORMANCE', Icons.speed_rounded),
+        const SizedBox(height: 12),
 
         // Auto-cache Switch
         Obx(() => BoxyCard(
+              borderRadius: AppTheme.radiusMedium,
               child: SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                activeColor: AppTheme.yellowAccent,
+                activeColor: AppTheme.blueAccent,
                 title: const Text(
                   'Auto-Cache All Played Songs',
                   style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
@@ -67,10 +68,11 @@ class SettingsView extends StatelessWidget {
                 onChanged: controller.toggleAutoCache,
               ),
             )),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
 
         // Cache Limit Slider
         Obx(() => BoxyCard(
+              borderRadius: AppTheme.radiusMedium,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -84,7 +86,7 @@ class SettingsView extends StatelessWidget {
                       Text(
                         '${controller.cacheSizeLimit.value} Songs (Default: 350)',
                         style: const TextStyle(
-                          color: AppTheme.yellowAccent,
+                          color: AppTheme.blueLight,
                           fontWeight: FontWeight.w700,
                           fontSize: 12,
                         ),
@@ -97,6 +99,7 @@ class SettingsView extends StatelessWidget {
                     min: 50,
                     max: 1000,
                     divisions: 19,
+                    activeColor: AppTheme.blueAccent,
                     onChanged: (val) => controller.setCacheSizeLimit(val.toInt()),
                   ),
                   Row(
@@ -115,13 +118,14 @@ class SettingsView extends StatelessWidget {
                 ],
               ),
             )),
-        const SizedBox(height: 24),
+        const SizedBox(height: 28),
 
         // Section: Streaming Pipeline
-        _buildSectionHeader('STREAMING PIPELINE & AUDIO QUALITY', Icons.graphic_eq),
-        const SizedBox(height: 10),
+        _buildSectionHeader('STREAMING PIPELINE & AUDIO QUALITY', Icons.graphic_eq_rounded),
+        const SizedBox(height: 12),
 
         BoxyCard(
+          borderRadius: AppTheme.radiusMedium,
           child: Column(
             children: [
               // Quality selector
@@ -141,7 +145,7 @@ class SettingsView extends StatelessWidget {
                       value: controller.streamingQuality.value,
                       dropdownColor: AppTheme.cardSurfaceElevated,
                       underline: const SizedBox.shrink(),
-                      icon: const Icon(Icons.arrow_drop_down, color: AppTheme.yellowAccent),
+                      icon: const Icon(Icons.arrow_drop_down, color: AppTheme.blueAccent),
                       items: const [
                         DropdownMenuItem(
                           value: Constant.qualityHigh,
@@ -157,7 +161,7 @@ class SettingsView extends StatelessWidget {
                       },
                     ),
                   )),
-              const Divider(color: AppTheme.border),
+              const Divider(color: AppTheme.borderSubtle),
               // Stream sources
               const ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -167,15 +171,15 @@ class SettingsView extends StatelessWidget {
                 ),
                 subtitle: Text(
                   'Primary: Innertube (WEB_REMIX) • Fallback: YtExplode (yt-dlp)',
-                  style: TextStyle(color: AppTheme.yellowLight, fontSize: 12),
+                  style: TextStyle(color: AppTheme.blueLight, fontSize: 12),
                 ),
-                trailing: Icon(Icons.check_circle, color: AppTheme.yellowAccent, size: 20),
+                trailing: Icon(Icons.check_circle_rounded, color: AppTheme.trafficGreen, size: 20),
               ),
-              const Divider(color: AppTheme.border),
+              const Divider(color: AppTheme.borderSubtle),
               // Loudness normalization
               Obx(() => SwitchListTile(
                     contentPadding: EdgeInsets.zero,
-                    activeColor: AppTheme.yellowAccent,
+                    activeColor: AppTheme.blueAccent,
                     title: const Text(
                       'Loudness Normalization',
                       style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
@@ -190,53 +194,59 @@ class SettingsView extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 28),
 
         // Section: Brand & About
-        _buildSectionHeader('ABOUT VILLUPAATUKARAN', Icons.info_outline),
-        const SizedBox(height: 10),
+        _buildSectionHeader('ABOUT VILLUPAATUKAARAN', Icons.info_outline_rounded),
+        const SizedBox(height: 12),
 
         BoxyCard(
-          padding: const EdgeInsets.all(14),
-          child: Row(
+          borderRadius: AppTheme.radiusMedium,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppTheme.yellowAccent),
-                ),
-                child: Image.asset(AppAssets.appIcon, fit: BoxFit.cover),
-              ),
-              const SizedBox(width: 14),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Villupaatukaran',
-                      style: TextStyle(
-                        color: AppTheme.yellowAccent,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
+              Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      color: const Color(0xFF252838),
+                      child: Image.asset(AppAssets.appIcon, fit: BoxFit.cover),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Villupaatukaaran',
+                        style: TextStyle(
+                          color: AppTheme.textWhite,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                          letterSpacing: 0.3,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Paattil Ooru Ulagam • v1.12.2',
-                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Minimalist high-speed client with zero ads and offline audio caching.',
-                      style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
-                    ),
-                  ],
-                ),
+                      Text(
+                        'v1.0.0 • Modern Glass Desktop Edition',
+                        style: TextStyle(color: AppTheme.blueLight, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                'A dedicated Tamil folk, classical, and regional music client inspired by the ancient art of Villupaatu (the musical bow). Built with Flutter, MediaKit/libmpv, and GetX.',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
               ),
             ],
           ),
         ),
+        const SizedBox(height: 24),
       ],
     );
   }
@@ -244,13 +254,13 @@ class SettingsView extends StatelessWidget {
   Widget _buildSectionHeader(String title, IconData icon) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: AppTheme.yellowAccent),
+        Icon(icon, size: 16, color: AppTheme.blueAccent),
         const SizedBox(width: 8),
         Text(
           title,
           style: const TextStyle(
-            color: AppTheme.textPrimary,
-            fontSize: 12,
+            color: AppTheme.textHeading,
+            fontSize: 11,
             fontWeight: FontWeight.w800,
             letterSpacing: 1.0,
           ),
@@ -265,6 +275,7 @@ class SettingsView extends StatelessWidget {
     required VoidCallback onBrowse,
   }) {
     return BoxyCard(
+      borderRadius: AppTheme.radiusMedium,
       child: Row(
         children: [
           Expanded(
@@ -279,22 +290,20 @@ class SettingsView extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 2),
                 Text(
-                  subtitle.isEmpty ? 'Not configured (using app default)' : subtitle,
+                  subtitle.isEmpty ? 'Not configured (using defaults)' : subtitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppTheme.textMuted,
-                    fontSize: 11,
-                  ),
+                  style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           BoxyButton(
             label: 'BROWSE',
+            icon: Icons.folder_rounded,
             onPressed: onBrowse,
           ),
         ],
@@ -302,4 +311,3 @@ class SettingsView extends StatelessWidget {
     );
   }
 }
-

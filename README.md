@@ -1,25 +1,28 @@
 # Villupaatukaaran (வில்லுப்பாட்டுக்காரன்)
 
-A high-performance, minimalist desktop & mobile music streaming client inspired by the Tamil traditional musical bow art (*Villupaatu*). Built with **Flutter**, **GetX**, **Hive**, **JustAudio**, and **MediaKit / libmpv**, featuring an AMOLED deep black design language with warm golden-amber accents.
+A high-performance, modern desktop & mobile music streaming client inspired by the Tamil traditional musical bow art (*Villupaatu*). Built with **Flutter**, **GetX**, **Hive**, **JustAudio**, and **MediaKit / libmpv**, featuring an Apple Music-inspired translucent dark graphite glassmorphic design language with signature **Red** accents (`#FA243C`).
 
 ---
 
 ## Highlights & Features
 
-- **Minimalist Boxy Aesthetic**: Zero border-radii (`BorderRadius.zero`), crisp 1px borders, deep AMOLED black (`#000000`), and warm golden-yellow accents (`#FFB800`).
-- **Responsive Dual-Pane Desktop Layout**:
-  - **Left Pane**: Sticky top bar with instant search, tab navigation (Discover, Library, Settings), and scrollable feeds with zero layout overflow.
-  - **Right Pane**: Sticky Player Card with real-time seek bar, transport controls, and a live scrollable Queue directly underneath.
+- **Apple Music-Inspired Translucent Glassmorphic Aesthetic**: Translucent dark graphite surfaces (`Color(0xE61C1C1E)`), 14–22px rounded geometry, subtle 1px translucent borders, and signature Apple Music Red accents (`#FA243C`).
+- **Desktop Architecture (inspired by `mod.png`)**:
+  - **Left Sidebar**: Pure minimal hierarchical navigation starting directly with Home, Library (All Songs, Downloaded, Cached, Local Files, Liked Songs with live reactive badges), Playlists (with `+` creator), and real-time **Offline Cache Vault** card.
+  - **Main Viewport Area**:
+    - **Hero Artist Spotlight**: Cutout silhouette of Tamil Villu Paatu Bard with curved musical bow & bells, verified badge, shuffle, and circular Apple Music Red play button. Quick spotlight pills (Subbu Arumugam, Ilaiyaraaja, AR Rahman, Anirudh).
+    - **5-Album Carousel Row**: 5 square vibrant minimalist cards (Yellow, Cyan, Lavender, Pastel Pink, Mint Teal).
+    - **Two-Column Lower Split**: Left: Popular Tracks with active playing row & animated EQ; Right: 2x2 photographic grid of Curated Playlists.
+  - **Attached Bottom Player Dock**: Full-width persistent player bar with track info, `Cached ✓` status, transport controls (Shuffle, Previous, Play/Pause, Next, **Repeat Cycle: Off/All/One**), continuous 3px sleek scrubber with white dot thumb indicator, live timestamps, volume slider, and `QUEUE` trigger.
+  - **Slide-Out Queue Drawer**: Smooth slide-out panel with Up Next tracks and smart preloading indicator for seamless gapless transitions.
 - **Comprehensive Song Actions**:
   - ⏭️ **Play Next** (inserts immediately after currently playing track)
   - ➕ **Add to Queue** (appends to playback queue)
   - ❤️ **Like / Favorite** (instantly synced to `LIBFAV` Hive storage)
   - 📑 **Add to Playlist** (create and manage custom local playlists)
   - ⬇️ **Download for Offline** (saves to configured audio directory)
-- **Unified Library Screen**:
-  - **Playlists Tab**: Create, edit, and play custom playlists.
-  - **Liked Songs Tab**: Instant access to favorite tracks with one-click play-all.
-  - **Cached Tracks Tab**: Play tracks cached locally with zero network latency.
+- **Direct Sidebar-Driven Library**:
+  - Seamless category views for **All Songs**, **Downloaded**, **Cached Tracks**, **Local Files**, and **Liked Songs** driven directly from the sidebar without redundant top tab buttons.
 - **Flexible Settings & Performance**:
   - Custom base folder selection for **Audio**, **Videos**, and **Cache**.
   - Cache size limit slider (default: **350 songs**).

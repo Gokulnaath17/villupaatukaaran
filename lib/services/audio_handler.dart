@@ -348,7 +348,8 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         final songs = rawQueue
             .map((item) => SongItem.fromJson(item as Map<dynamic, dynamic>))
             .toList();
-        final index = (box.get('index', defaultValue: 0) as int).clamp(0, songs.length - 1);
+        final rawIndex = box.get('index', defaultValue: 0);
+        final index = (rawIndex is int ? rawIndex : int.tryParse(rawIndex.toString()) ?? 0).clamp(0, songs.length - 1);
         final mediaItems = songs.map((s) => s.toMediaItem()).toList();
 
         await updateQueue(mediaItems);

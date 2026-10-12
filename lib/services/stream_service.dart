@@ -60,7 +60,7 @@ class StreamService extends GetxService {
               itag: 249,
               codec: 'opus',
               bitrate: 50000,
-              duration: cacheHit['duration'] as int? ?? 0,
+              duration: _safeInt(cacheHit['durationSeconds'], cacheHit['duration']),
               url: 'file://${file.path}',
               size: await file.length(),
             ),
@@ -68,7 +68,7 @@ class StreamService extends GetxService {
               itag: 251,
               codec: 'opus',
               bitrate: 160000,
-              duration: cacheHit['duration'] as int? ?? 0,
+              duration: _safeInt(cacheHit['durationSeconds'], cacheHit['duration']),
               url: 'file://${file.path}',
               size: await file.length(),
             ),
@@ -92,7 +92,7 @@ class StreamService extends GetxService {
               itag: 139,
               codec: 'mp4a',
               bitrate: 48000,
-              duration: downloadHit['duration'] as int? ?? 0,
+              duration: _safeInt(downloadHit['durationSeconds'], downloadHit['duration']),
               url: 'file://$filePath',
               size: await file.length(),
             ),
@@ -100,7 +100,7 @@ class StreamService extends GetxService {
               itag: 140,
               codec: 'mp4a',
               bitrate: 128000,
-              duration: downloadHit['duration'] as int? ?? 0,
+              duration: _safeInt(downloadHit['durationSeconds'], downloadHit['duration']),
               url: 'file://$filePath',
               size: await file.length(),
             ),
@@ -410,15 +410,30 @@ class StreamInfo {
         'loudnessDb': loudnessDb,
       };
 
-  factory StreamInfo.fromJson(Map<String, dynamic> json) => StreamInfo(
-        itag: json['itag'] as int,
-        codec: json['codec'] as String,
-        bitrate: json['bitrate'] as int,
-        duration: json['duration'] as int,
-        url: json['url'] as String,
-        size: json['size'] as int,
-        loudnessDb: json['loudnessDb'] as double?,
+  factory StreamInfo.fromJson(Map<dynamic, dynamic> json) => StreamInfo(
+        itag: _safeInt(json['itag']),
+        codec: json['codec']?.toString() ?? '',
+        bitrate: _safeInt(json['bitrate']),
+        duration: _safeInt(json['durationSeconds'], json['duration']),
+        url: json['url']?.toString() ?? '',
+        size: _safeInt(json['size']),
+        loudnessDb: (json['loudnessDb'] as num?)?.toDouble(),
       );
+}
+
+/// Helper to safely parse ints from int, num, string, or mm:ss timestamps
+int _safeInt(dynamic val, [dynamic fallback]) {
+  if (val is int) return val;
+  if (val is num) return val.toInt();
+  if (val is String && val.trim().isNotEmpty) {
+    final direct = int.tryParse(val.trim());
+    if (direct != null) return direct;
+    final parts = val.split(':').map((p) => int.tryParse(p.trim()) ?? 0).toList();
+    if (parts.length == 2) return parts[0] * 60 + parts[1];
+    if (parts.length == 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  }
+  if (fallback != null) return _safeInt(fallback);
+  return 0;
 }
 
 /// Streaming data container
@@ -445,11 +460,11 @@ class HMStreamingData {
         'qualityIndex': qualityIndex,
       };
 
-  factory HMStreamingData.fromJson(Map<String, dynamic> json) => HMStreamingData(
-        playable: json['playable'] as bool? ?? false,
-        statusMsg: json['statusMsg'] as String? ?? '',
-        low: json['low'] != null ? StreamInfo.fromJson(json['low'] as Map<String, dynamic>) : null,
-        high: json['high'] != null ? StreamInfo.fromJson(json['high'] as Map<String, dynamic>) : null,
-        qualityIndex: json['qualityIndex'] as int? ?? Constant.qualityHigh,
+  factory HMStreamingData.fromJson(Map<dynamic, dynamic> json) => HMStreamingData(
+        playable: json['playable'] == true,
+        statusMsg: json['statusMsg']?.toString() ?? '',
+        low: json['low'] is Map ? StreamInfo.fromJson(json['low'] as Map) : null,
+        high: json['high'] is Map ? StreamInfo.fromJson(json['high'] as Map) : null,
+        qualityIndex: _safeInt(json['qualityIndex'], Constant.qualityHigh),
       );
 }

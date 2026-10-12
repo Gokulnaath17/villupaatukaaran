@@ -36,7 +36,7 @@ class DiscoverView extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.search_off, size: 48, color: AppTheme.textMuted),
+                const Icon(Icons.search_off_rounded, size: 48, color: AppTheme.textMuted),
                 const SizedBox(height: 12),
                 Text(
                   'No results found for "${controller.activeQuery.value}"',
@@ -48,29 +48,27 @@ class DiscoverView extends StatelessWidget {
         }
 
         return ListView.builder(
+          padding: const EdgeInsets.all(24),
           itemCount: results.length + 1,
           itemBuilder: (ctx, i) {
             if (i == 0) {
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: AppTheme.border)),
-                ),
+                padding: const EdgeInsets.only(bottom: 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'SEARCH RESULTS (${results.length})',
                       style: const TextStyle(
-                        color: AppTheme.yellowAccent,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1.0,
+                        color: AppTheme.blueLight,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
                       ),
                     ),
                     BoxyButton(
                       label: 'PLAY ALL',
-                      icon: Icons.play_arrow,
+                      icon: Icons.play_arrow_rounded,
                       isPrimary: true,
                       onPressed: () => playerController.playSong(results.first, queueContext: results),
                     ),
@@ -91,45 +89,40 @@ class DiscoverView extends StatelessWidget {
 
       // Normal Discover Feed: Top Songs & Quick Picks
       return ListView(
-        padding: const EdgeInsets.only(bottom: 24),
+        padding: const EdgeInsets.all(24),
         children: [
           // Section 1: Top Songs Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppTheme.border)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Row(
-                  children: [
-                    Icon(Icons.local_fire_department, color: AppTheme.yellowAccent, size: 18),
-                    SizedBox(width: 8),
-                    Text(
-                      'TOP SONGS & FOLK CLASSICS',
-                      style: TextStyle(
-                        color: AppTheme.textPrimary,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                  ],
-                ),
-                if (controller.topSongs.isNotEmpty)
-                  BoxyButton(
-                    label: 'PLAY ALL',
-                    icon: Icons.play_arrow,
-                    isPrimary: true,
-                    onPressed: () => playerController.playSong(
-                      controller.topSongs.first,
-                      queueContext: controller.topSongs,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.local_fire_department_rounded, color: AppTheme.blueAccent, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'TOP SONGS & FOLK CLASSICS',
+                    style: TextStyle(
+                      color: AppTheme.textWhite,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
                     ),
                   ),
-              ],
-            ),
+                ],
+              ),
+              if (controller.topSongs.isNotEmpty)
+                BoxyButton(
+                  label: 'PLAY ALL',
+                  icon: Icons.play_arrow_rounded,
+                  isPrimary: true,
+                  onPressed: () => playerController.playSong(
+                    controller.topSongs.first,
+                    queueContext: controller.topSongs,
+                  ),
+                ),
+            ],
           ),
+          const SizedBox(height: 12),
 
           // Top Songs List
           ...controller.topSongs.asMap().entries.map((entry) {
@@ -145,48 +138,40 @@ class DiscoverView extends StatelessWidget {
             );
           }),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
           // Section 2: Quick Picks Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: const BoxDecoration(
-              border: Border(
-                top: BorderSide(color: AppTheme.border),
-                bottom: BorderSide(color: AppTheme.border),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Row(
-                  children: [
-                    Icon(Icons.auto_awesome, color: AppTheme.yellowAccent, size: 18),
-                    SizedBox(width: 8),
-                    Text(
-                      'QUICK PICKS FOR YOU',
-                      style: TextStyle(
-                        color: AppTheme.textPrimary,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                  ],
-                ),
-                if (controller.quickPicks.isNotEmpty)
-                  BoxyButton(
-                    label: 'PLAY ALL',
-                    icon: Icons.play_arrow,
-                    isPrimary: false,
-                    onPressed: () => playerController.playSong(
-                      controller.quickPicks.first,
-                      queueContext: controller.quickPicks,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.auto_awesome_rounded, color: AppTheme.blueAccent, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'QUICK PICKS FOR YOU',
+                    style: TextStyle(
+                      color: AppTheme.textWhite,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
                     ),
                   ),
-              ],
-            ),
+                ],
+              ),
+              if (controller.quickPicks.isNotEmpty)
+                BoxyButton(
+                  label: 'PLAY ALL',
+                  icon: Icons.play_arrow_rounded,
+                  isPrimary: false,
+                  onPressed: () => playerController.playSong(
+                    controller.quickPicks.first,
+                    queueContext: controller.quickPicks,
+                  ),
+                ),
+            ],
           ),
+          const SizedBox(height: 12),
 
           // Quick Picks List
           ...controller.quickPicks.asMap().entries.map((entry) {
@@ -206,4 +191,3 @@ class DiscoverView extends StatelessWidget {
     });
   }
 }
-

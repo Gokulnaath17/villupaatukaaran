@@ -31,10 +31,22 @@
   - Lazy: `LibraryPlaylists`, `LIBFAV` (Liked songs), `LIBRP` (Recently played, cap 30), `searchQuery` (cap 10)
 
 ### 5. UI Architecture & Design Language
-- **Boxy Geometry**: `BorderRadius.zero` throughout. AMOLED pure black (`#000000`), dark card surfaces (`#0D0D0D`), 1px borders (`#222222`), and golden yellow accents (`#FFB800`).
-- **Responsive Dual-Pane Desktop Layout**: Left pane (scrollable feed, tabs for Discover, Library, Settings), Right pane (sticky Player Card with live reorderable Queue underneath).
+- **Modern Translucent Glassmorphism (Apple Music Dark Gray to Red Palette)**: Translucent graphite-slate surfaces (`Color(0xE61C1C1E)`, `Color(0x8028282B)`), 14–22px rounded geometry, subtle 1px translucent borders (`Color(0x1AFFFFFF)`), and signature **Apple Music Red** accents (`#FA243C`).
+- **Desktop Architecture (inspired by `mod.png`)**:
+  - **Left Sidebar**: Pure minimal hierarchical navigation with nothing at the top:
+    - **Home** (Spotlight, Albums, Popular tracks)
+    - **Library** (Hierarchical dropdown: All Songs, Downloaded, Cached, Local Files, Liked Songs with live reactive badges)
+    - **Playlists** (Hierarchical dropdown: All Playlists, user playlists, and `+` playlist creator)
+    - **Settings** & **Offline Cache** card (`ready` status, quota usage, quick vault access)
+  - **Main Viewport Area**:
+    - Sleek Top Navigation Bar: Breadcrumb trail (`LIBRARY / DOWNLOADED`), instant search input, and queue toggle.
+    - Hero Artist Spotlight: Cutout silhouette of Tamil Villu Paatu Bard with curved musical bow & bells, verified badge, shuffle, and circular Apple Music Red play button. Quick spotlight pills (Subbu Arumugam, Ilaiyaraaja, AR Rahman, Anirudh).
+    - 5-Album Carousel Row: Vibrant minimalist album cards (Yellow, Cyan, Lavender, Pastel Pink, Mint Teal).
+    - Two-Column Lower Split: Left "Popular" tracks list with active container & EQ; Right 2x2 photographic grid for curated playlists.
+  - **Attached Bottom Player Dock Bar**: Persistent edge-to-edge dock with track info, `Cached ✓` status, transport controls (Shuffle, Previous, Play/Pause, Next, **Repeat Cycle: Off/All/One**), continuous 3px sleek scrubber with white dot thumb indicator, live timestamps, volume slider, and `QUEUE` trigger.
+  - **Slide-Out Queue Drawer**: Slide-out panel displaying Up Next queue with smart preloading indicator for seamless gapless playback.
 - **Song Actions**: Play Next, Add to Queue, Like/Favorite, Add to Playlist, Download for Offline.
-- **Unified Library Screen**: Playlists, Liked Songs, and Cached Tracks in a single multi-tab view.
+- **Unified Library Screen**: Direct category view driven directly by the sidebar navigation hierarchy (All Songs, Downloaded, Cached Tracks, Local Files, Liked Songs, Playlists) without redundant top sub-navigation buttons.
 - **Settings Screen**: Base folder selection (Audio, Video, Cache), auto-cache toggle, and cache limit slider (default 350 songs).
 
 ---
@@ -78,3 +90,7 @@ flutter build linux --release
 
 4. **Hive Map Type Casts**:
    - Hive returns `Map<dynamic, dynamic>`. Always convert to `Map<String, dynamic>.from(data)` before reading/parsing JSON maps.
+
+5. **Safe Int Parsing & Duration Deserialization (`String is not a subtype of type int?`)**:
+   - Upstream services or cache entries may store duration as string (e.g. `"245"` or `"4:05"`).
+   - Solved with `_safeInt(val)` helper across `StreamService`, `SongItem`, `PlaylistItem`, and `CacheService` to safely parse numbers, numeric strings, and `"mm:ss"` formats without casting exceptions.

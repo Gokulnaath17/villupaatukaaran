@@ -140,12 +140,19 @@ class SongItem {
       thumbUrl = map['thumbnails'].last['url']?.toString();
     }
 
-    final vidId = (map['videoId'] ?? map['id'] ?? '') as String;
+    final vidId = (map['videoId'] ?? map['id'] ?? '').toString();
     // Fallback high res thumbnail
     final highThumb = thumbUrl ?? 'https://i.ytimg.com/vi/$vidId/hqdefault.jpg';
 
     final rawDuration = map['duration']?.toString();
-    int durSec = (map['durationSeconds'] as int?) ?? 0;
+    int durSec = 0;
+    if (map['durationSeconds'] is int) {
+      durSec = map['durationSeconds'] as int;
+    } else if (map['durationSeconds'] is num) {
+      durSec = (map['durationSeconds'] as num).toInt();
+    } else if (map['durationSeconds'] != null) {
+      durSec = int.tryParse(map['durationSeconds'].toString()) ?? 0;
+    }
     if (durSec <= 0 && rawDuration != null && rawDuration.isNotEmpty) {
       final parts = rawDuration.split(':').map((p) => int.tryParse(p.trim()) ?? 0).toList();
       if (parts.length == 2) {

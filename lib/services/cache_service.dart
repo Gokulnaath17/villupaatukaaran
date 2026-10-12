@@ -167,7 +167,14 @@ class CacheService extends GetxService {
       }
     }
 
-    entries.sort((a, b) => (a['cachedAt'] as int).compareTo(b['cachedAt'] as int));
+    int safeCachedAt(dynamic val) {
+      if (val is int) return val;
+      if (val is num) return val.toInt();
+      if (val != null) return int.tryParse(val.toString()) ?? 0;
+      return 0;
+    }
+
+    entries.sort((a, b) => safeCachedAt(a['cachedAt']).compareTo(safeCachedAt(b['cachedAt'])));
 
     final toRemove = entries.length - cacheSizeLimit.value;
     for (int i = 0; i < toRemove; i++) {

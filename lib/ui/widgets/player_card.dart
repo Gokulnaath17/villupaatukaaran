@@ -7,7 +7,7 @@ import '../../utils/app_assets.dart';
 import '../theme/theme_controller.dart';
 import 'tamil_bell_loader.dart';
 
-/// Boxy, minimalist now-playing card for the right pane
+/// Modern now-playing card with rounded corners and electric blue accents
 class PlayerCard extends StatelessWidget {
   const PlayerCard({super.key});
 
@@ -39,94 +39,91 @@ class PlayerCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppTheme.cardSurface,
           border: Border.all(
-            color: isPlaying ? AppTheme.yellowAccent : AppTheme.border,
-            width: isPlaying ? 1.5 : 1.0,
+            color: isPlaying ? AppTheme.blueAccent.withOpacity(0.5) : AppTheme.borderSubtle,
+            width: 1.0,
           ),
           boxShadow: isPlaying
               ? [
                   BoxShadow(
-                    color: AppTheme.yellowAccent.withOpacity(0.14),
+                    color: AppTheme.blueGlow,
                     blurRadius: 18,
-                    spreadRadius: 2,
+                    spreadRadius: 1,
                   ),
                 ]
               : null,
-          borderRadius: BorderRadius.zero,
+          borderRadius: AppTheme.radiusLarge,
         ),
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Top Section: Album Artwork with sharp golden border
+            // Top Section: Album Artwork with rounded corners
             AspectRatio(
               aspectRatio: 1.0,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppTheme.black,
-                  border: Border.all(
-                    color: isPlaying ? AppTheme.yellowAccent : AppTheme.border,
-                    width: 1.5,
+              child: ClipRRect(
+                borderRadius: AppTheme.radiusMedium,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF191B26),
+                    border: Border.all(
+                      color: isPlaying ? AppTheme.blueAccent : AppTheme.borderSubtle,
+                      width: 1.0,
+                    ),
                   ),
-                  borderRadius: BorderRadius.zero,
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    if (song?.thumbnailUrl != null && song!.thumbnailUrl!.isNotEmpty)
-                      Image.network(
-                        song.highResThumbnail ?? song.thumbnailUrl!,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                        errorBuilder: (_, __, ___) => Image.asset(
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      if (song?.thumbnailUrl != null && song!.thumbnailUrl!.isNotEmpty)
+                        Image.network(
+                          song.highResThumbnail ?? song.thumbnailUrl!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                          errorBuilder: (_, __, ___) => Image.asset(
+                            AppAssets.defaultCover,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      else
+                        Image.asset(
                           AppAssets.defaultCover,
                           fit: BoxFit.cover,
                         ),
-                      )
-                    else
-                      Image.asset(
-                        AppAssets.defaultCover,
-                        fit: BoxFit.cover,
-                      ),
 
-                    // Live Playing Badge
-                    if (isPlaying && !isBuffering)
-                      Positioned(
-                        top: 8,
-                        left: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.85),
-                            border: Border.all(color: AppTheme.yellowAccent, width: 1),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.graphic_eq, color: AppTheme.yellowAccent, size: 12),
-                              SizedBox(width: 4),
-                              Text(
-                                'PLAYING',
-                                style: TextStyle(
-                                  color: AppTheme.yellowAccent,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 1.0,
-                                ),
+                      // Live Playing Badge
+                      if (isPlaying && !isBuffering)
+                        Positioned(
+                          top: 8,
+                          left: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppTheme.blueAccent,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'PLAYING',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.6,
                               ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
 
-                    // Tamil Bell Loader indicator when buffering
-                    if (isBuffering)
-                      Container(
-                        color: Colors.black.withOpacity(0.6),
-                        child: const TamilBellLoader(size: 48, showGlow: true),
-                      ),
-                  ],
+                      // Buffering indicator
+                      if (isBuffering)
+                        Container(
+                          color: Colors.black54,
+                          child: const Center(
+                            child: TamilBellLoader(size: 40, showGlow: false),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -144,58 +141,56 @@ class PlayerCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: AppTheme.textPrimary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.5,
+                          color: AppTheme.textWhite,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 3),
                       Text(
                         song?.artist ?? 'Select a song to play',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: AppTheme.yellowLight,
-                          fontSize: 13,
+                          color: AppTheme.blueLight,
+                          fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
                   ),
                 ),
-                if (song != null)
-                  IconButton(
-                    icon: Icon(
-                      isLiked ? Icons.favorite : Icons.favorite_border,
-                      color: isLiked ? AppTheme.yellowAccent : AppTheme.textMuted,
-                      size: 22,
-                    ),
-                    onPressed: () => controller.toggleLike(song),
+                IconButton(
+                  icon: Icon(
+                    isLiked ? Icons.favorite : Icons.favorite_border,
+                    color: isLiked ? const Color(0xFFFF3366) : AppTheme.textMuted,
+                    size: 20,
                   ),
+                  splashRadius: 18,
+                  onPressed: () {
+                    if (song != null) controller.toggleLike(song);
+                  },
+                ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
 
             // Progress Slider
             SliderTheme(
               data: SliderTheme.of(context).copyWith(
-                trackHeight: 3,
+                activeTrackColor: AppTheme.blueAccent,
+                inactiveTrackColor: const Color(0xFF2E3347),
+                thumbColor: Colors.white,
+                trackHeight: 3.0,
                 thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
-                overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
-                activeTrackColor: AppTheme.yellowAccent,
-                inactiveTrackColor: AppTheme.border,
-                thumbColor: AppTheme.yellowAccent,
               ),
               child: Slider(
                 value: curSec,
                 min: 0.0,
                 max: maxSec,
-                onChanged: hasDuration
-                    ? (val) {
-                        controller.seek(Duration(seconds: val.toInt()));
-                      }
-                    : null,
+                onChanged: (val) {
+                  controller.seek(Duration(seconds: val.toInt()));
+                },
               ),
             ),
 
@@ -207,76 +202,83 @@ class PlayerCard extends StatelessWidget {
                 children: [
                   Text(
                     _formatDuration(pos),
-                    style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                    style: const TextStyle(color: AppTheme.textMuted, fontSize: 11, fontFamily: 'monospace'),
                   ),
                   Text(
-                    hasDuration ? _formatDuration(dur) : '--:--',
-                    style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                    _formatDuration(dur),
+                    style: const TextStyle(color: AppTheme.textMuted, fontSize: 11, fontFamily: 'monospace'),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
 
-            // Transport Control Buttons
+            // Playback Controls Row
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                // Shuffle Button
+                // Shuffle
                 IconButton(
                   icon: Icon(
-                    Icons.shuffle,
-                    color: isShuffle ? AppTheme.yellowAccent : AppTheme.textMuted,
-                    size: 20,
+                    Icons.shuffle_rounded,
+                    color: isShuffle ? AppTheme.blueAccent : AppTheme.textMuted,
+                    size: 19,
                   ),
-                  splashRadius: 20,
+                  splashRadius: 18,
                   onPressed: controller.toggleShuffle,
                 ),
 
                 // Previous
                 IconButton(
-                  icon: const Icon(Icons.skip_previous, color: AppTheme.textPrimary, size: 26),
-                  splashRadius: 22,
+                  icon: const Icon(Icons.skip_previous_rounded, size: 24, color: AppTheme.textWhite),
+                  splashRadius: 20,
                   onPressed: controller.skipToPrevious,
                 ),
 
-                // Play / Pause Boxy Button
-                InkWell(
-                  onTap: controller.togglePlayPause,
-                  borderRadius: BorderRadius.zero,
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: AppTheme.yellowAccent,
-                      border: Border.all(color: AppTheme.yellowLight, width: 1),
-                      borderRadius: BorderRadius.zero,
-                    ),
-                    child: Icon(
-                      isPlaying ? Icons.pause : Icons.play_arrow,
-                      color: AppTheme.black,
-                      size: 28,
+                // Play / Pause Circle Button
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: controller.togglePlayPause,
+                    borderRadius: BorderRadius.circular(100),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: const BoxDecoration(
+                        gradient: AppTheme.blueGradient,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.blueGlow,
+                            blurRadius: 12,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                        color: Colors.white,
+                        size: 26,
+                      ),
                     ),
                   ),
                 ),
 
                 // Next
                 IconButton(
-                  icon: const Icon(Icons.skip_next, color: AppTheme.textPrimary, size: 26),
-                  splashRadius: 22,
+                  icon: const Icon(Icons.skip_next_rounded, size: 24, color: AppTheme.textWhite),
+                  splashRadius: 20,
                   onPressed: controller.skipToNext,
                 ),
 
-                // Repeat / Loop Button
+                // Loop Mode
                 IconButton(
                   icon: Icon(
-                    loop == LoopMode.one
-                        ? Icons.repeat_one
-                        : (loop == LoopMode.all ? Icons.repeat : Icons.repeat),
-                    color: loop != LoopMode.off ? AppTheme.yellowAccent : AppTheme.textMuted,
-                    size: 20,
+                    loop == LoopMode.one ? Icons.repeat_one_rounded : Icons.repeat_rounded,
+                    color: loop != LoopMode.off ? AppTheme.blueAccent : AppTheme.textMuted,
+                    size: 19,
                   ),
-                  splashRadius: 20,
+                  splashRadius: 18,
                   onPressed: controller.cycleLoopMode,
                 ),
               ],
@@ -287,4 +289,3 @@ class PlayerCard extends StatelessWidget {
     });
   }
 }
-

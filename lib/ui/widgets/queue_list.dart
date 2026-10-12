@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import '../../services/player_controller.dart';
 import '../theme/theme_controller.dart';
 
-/// Live scrollable queue widget placed below the player card
+/// Live scrollable queue widget with rounded geometry and electric blue accent
 class QueueList extends StatelessWidget {
   const QueueList({super.key});
 
@@ -19,32 +19,32 @@ class QueueList extends StatelessWidget {
       return Container(
         decoration: BoxDecoration(
           color: AppTheme.cardSurface,
-          border: Border.all(color: AppTheme.border, width: 1),
-          borderRadius: BorderRadius.zero,
+          border: Border.all(color: AppTheme.borderSubtle, width: 1),
+          borderRadius: AppTheme.radiusLarge,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Queue Header
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: AppTheme.border)),
+                border: Border(bottom: BorderSide(color: AppTheme.borderSubtle)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.queue_music, size: 16, color: AppTheme.yellowAccent),
+                      const Icon(Icons.queue_music_rounded, size: 16, color: AppTheme.blueAccent),
                       const SizedBox(width: 8),
                       Text(
                         'UPCOMING QUEUE (${queue.length})',
                         style: const TextStyle(
-                          color: AppTheme.textPrimary,
+                          color: AppTheme.textWhite,
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          letterSpacing: 0.8,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ],
@@ -52,13 +52,13 @@ class QueueList extends StatelessWidget {
                   if (queue.isNotEmpty)
                     InkWell(
                       onTap: controller.clearQueue,
-                      borderRadius: BorderRadius.zero,
+                      borderRadius: BorderRadius.circular(6),
                       child: const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         child: Text(
                           'CLEAR',
                           style: TextStyle(
-                            color: AppTheme.yellowAccent,
+                            color: AppTheme.blueLight,
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                           ),
@@ -83,89 +83,87 @@ class QueueList extends StatelessWidget {
                       ),
                     )
                   : ListView.builder(
+                      padding: const EdgeInsets.all(8),
                       itemCount: queue.length,
                       itemBuilder: (ctx, index) {
                         final song = queue[index];
                         final isNowPlaying = currentSong?.videoId == song.videoId;
 
-                        return InkWell(
-                          onTap: () => controller.skipToQueueIndex(index),
-                          borderRadius: BorderRadius.zero,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: isNowPlaying
-                                  ? AppTheme.yellowAccent.withOpacity(0.08)
-                                  : Colors.transparent,
-                              border: Border(
-                                bottom: const BorderSide(color: Color(0xFF1A1A1A)),
-                                left: isNowPlaying
-                                    ? const BorderSide(color: AppTheme.yellowAccent, width: 3)
-                                    : BorderSide.none,
+                        return Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => controller.skipToQueueIndex(index),
+                            borderRadius: AppTheme.radiusSmall,
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                              decoration: BoxDecoration(
+                                color: isNowPlaying ? AppTheme.cardActive : Colors.transparent,
+                                borderRadius: AppTheme.radiusSmall,
+                                border: Border.all(
+                                  color: isNowPlaying
+                                      ? AppTheme.blueAccent.withOpacity(0.3)
+                                      : Colors.transparent,
+                                  width: 1,
+                                ),
                               ),
-                            ),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: 20,
-                                  child: isNowPlaying
-                                      ? const Icon(Icons.volume_up, size: 14, color: AppTheme.yellowAccent)
-                                      : Text(
-                                          '${index + 1}',
-                                          style: const TextStyle(
-                                            color: AppTheme.textMuted,
-                                            fontSize: 11,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    isNowPlaying
+                                        ? Icons.volume_up_rounded
+                                        : Icons.drag_indicator_rounded,
+                                    size: 16,
+                                    color: isNowPlaying ? AppTheme.blueAccent : AppTheme.textMuted,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          song.title,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: isNowPlaying
+                                                ? AppTheme.textWhite
+                                                : AppTheme.textPrimary,
+                                            fontSize: 12,
+                                            fontWeight: isNowPlaying
+                                                ? FontWeight.w700
+                                                : FontWeight.w500,
                                           ),
                                         ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        song.title,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          color: isNowPlaying
-                                              ? AppTheme.yellowAccent
-                                              : AppTheme.textPrimary,
-                                          fontSize: 13,
-                                          fontWeight: isNowPlaying ? FontWeight.w700 : FontWeight.w500,
+                                        Text(
+                                          song.artist,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            color: AppTheme.textMuted,
+                                            fontSize: 10.5,
+                                          ),
                                         ),
-                                      ),
-                                      Text(
-                                        song.artist,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          color: AppTheme.textMuted,
-                                          fontSize: 11,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                if (song.duration != null) ...[
-                                  Text(
-                                    song.duration!,
-                                    style: const TextStyle(
-                                      color: AppTheme.textMuted,
-                                      fontSize: 11,
+                                      ],
                                     ),
                                   ),
-                                  const SizedBox(width: 6),
-                                ],
-                                InkWell(
-                                  onTap: () => controller.removeFromQueue(index),
-                                  borderRadius: BorderRadius.zero,
-                                  child: const Padding(
-                                    padding: EdgeInsets.all(4),
-                                    child: Icon(Icons.close, size: 14, color: AppTheme.textMuted),
+                                  if (song.duration != null)
+                                    Text(
+                                      song.duration!,
+                                      style: const TextStyle(
+                                        color: AppTheme.textMuted,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  const SizedBox(width: 4),
+                                  IconButton(
+                                    icon: const Icon(Icons.close_rounded, size: 14),
+                                    color: AppTheme.textMuted,
+                                    splashRadius: 14,
+                                    onPressed: () => controller.removeFromQueue(index),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         );
@@ -178,4 +176,3 @@ class QueueList extends StatelessWidget {
     });
   }
 }
-

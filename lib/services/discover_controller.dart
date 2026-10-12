@@ -176,6 +176,9 @@ class DiscoverController extends GetxController {
   }
 
   /// Execute search query
+  Future<void> search(String query) => performSearch(query);
+
+  /// Execute search query
   Future<void> performSearch(String query) async {
     if (query.trim().isEmpty) return;
 
