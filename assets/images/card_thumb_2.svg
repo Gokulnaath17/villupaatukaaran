@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" fill="none">
+  <defs>
+    <!-- Soft Contact Drop Shadow -->
+    <radialGradient id="shadow2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#002D66" stop-opacity="0.32"/>
+      <stop offset="100%" stop-color="#002D66" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Blue Outer Peel 3D Spherical Gradient -->
+    <radialGradient id="bluePeelGrad" cx="35%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#47A3FF"/>
+      <stop offset="35%" stop-color="#147BFF"/>
+      <stop offset="75%" stop-color="#004EC2"/>
+      <stop offset="100%" stop-color="#002966"/>
+    </radialGradient>
+
+    <!-- Vibrant Juicy Orange Flesh Gradient -->
+    <radialGradient id="orangePulpGrad" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#FFF275"/>
+      <stop offset="30%" stop-color="#FFAE19"/>
+      <stop offset="70%" stop-color="#FA6400"/>
+      <stop offset="100%" stop-color="#D94800"/>
+    </radialGradient>
+
+    <!-- Pith White Ring -->
+    <linearGradient id="pithGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E1EEF7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 1. Contact Drop Shadow -->
+  <ellipse cx="104" cy="204" rx="48" ry="12" fill="url(#shadow2)"/>
+
+  <!-- 2. Back Round Sphere Body (Blue Peel Silhouette) -->
+  <circle cx="95" cy="120" r="54" fill="url(#bluePeelGrad)"/>
+
+  <!-- Specular 3D Highlight on Blue Back Peel -->
+  <ellipse cx="70" cy="95" rx="20" ry="14" fill="#FFFFFF" opacity="0.3" transform="rotate(-25 70 95)"/>
+
+  <!-- 3. Front Sliced Face (Oval Perspective) -->
+  <!-- Outer Blue Rind Rim -->
+  <ellipse cx="112" cy="132" rx="46" ry="52" fill="#003D99"/>
+  <ellipse cx="110" cy="130" rx="44" ry="50" fill="url(#pithGrad)"/>
+  
+  <!-- Pulp Background Wheel -->
+  <ellipse cx="110" cy="130" rx="40" ry="46" fill="url(#orangePulpGrad)"/>
+
+  <!-- Citrus Segments with White Radiating Pith Dividers -->
+  <!-- Center Core -->
+  <ellipse cx="110" cy="130" rx="5" ry="6" fill="#FFFDE6"/>
+
+  <!-- Segment Radiating Lines -->
+  <g stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" opacity="0.85">
+    <line x1="110" y1="130" x2="110" y2="85"/>
+    <line x1="110" y1="130" x2="140" y2="98"/>
+    <line x1="110" y1="130" x2="148" y2="130"/>
+    <line x1="110" y1="130" x2="138" y2="162"/>
+    <line x1="110" y1="130" x2="110" y2="175"/>
+    <line x1="110" y1="130" x2="82" y2="162"/>
+    <line x1="110" y1="130" x2="72" y2="130"/>
+    <line x1="110" y1="130" x2="80" y2="98"/>
+  </g>
+
+  <!-- Segment Internal Glow Droplets -->
+  <g fill="#FFE97F" opacity="0.6">
+    <circle cx="110" cy="104" r="3"/>
+    <circle cx="128" cy="112" r="3"/>
+    <circle cx="134" cy="130" r="3"/>
+    <circle cx="126" cy="148" r="3"/>
+    <circle cx="110" cy="156" r="3"/>
+    <circle cx="94" cy="148" r="3"/>
+    <circle cx="86" cy="130" r="3"/>
+    <circle cx="92" cy="112" r="3"/>
+  </g>
+
+  <!-- Glossy Reflection Sheen across slice -->
+  <path d="M 85 105 Q 110 88 135 110 Q 110 115 85 105 Z" fill="#FFFFFF" opacity="0.25"/>
+</svg>
+

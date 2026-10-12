@@ -333,9 +333,108 @@ class PlayerDockBar extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
 
-                // Volume Icon
-                const Icon(Icons.volume_up_rounded, size: 19, color: AppTheme.textSecondary),
-                const SizedBox(width: 14),
+                // Interactive Volume Slider Group
+                Obx(() {
+                  final vol = controller.volume.value.clamp(0.0, 1.0);
+                  final isMuted = vol <= 0.001;
+
+                  IconData volIcon;
+                  if (isMuted) {
+                    volIcon = Icons.volume_off_rounded;
+                  } else if (vol < 0.5) {
+                    volIcon = Icons.volume_down_rounded;
+                  } else {
+                    volIcon = Icons.volume_up_rounded;
+                  }
+
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Mute / Unmute Button
+                      IconButton(
+                        icon: Icon(
+                          volIcon,
+                          size: 19,
+                          color: isMuted ? AppTheme.textMuted : AppTheme.textSecondary,
+                        ),
+                        splashRadius: 16,
+                        tooltip: isMuted ? 'Unmute' : 'Mute',
+                        onPressed: controller.toggleMute,
+                      ),
+                      // Volume Slider Rail with White Thumb
+                      SizedBox(
+                        width: 80,
+                        child: LayoutBuilder(
+                          builder: (ctx, constraints) {
+                            final sliderWidth = constraints.maxWidth;
+                            return GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onHorizontalDragUpdate: (details) {
+                                final localX = details.localPosition.dx.clamp(0.0, sliderWidth);
+                                controller.setVolume(localX / sliderWidth);
+                              },
+                              onTapDown: (details) {
+                                final localX = details.localPosition.dx.clamp(0.0, sliderWidth);
+                                controller.setVolume(localX / sliderWidth);
+                              },
+                              child: Tooltip(
+                                message: 'Volume: ${(vol * 100).round()}%',
+                                child: SizedBox(
+                                  height: 30, // expanded tap target
+                                  child: Stack(
+                                    alignment: Alignment.centerLeft,
+                                    children: [
+                                      // Background track
+                                      Container(
+                                        width: sliderWidth,
+                                        height: 3,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF2E3347),
+                                          borderRadius: BorderRadius.circular(100),
+                                        ),
+                                      ),
+                                      // Active Fill
+                                      Container(
+                                        width: sliderWidth * vol,
+                                        height: 3,
+                                        decoration: BoxDecoration(
+                                          color: isMuted ? AppTheme.textMuted : Colors.white,
+                                          borderRadius: BorderRadius.circular(100),
+                                        ),
+                                      ),
+                                      // White Thumb
+                                      Positioned(
+                                        left: (sliderWidth * vol - 4.0).clamp(0.0, sliderWidth - 8.0),
+                                        child: Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: BoxDecoration(
+                                            color: isMuted ? AppTheme.textMuted : Colors.white,
+                                            shape: BoxShape.circle,
+                                            boxShadow: isMuted
+                                                ? null
+                                                : [
+                                                    BoxShadow(
+                                                      color: Colors.white.withOpacity(0.8),
+                                                      blurRadius: 4,
+                                                      spreadRadius: 1,
+                                                    ),
+                                                  ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                    ],
+                  );
+                }),
 
                 // QUEUE (N) Toggle Pill Button
                 InkWell(

@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" fill="none">
+  <defs>
+    <!-- Soft Contact Drop Shadow -->
+    <radialGradient id="shadow1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    
+    <!-- Waffle Cone Gradient -->
+    <linearGradient id="coneGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#E59850"/>
+      <stop offset="50%" stop-color="#D17B33"/>
+      <stop offset="100%" stop-color="#9C4C10"/>
+    </linearGradient>
+
+    <!-- Pineapple Body Gradient -->
+    <radialGradient id="pineappleGrad" cx="40%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#FFE066"/>
+      <stop offset="45%" stop-color="#F5B316"/>
+      <stop offset="85%" stop-color="#C77700"/>
+      <stop offset="100%" stop-color="#8F4800"/>
+    </radialGradient>
+
+    <!-- Leaves Gradient -->
+    <linearGradient id="leafGrad1" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#1B662C"/>
+      <stop offset="60%" stop-color="#279641"/>
+      <stop offset="100%" stop-color="#55D172"/>
+    </linearGradient>
+    <linearGradient id="leafGrad2" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#144D21"/>
+      <stop offset="70%" stop-color="#1E7A33"/>
+      <stop offset="100%" stop-color="#40B35A"/>
+    </linearGradient>
+
+    <!-- Sunglasses Red Frame -->
+    <linearGradient id="glassesRed" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF4D6D"/>
+      <stop offset="60%" stop-color="#E60026"/>
+      <stop offset="100%" stop-color="#99001A"/>
+    </linearGradient>
+
+    <!-- Sunglasses Lens -->
+    <linearGradient id="lensGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2A2A2A"/>
+      <stop offset="100%" stop-color="#0D0D0D"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 1. Contact Drop Shadow -->
+  <ellipse cx="100" cy="226" rx="32" ry="7" fill="url(#shadow1)"/>
+
+  <!-- 2. Pineapple Crown Leaves (Back & Front) -->
+  <!-- Back Leaves -->
+  <path d="M 100 100 Q 82 50 68 38 Q 80 58 92 92 Z" fill="url(#leafGrad2)"/>
+  <path d="M 100 100 Q 118 50 132 38 Q 120 58 108 92 Z" fill="url(#leafGrad2)"/>
+  <path d="M 100 95 Q 100 40 92 22 Q 104 45 102 92 Z" fill="url(#leafGrad2)"/>
+  <!-- Front Center Leaves -->
+  <path d="M 98 100 Q 75 60 82 32 Q 92 62 100 95 Z" fill="url(#leafGrad1)"/>
+  <path d="M 102 100 Q 125 60 118 32 Q 108 62 100 95 Z" fill="url(#leafGrad1)"/>
+  <path d="M 100 98 Q 100 50 100 24 Q 106 55 102 98 Z" fill="url(#leafGrad1)"/>
+
+  <!-- 3. Pineapple Fruit Body -->
+  <ellipse cx="100" cy="120" rx="34" ry="40" fill="url(#pineappleGrad)"/>
+  
+  <!-- Texture Diamonds on Pineapple -->
+  <g stroke="#9E5900" stroke-width="1.2" opacity="0.38" stroke-linecap="round">
+    <line x1="78" y1="102" x2="122" y2="138"/>
+    <line x1="72" y1="118" x2="128" y2="154"/>
+    <line x1="82" y1="92" x2="118" y2="122"/>
+    <line x1="122" y1="102" x2="78" y2="138"/>
+    <line x1="128" y1="118" x2="72" y2="154"/>
+    <line x1="118" y1="92" x2="82" y2="122"/>
+  </g>
+
+  <!-- 4. Waffle Cone -->
+  <path d="M 72 138 Q 100 148 128 138 L 102 224 Q 100 227 98 224 Z" fill="url(#coneGrad)"/>
+  <!-- Cone Waffle Lines -->
+  <g stroke="#803D0C" stroke-width="1.2" opacity="0.45" stroke-linecap="round">
+    <line x1="78" y1="146" x2="108" y2="200"/>
+    <line x1="88" y1="148" x2="114" y2="180"/>
+    <line x1="122" y1="146" x2="92" y2="200"/>
+    <line x1="112" y1="148" x2="86" y2="180"/>
+    <line x1="75" y1="165" x2="103" y2="216"/>
+    <line x1="125" y1="165" x2="97" y2="216"/>
+  </g>
+  <!-- Cone Rim Shadow & Highlight -->
+  <path d="M 72 138 Q 100 148 128 138" stroke="#FFE0B2" stroke-width="2" fill="none" opacity="0.4"/>
+
+  <!-- 5. Sunglasses (Sitting across the pineapple) -->
+  <!-- Left Frame -->
+  <circle cx="86" cy="116" r="14" fill="url(#glassesRed)"/>
+  <circle cx="86" cy="116" r="10.5" fill="url(#lensGrad)"/>
+  <!-- Left Lens Glare Reflection -->
+  <path d="M 80 110 Q 86 108 92 112" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.6"/>
+
+  <!-- Right Frame -->
+  <circle cx="114" cy="116" r="14" fill="url(#glassesRed)"/>
+  <circle cx="114" cy="116" r="10.5" fill="url(#lensGrad)"/>
+  <!-- Right Lens Glare Reflection -->
+  <path d="M 108 110 Q 114 108 120 112" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.6"/>
+
+  <!-- Bridge between eyes -->
+  <path d="M 98 114 Q 100 111 102 114" stroke="url(#glassesRed)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  
+  <!-- Sunglasses subtle drop shadow on fruit -->
+  <ellipse cx="86" cy="132" rx="12" ry="3" fill="#663300" opacity="0.25"/>
+  <ellipse cx="114" cy="132" rx="12" ry="3" fill="#663300" opacity="0.25"/>
+</svg>
+

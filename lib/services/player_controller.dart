@@ -229,6 +229,28 @@ class PlayerController extends GetxController {
     loopMode.value = mode;
   }
 
+  double _lastNonZeroVolume = 1.0;
+
+  /// Action: Set Volume (0.0 to 1.0)
+  Future<void> setVolume(double val) async {
+    final clamped = val.clamp(0.0, 1.0);
+    volume.value = clamped;
+    if (clamped > 0.0) {
+      _lastNonZeroVolume = clamped;
+    }
+    await _audioHandler.setVolume(clamped);
+  }
+
+  /// Action: Toggle Mute
+  Future<void> toggleMute() async {
+    if (volume.value > 0.001) {
+      _lastNonZeroVolume = volume.value;
+      await setVolume(0.0);
+    } else {
+      await setVolume(_lastNonZeroVolume > 0.0 ? _lastNonZeroVolume : 0.8);
+    }
+  }
+
   /// Action: Toggle Favorite / Like
   Future<void> toggleLike(SongItem song) async {
     final isFav = likedSongIds.contains(song.videoId);

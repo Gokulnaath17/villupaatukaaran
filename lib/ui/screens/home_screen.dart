@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
 import '../../models/song_item.dart';
@@ -1149,7 +1150,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// 5-Album Carousel Row (matching mod.png colors & layout)
+  /// 5-Album Carousel Row (matching mod.png colors & layout with transparent thumbnail images)
   Widget _buildAlbumCarouselRow() {
     return Row(
       children: [
@@ -1157,7 +1158,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: _buildAlbumCard(
             title: 'Villisai Paamalai',
             year: '1982',
-            icon: Icons.music_video_rounded,
+            svgAsset: AppAssets.cardThumb1,
             color: AppTheme.albumYellow,
             query: 'Subbu Arumugam Villisai',
           ),
@@ -1167,7 +1168,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: _buildAlbumCard(
             title: 'Gaana Ulagam',
             year: '2024',
-            icon: Icons.headset_rounded,
+            svgAsset: AppAssets.cardThumb2,
             color: AppTheme.albumCyan,
             query: 'Chennai Gaana Songs',
           ),
@@ -1177,7 +1178,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: _buildAlbumCard(
             title: 'Raaja Kaatril',
             year: '1989',
-            icon: Icons.graphic_eq_rounded,
+            svgAsset: AppAssets.cardThumb3,
             color: AppTheme.albumLavender,
             query: 'Ilaiyaraaja 80s Hits',
           ),
@@ -1187,7 +1188,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: _buildAlbumCard(
             title: 'Thalapathi Beats',
             year: '2023',
-            icon: Icons.bolt_rounded,
+            svgAsset: AppAssets.cardThumb4,
             color: AppTheme.albumPink,
             query: 'Anirudh Hits',
           ),
@@ -1197,7 +1198,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: _buildAlbumCard(
             title: 'Gramaathu Isai',
             year: '2021',
-            icon: Icons.festival_rounded,
+            svgAsset: AppAssets.cardThumb5,
             color: AppTheme.albumMint,
             query: 'Tamil Village Folk Songs',
           ),
@@ -1209,7 +1210,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildAlbumCard({
     required String title,
     required String year,
-    required IconData icon,
+    required String svgAsset,
     required Color color,
     required String query,
   }) {
@@ -1239,8 +1240,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-                child: Center(
-                  child: Icon(icon, size: 36, color: Colors.black.withOpacity(0.75)),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: SvgPicture.asset(
+                    svgAsset,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),

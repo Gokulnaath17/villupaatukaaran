@@ -273,6 +273,11 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> seek(Duration position) => _player.seek(position);
 
+  /// Set player volume (0.0 to 1.0)
+  Future<void> setVolume(double volume) async {
+    await _player.setVolume(volume.clamp(0.0, 1.0));
+  }
+
   @override
   Future<void> skipToNext() async {
     final nextIndex = _currentQueueIndex + 1;

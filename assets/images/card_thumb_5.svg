@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" fill="none">
+  <defs>
+    <!-- Soft Contact Drop Shadow -->
+    <radialGradient id="shadow5" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1F4D4A" stop-opacity="0.32"/>
+      <stop offset="100%" stop-color="#1F4D4A" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Glowing Yellow Bulb Radial Spherical Gradient -->
+    <radialGradient id="bulbGrad" cx="38%" cy="32%" r="65%">
+      <stop offset="0%" stop-color="#FFFFB3"/>
+      <stop offset="30%" stop-color="#FFE838"/>
+      <stop offset="70%" stop-color="#F5B800"/>
+      <stop offset="90%" stop-color="#DE8C00"/>
+      <stop offset="100%" stop-color="#B86E00"/>
+    </radialGradient>
+
+    <!-- Ambient Bulb Glow -->
+    <radialGradient id="ambientGlow" cx="45%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#FFE600" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#FFE600" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Metallic Screw Base Gradient -->
+    <linearGradient id="metalBaseGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7A848F"/>
+      <stop offset="35%" stop-color="#D9E0E8"/>
+      <stop offset="65%" stop-color="#FFFFFF"/>
+      <stop offset="85%" stop-color="#A4AFBA"/>
+      <stop offset="100%" stop-color="#616A73"/>
+    </linearGradient>
+
+    <!-- Base Thread Ridges -->
+    <linearGradient id="threadGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#4F565E"/>
+      <stop offset="40%" stop-color="#9EABB8"/>
+      <stop offset="70%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#545B63"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 1. Contact Drop Shadow -->
+  <ellipse cx="106" cy="216" rx="46" ry="12" fill="url(#shadow5)"/>
+
+  <!-- Tilted Bulb Group (like in mod.png tilted slightly) -->
+  <g transform="rotate(16 100 125)">
+    <!-- Ambient Halo Glow behind Glass -->
+    <circle cx="95" cy="85" r="58" fill="url(#ambientGlow)"/>
+
+    <!-- 2. Metallic Screw Base (Threads) -->
+    <!-- Base Body -->
+    <path d="M 80 135 L 82 178 Q 95 186 108 178 L 110 135 Z" fill="url(#metalBaseGrad)"/>
+    <!-- Thread Rings -->
+    <ellipse cx="95" cy="144" rx="14.5" ry="3.5" fill="url(#threadGrad)"/>
+    <ellipse cx="95" cy="154" rx="14" ry="3.5" fill="url(#threadGrad)"/>
+    <ellipse cx="95" cy="164" rx="13.5" ry="3.5" fill="url(#threadGrad)"/>
+    <ellipse cx="95" cy="174" rx="12.5" ry="3.2" fill="url(#threadGrad)"/>
+    <!-- Black Contact Foot -->
+    <path d="M 88 178 Q 95 188 102 178 Z" fill="#2E3338"/>
+
+    <!-- 3. Pear-shaped Yellow Glass Bulb -->
+    <path d="M 80 136 C 68 122, 52 108, 52 82 C 52 48, 72 26, 95 26 C 118 26, 138 48, 138 82 C 138 108, 122 122, 110 136 Z" fill="url(#bulbGrad)"/>
+
+    <!-- Specular Gloss Sheen / Reflection on Bulb -->
+    <path d="M 70 50 Q 82 36 104 38 Q 90 46 80 68 Q 72 70 70 50 Z" fill="#FFFFFF" opacity="0.6"/>
+    <ellipse cx="74" cy="58" rx="6" ry="10" fill="#FFFFFF" opacity="0.75" transform="rotate(-20 74 58)"/>
+
+    <!-- Subtle Filament Silhouette inside Glass -->
+    <path d="M 90 120 L 90 95 L 85 88 L 95 82 L 105 88 L 100 95 L 100 120" stroke="#B87300" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.45"/>
+    <circle cx="85" cy="88" r="1.5" fill="#FFE57F" opacity="0.6"/>
+    <circle cx="105" cy="88" r="1.5" fill="#FFE57F" opacity="0.6"/>
+  </g>
+</svg>
+
