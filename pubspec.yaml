@@ -1,0 +1,94 @@
+name: villupaatukaaran
+description: "Harmony Music Clone - YouTube Music client without login/ads"
+publish_to: 'none'
+version: 1.12.2+27
+
+environment:
+  sdk: ^3.5.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Core architecture
+  get: ^4.6.6
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  path_provider: ^2.1.2
+
+  # Playback engine
+  just_audio: ^0.9.36
+  audio_service: ^0.18.12
+  just_audio_media_kit: ^2.1.0
+  media_kit: ^1.1.11
+  media_kit_libs_video: ^1.0.7
+  media_kit_libs_audio: ^1.0.7
+
+  # Networking
+  dio: ^5.4.3+1
+  http: ^1.2.1
+
+  # YouTube stream resolution (forked youtube_explode_dart)
+  # We'll use the standard one for now, may need fork later
+  youtube_explode_dart: ^3.0.0
+
+  # Permissions & platform
+  permission_handler: ^12.0.3
+  wakelock_plus: ^1.2.8
+  share_plus: ^12.0.2
+  url_launcher: ^6.2.5
+  app_links: ^6.3.0
+  package_info_plus: ^9.0.1
+  device_info_plus: ^11.3.0
+
+  # Desktop platform integrations
+  window_manager: ^0.5.2
+  tray_manager: ^0.5.3
+  smtc_windows: ^1.0.0
+  audio_service_mpris: ^0.2.1
+
+  # Localization
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.19.0
+
+  # UI & theming
+  google_fonts: ^6.2.1
+  palette_generator: ^0.3.3+3
+  
+  shimmer: ^3.0.0
+  marquee: ^2.3.0
+  flutter_slidable: ^3.0.1
+  flutter_svg: ^2.0.10
+  cached_network_image: ^3.3.1
+
+  # Lyrics
+  flutter_lyric: ^4.0.0
+
+  # File handling
+  file_picker: ^11.0.3
+  archive: ^4.5.1
+  path: ^1.9.0
+
+  # Utils
+  equatable: ^3.0.0
+  collection: ^1.18.0
+  crypto: ^3.0.3
+  convert: ^3.1.1
+
+  # Background processing
+  flutter_isolate: ^2.0.4
+  sliding_up_panel: ^2.0.0+1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  hive_generator: ^2.0.1
+  build_runner: ^2.4.8
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
