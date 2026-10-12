@@ -31,8 +31,9 @@ class PlayerCard extends StatelessWidget {
       final loop = controller.loopMode.value;
       final isLiked = song != null ? controller.isLiked(song.videoId) : false;
 
-      final maxSec = dur.inSeconds > 0 ? dur.inSeconds.toDouble() : 1.0;
-      final curSec = pos.inSeconds.toDouble().clamp(0.0, maxSec);
+      final hasDuration = dur.inSeconds > 0;
+      final maxSec = hasDuration ? dur.inSeconds.toDouble() : 1.0;
+      final curSec = hasDuration ? pos.inSeconds.toDouble().clamp(0.0, maxSec) : 0.0;
 
       return Container(
         decoration: BoxDecoration(
@@ -190,9 +191,11 @@ class PlayerCard extends StatelessWidget {
                 value: curSec,
                 min: 0.0,
                 max: maxSec,
-                onChanged: (val) {
-                  controller.seek(Duration(seconds: val.toInt()));
-                },
+                onChanged: hasDuration
+                    ? (val) {
+                        controller.seek(Duration(seconds: val.toInt()));
+                      }
+                    : null,
               ),
             ),
 
@@ -207,7 +210,7 @@ class PlayerCard extends StatelessWidget {
                     style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
                   ),
                   Text(
-                    _formatDuration(dur),
+                    hasDuration ? _formatDuration(dur) : '--:--',
                     style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
                   ),
                 ],

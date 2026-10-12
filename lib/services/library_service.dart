@@ -10,6 +10,7 @@ import '../models/song_item.dart';
 class LibraryService extends GetxService {
   late Box _playlistBox;
   late Box _favBox;
+  late Box _cacheBox;
   late CacheService _cacheService;
 
   final RxList<PlaylistItem> playlists = <PlaylistItem>[].obs;
@@ -25,7 +26,16 @@ class LibraryService extends GetxService {
         ? Hive.box(Constant.boxLibFav)
         : await Hive.openBox(Constant.boxLibFav);
 
+    _cacheBox = Hive.isBoxOpen(Constant.boxSongsCache)
+        ? Hive.box(Constant.boxSongsCache)
+        : await Hive.openBox(Constant.boxSongsCache);
+
     _cacheService = Get.find<CacheService>();
+
+    // Live box watchers to keep reactive lists synchronized automatically
+    _favBox.watch().listen((_) => loadLikedSongs());
+    _cacheBox.watch().listen((_) => loadCachedSongs());
+    _playlistBox.watch().listen((_) => loadPlaylists());
 
     await refreshAll();
     return this;

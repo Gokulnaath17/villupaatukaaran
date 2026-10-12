@@ -8,6 +8,7 @@ import 'package:just_audio/just_audio.dart';
 import 'audio_handler.dart';
 import 'cache_service.dart';
 import 'constant.dart';
+import 'library_service.dart';
 import 'music_service.dart';
 import '../models/song_item.dart';
 
@@ -31,6 +32,7 @@ class PlayerController extends GetxController {
   final RxSet<String> likedSongIds = <String>{}.obs;
 
   StreamSubscription? _posSub;
+  StreamSubscription? _durSub;
   StreamSubscription? _stateSub;
   StreamSubscription? _mediaSub;
   StreamSubscription? _queueSub;
@@ -105,6 +107,13 @@ class PlayerController extends GetxController {
     // Listen to player position directly for smooth 60fps slider
     _posSub = _audioHandler.player.positionStream.listen((pos) {
       position.value = pos;
+    });
+
+    // Listen to real stream duration from audio player
+    _durSub = _audioHandler.player.durationStream.listen((dur) {
+      if (dur != null && dur > Duration.zero) {
+        duration.value = dur;
+      }
     });
 
     // Listen to player volume
@@ -235,6 +244,11 @@ class PlayerController extends GetxController {
     if (currentSong.value?.videoId == song.videoId) {
       currentSong.value = currentSong.value?.copyWith(isLiked: !isFav);
     }
+
+    // Refresh LibraryService liked list immediately
+    if (Get.isRegistered<LibraryService>()) {
+      Get.find<LibraryService>().loadLikedSongs();
+    }
   }
 
   bool isLiked(String videoId) => likedSongIds.contains(videoId);
@@ -271,6 +285,7 @@ class PlayerController extends GetxController {
   @override
   void onClose() {
     _posSub?.cancel();
+    _durSub?.cancel();
     _stateSub?.cancel();
     _mediaSub?.cancel();
     _queueSub?.cancel();

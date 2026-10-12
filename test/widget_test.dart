@@ -29,6 +29,35 @@ void main() {
       expect(restored.thumbnailUrl, 'https://example.com/thumb.jpg');
     });
 
+    test('SongItem.fromJson parses duration strings when durationSeconds is absent', () {
+      final json1 = {
+        'videoId': 'vid_dur_1',
+        'title': 'Song 1',
+        'duration': '4:15',
+      };
+      final item1 = SongItem.fromJson(json1);
+      expect(item1.durationSeconds, 255);
+      expect(item1.duration, '4:15');
+      expect(item1.toMediaItem().duration?.inSeconds, 255);
+
+      final json2 = {
+        'videoId': 'vid_dur_2',
+        'title': 'Long Track',
+        'duration': '1:10:20',
+      };
+      final item2 = SongItem.fromJson(json2);
+      expect(item2.durationSeconds, 4220);
+      expect(item2.toMediaItem().duration?.inSeconds, 4220);
+
+      final json3 = {
+        'videoId': 'vid_dur_3',
+        'title': 'Unknown Track',
+      };
+      final item3 = SongItem.fromJson(json3);
+      expect(item3.durationSeconds, 0);
+      expect(item3.toMediaItem().duration, isNull);
+    });
+
     test('SongItem MediaItem mapping roundtrip', () {
       const song = SongItem(
         videoId: 'vid_456',

@@ -87,6 +87,9 @@ class CacheService extends GetxService {
   /// Auto-cache a song in the background for fast replay
   Future<void> autoCacheSong(SongItem song, String audioUrl) async {
     if (!autoCacheEnabled.value) return;
+    if (audioUrl.startsWith('file://') || audioUrl.startsWith('/')) {
+      return; // Already a local file
+    }
     if (_cacheBox.containsKey(song.videoId) || _downloadsBox.containsKey(song.videoId)) {
       return; // Already cached or downloaded
     }
@@ -96,26 +99,31 @@ class CacheService extends GetxService {
       final fileName = '${song.videoId}.$ext';
       final savePath = '${cacheDir.value}/$fileName';
 
-      // Download audio stream chunk in background
+      // Download audio stream in background with proper headers
       await _dio.download(
         audioUrl,
         savePath,
+        options: Options(headers: {
+          'User-Agent': Constant.innertubeUserAgent,
+        }),
         deleteOnError: true,
       );
 
       final file = File(savePath);
-      final fileSize = await file.length();
+      if (await file.exists()) {
+        final fileSize = await file.length();
 
-      // Record in cache box
-      await _cacheBox.put(song.videoId, {
-        ...song.toJson(),
-        'filePath': savePath,
-        'cachedAt': DateTime.now().millisecondsSinceEpoch,
-        'sizeBytes': fileSize,
-      });
+        // Record in cache box
+        await _cacheBox.put(song.videoId, {
+          ...song.toJson(),
+          'filePath': savePath,
+          'cachedAt': DateTime.now().millisecondsSinceEpoch,
+          'sizeBytes': fileSize,
+        });
 
-      await enforceCacheLimit();
-      await updateCacheStats();
+        await enforceCacheLimit();
+        await updateCacheStats();
+      }
     } catch (e) {
       debugPrint('[CacheService] Auto-cache error for ${song.title}: $e');
     }

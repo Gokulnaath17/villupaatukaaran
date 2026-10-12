@@ -78,6 +78,28 @@ class SongItem {
   }
 
   factory SongItem.fromJson(Map<dynamic, dynamic> json) {
+    final rawDuration = json['duration']?.toString();
+    int durSec = 0;
+    if (json['durationSeconds'] is int) {
+      durSec = json['durationSeconds'] as int;
+    } else if (json['durationSeconds'] != null) {
+      durSec = int.tryParse(json['durationSeconds'].toString()) ?? 0;
+    }
+
+    if (durSec <= 0 && rawDuration != null && rawDuration.isNotEmpty) {
+      final parts = rawDuration.split(':').map((p) => int.tryParse(p.trim()) ?? 0).toList();
+      if (parts.length == 2) {
+        durSec = parts[0] * 60 + parts[1];
+      } else if (parts.length == 3) {
+        durSec = parts[0] * 3600 + parts[1] * 60 + parts[2];
+      }
+    }
+
+    final formattedDuration = rawDuration ??
+        (durSec > 0
+            ? '${durSec ~/ 60}:${(durSec % 60).toString().padLeft(2, '0')}'
+            : null);
+
     return SongItem(
       videoId: (json['videoId'] ?? json['id'] ?? '') as String,
       title: (json['title'] ?? 'Unknown') as String,
@@ -87,10 +109,8 @@ class SongItem {
               .join(', ')
           : (json['artist'] ?? 'Unknown Artist').toString(),
       album: json['album']?.toString(),
-      duration: json['duration']?.toString(),
-      durationSeconds: (json['durationSeconds'] ?? 0) is int
-          ? json['durationSeconds'] as int
-          : int.tryParse(json['durationSeconds']?.toString() ?? '0') ?? 0,
+      duration: formattedDuration,
+      durationSeconds: durSec,
       thumbnailUrl: json['thumbnailUrl']?.toString() ??
           (json['thumbnail'] is Map ? json['thumbnail']['url']?.toString() : null),
       highResThumbnail: json['highResThumbnail']?.toString(),
@@ -124,13 +144,29 @@ class SongItem {
     // Fallback high res thumbnail
     final highThumb = thumbUrl ?? 'https://i.ytimg.com/vi/$vidId/hqdefault.jpg';
 
+    final rawDuration = map['duration']?.toString();
+    int durSec = (map['durationSeconds'] as int?) ?? 0;
+    if (durSec <= 0 && rawDuration != null && rawDuration.isNotEmpty) {
+      final parts = rawDuration.split(':').map((p) => int.tryParse(p.trim()) ?? 0).toList();
+      if (parts.length == 2) {
+        durSec = parts[0] * 60 + parts[1];
+      } else if (parts.length == 3) {
+        durSec = parts[0] * 3600 + parts[1] * 60 + parts[2];
+      }
+    }
+
+    final formattedDuration = rawDuration ??
+        (durSec > 0
+            ? '${durSec ~/ 60}:${(durSec % 60).toString().padLeft(2, '0')}'
+            : null);
+
     return SongItem(
       videoId: vidId,
       title: (map['title'] ?? 'Unknown Track').toString(),
       artist: artistName.isEmpty ? 'Unknown Artist' : artistName,
       album: map['album']?.toString(),
-      duration: map['duration']?.toString(),
-      durationSeconds: (map['durationSeconds'] as int?) ?? 0,
+      duration: formattedDuration,
+      durationSeconds: durSec,
       thumbnailUrl: thumbUrl ?? highThumb,
       highResThumbnail: highThumb,
       url: map['url']?.toString(),
@@ -144,7 +180,7 @@ class SongItem {
       title: title,
       artist: artist,
       album: album,
-      duration: Duration(seconds: durationSeconds),
+      duration: durationSeconds > 0 ? Duration(seconds: durationSeconds) : null,
       artUri: thumbnailUrl != null ? Uri.tryParse(thumbnailUrl!) : null,
       extras: {
         'highResThumbnail': highResThumbnail,

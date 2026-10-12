@@ -22,6 +22,14 @@ class _LibraryViewState extends State<LibraryView> {
   PlaylistItem? _viewingPlaylist;
 
   @override
+  void initState() {
+    super.initState();
+    if (Get.isRegistered<LibraryService>()) {
+      Get.find<LibraryService>().refreshAll();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final libraryService = Get.find<LibraryService>();
     final playerController = Get.find<PlayerController>();
@@ -35,9 +43,9 @@ class _LibraryViewState extends State<LibraryView> {
           ),
           child: Row(
             children: [
-              _buildTabButton('PLAYLISTS', 0, Icons.queue_music),
-              _buildTabButton('LIKED SONGS', 1, Icons.favorite),
-              _buildTabButton('CACHED TRACKS', 2, Icons.offline_pin),
+              _buildTabButton('PLAYLISTS', 0, Icons.queue_music, libraryService),
+              _buildTabButton('LIKED SONGS', 1, Icons.favorite, libraryService),
+              _buildTabButton('CACHED TRACKS', 2, Icons.offline_pin, libraryService),
             ],
           ),
         ),
@@ -66,7 +74,7 @@ class _LibraryViewState extends State<LibraryView> {
     );
   }
 
-  Widget _buildTabButton(String label, int index, IconData icon) {
+  Widget _buildTabButton(String label, int index, IconData icon, LibraryService libraryService) {
     final isSelected = _selectedTab == index && _viewingPlaylist == null;
 
     return Expanded(
@@ -76,6 +84,7 @@ class _LibraryViewState extends State<LibraryView> {
             _selectedTab = index;
             _viewingPlaylist = null;
           });
+          libraryService.refreshAll();
         },
         borderRadius: BorderRadius.zero,
         child: Container(

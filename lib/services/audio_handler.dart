@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:just_audio/just_audio.dart';
 
+import 'cache_service.dart';
 import 'constant.dart';
 import 'stream_service.dart';
 import '../models/song_item.dart';
@@ -17,6 +18,7 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   // Stale-request guard for rapid song switching
   int _currentRequestId = 0;
   int _currentQueueIndex = 0;
+  String? _preloadedVideoId;
 
   AudioPlayer get player => _player;
   int get currentQueueIndex => _currentQueueIndex;
@@ -33,12 +35,60 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     // Listen to player state and broadcast through audio_service
     _player.playbackEventStream.listen(_broadcastState);
 
+    // Listen to true decoded stream duration from player and patch mediaItem
+    _player.durationStream.listen((dur) {
+      if (dur != null && dur > Duration.zero) {
+        final current = mediaItem.value;
+        if (current != null && current.duration != dur) {
+          mediaItem.add(current.copyWith(duration: dur));
+        }
+      }
+    });
+
+    // Seamless preloading: when current track is near end (< 20s remaining), preload next in queue
+    _player.positionStream.listen((pos) {
+      final dur = _player.duration;
+      if (dur != null && dur > const Duration(seconds: 30)) {
+        final remaining = dur - pos;
+        if (remaining < const Duration(seconds: 20) && remaining > Duration.zero) {
+          _preloadNextInQueue();
+        }
+      }
+    });
+
     // Listen to player completion
     _player.processingStateStream.listen((state) {
       if (state == ProcessingState.completed) {
         skipToNext();
       }
     });
+  }
+
+  /// Preload next song in queue for seamless transition
+  Future<void> _preloadNextInQueue() async {
+    final nextIndex = _currentQueueIndex + 1;
+    final q = queue.value;
+    if (nextIndex < q.length) {
+      final nextItem = q[nextIndex];
+      if (_preloadedVideoId == nextItem.id) return;
+      _preloadedVideoId = nextItem.id;
+
+      try {
+        debugPrint('[AudioHandler] Preloading upcoming track: ${nextItem.title}');
+        final streamData = await _streamService.getStreamingData(nextItem.id);
+        final nextUrl = streamData.high?.url ?? streamData.low?.url;
+        if (nextUrl != null && !nextUrl.startsWith('file://')) {
+          if (Get.isRegistered<CacheService>()) {
+            Get.find<CacheService>().autoCacheSong(
+              SongItem.fromMediaItem(nextItem),
+              nextUrl,
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint('[AudioHandler] Preload error: $e');
+      }
+    }
   }
 
   /// Broadcast current playback state to audio_service
@@ -84,13 +134,19 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final targetItem = queue.value[index];
     _currentQueueIndex = index;
 
+    // Immediately stop previous audio so old song doesn't keep playing while resolving next
+    try {
+      await _player.pause();
+    } catch (_) {}
+
     // Update current mediaItem immediately for responsive UI
     mediaItem.add(targetItem);
 
-    // Notify buffering state
+    // Notify buffering state immediately and reset position
     playbackState.add(playbackState.value.copyWith(
       processingState: AudioProcessingState.buffering,
       playing: true,
+      updatePosition: Duration.zero,
       queueIndex: index,
     ));
 
@@ -112,6 +168,9 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         throw Exception('Failed to resolve audio stream URL');
       }
 
+      // Check if another request superseded this one while resolving URL
+      if (reqId != _currentRequestId) return;
+
       // Check if source is a local file
       AudioSource source;
       if (url.startsWith('/') || url.startsWith('file://')) {
@@ -122,7 +181,16 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       }
 
       await _player.setAudioSource(source);
+
+      // Check once more before starting playback
+      if (reqId != _currentRequestId) return;
       await _player.play();
+
+      // Trigger background auto-cache for instant re-playback
+      if (Get.isRegistered<CacheService>()) {
+        final songItem = SongItem.fromMediaItem(targetItem);
+        Get.find<CacheService>().autoCacheSong(songItem, url);
+      }
     } catch (e) {
       debugPrint('[AudioHandler] Playback error: $e');
       playbackState.add(playbackState.value.copyWith(
