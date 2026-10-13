@@ -260,4 +260,30 @@ void main() {
     expect(libraryService.additionalFolders.contains(extraDir.path), isFalse);
     expect(libraryService.localSongs.length, equals(2));
   });
+
+  test('SettingsController closeAction defaults to ask and persists choices', () async {
+    final cacheService = CacheService();
+    await cacheService.init();
+    Get.put<CacheService>(cacheService);
+
+    final settings = SettingsController();
+    Get.put<SettingsController>(settings);
+
+    // Default is ask
+    expect(settings.closeAction.value, equals(Constant.closeActionAsk));
+
+    // Change to background
+    await settings.setCloseAction(Constant.closeActionBackground);
+    expect(settings.closeAction.value, equals(Constant.closeActionBackground));
+    expect(Hive.box(Constant.boxAppPrefs).get(Constant.prefCloseAction), equals(Constant.closeActionBackground));
+
+    // Change to exit
+    await settings.setCloseAction(Constant.closeActionExit);
+    expect(settings.closeAction.value, equals(Constant.closeActionExit));
+    expect(Hive.box(Constant.boxAppPrefs).get(Constant.prefCloseAction), equals(Constant.closeActionExit));
+
+    // Reset app should restore closeAction to ask
+    await settings.resetEntireApp();
+    expect(settings.closeAction.value, equals(Constant.closeActionAsk));
+  });
 }

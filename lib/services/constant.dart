@@ -63,6 +63,12 @@ class Constant {
   static const String prefBackgroundPlayback = 'backgroundPlayback';
   static const String prefShowLyrics = 'showLyrics';
   static const String prefBaseStorageDir = 'baseStorageDir';
+  static const String prefCloseAction = 'closeAction';
+
+  // Window close action types
+  static const String closeActionAsk = 'ask';
+  static const String closeActionBackground = 'background';
+  static const String closeActionExit = 'exit';
 
   // Streaming quality
   static const int qualityLow = 0;

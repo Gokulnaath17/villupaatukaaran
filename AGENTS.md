@@ -47,7 +47,13 @@
   - **Slide-Out Queue Drawer**: Slide-out panel displaying Up Next queue with smart preloading indicator for seamless gapless playback.
 - **Song Actions**: Play Next, Add to Queue, Like/Favorite, Add to Playlist, Download for Offline.
 - **Unified Library Screen**: Direct category view driven directly by the sidebar navigation hierarchy (All Songs, Downloaded, Cached Tracks, Local Files, Liked Songs, Playlists) without redundant top sub-navigation buttons.
-- **Settings Screen**: Base folder selection (Audio, Video, Cache), auto-cache toggle, and cache limit slider (default 350 songs).
+- **Settings Screen**: Base folder selection (Audio, Video, Cache), auto-cache toggle, cache limit slider (default 350 songs), and Window Close Action selector (Ask every time, Play in background, Exit application).
+
+### 6. Desktop System Tray & Window Manager Integration
+- `TrayAndWindowService` (`lib/services/tray_and_window_service.dart`):
+  - **Apple Music-Style System Tray**: Dynamic context menu displaying active track info, media controls (Play/Pause, Next, Previous, Favorite/Like), Open/Hide window toggle, and Quit. Left-clicking the tray icon brings the window to the foreground.
+  - **Window Close Interception**: Uses `window_manager` to prevent abrupt window destruction. If close action is set to `ask`, displays a dark glassmorphic dialog with a "Do not ask again" checkbox.
+  - **Background Playback vs Exit**: Allows seamless background playback while minimized to tray or complete clean exit with session persistence. Preference is managed in `SettingsController` and persisted in `AppPrefs`.
 
 ---
 

@@ -264,6 +264,81 @@ class SettingsView extends StatelessWidget {
         ),
         const SizedBox(height: 28),
 
+        // Section: Window & System Tray (Desktop)
+        if (Constant.isDesktop) ...[
+          _buildSectionHeader('WINDOW & SYSTEM TRAY', Icons.desktop_windows_rounded),
+          const SizedBox(height: 12),
+          BoxyCard(
+            borderRadius: AppTheme.radiusMedium,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.blueAccent.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.close_fullscreen_rounded, color: AppTheme.blueLight, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'On Window Close Action',
+                            style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w700, fontSize: 13.5),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Configure behavior when clicking the window close button',
+                            style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                const Divider(color: AppTheme.borderSubtle),
+                const SizedBox(height: 8),
+                Obx(() => Column(
+                      children: [
+                        _buildCloseActionOption(
+                          controller: controller,
+                          value: Constant.closeActionAsk,
+                          title: 'Ask every time',
+                          subtitle: 'Show confirmation prompt with "Do not ask again" option',
+                          icon: Icons.help_outline_rounded,
+                        ),
+                        const SizedBox(height: 6),
+                        _buildCloseActionOption(
+                          controller: controller,
+                          value: Constant.closeActionBackground,
+                          title: 'Play in background (Minimize to tray)',
+                          subtitle: 'Keep audio playing and minimize into system tray',
+                          icon: Icons.headphones_rounded,
+                        ),
+                        const SizedBox(height: 6),
+                        _buildCloseActionOption(
+                          controller: controller,
+                          value: Constant.closeActionExit,
+                          title: 'Exit application',
+                          subtitle: 'Stop music playback and quit Villupaatukaaran completely',
+                          icon: Icons.power_settings_new_rounded,
+                        ),
+                      ],
+                    )),
+              ],
+            ),
+          ),
+          const SizedBox(height: 28),
+        ],
+
         // Section: Brand & About
         _buildSectionHeader('ABOUT VILLUPAATUKAARAN', Icons.info_outline_rounded),
         const SizedBox(height: 12),
@@ -411,6 +486,75 @@ class SettingsView extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildCloseActionOption({
+    required SettingsController controller,
+    required String value,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+  }) {
+    final isSelected = controller.closeAction.value == value;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => controller.setCloseAction(value),
+        borderRadius: AppTheme.radiusMedium,
+        hoverColor: Colors.white.withOpacity(0.04),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected ? AppTheme.blueAccent.withOpacity(0.10) : Colors.white.withOpacity(0.02),
+            borderRadius: AppTheme.radiusMedium,
+            border: Border.all(
+              color: isSelected ? AppTheme.blueAccent.withOpacity(0.4) : AppTheme.borderSubtle,
+              width: 1.0,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: isSelected ? AppTheme.blueAccent : AppTheme.textMuted,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: isSelected ? AppTheme.textWhite : AppTheme.textPrimary,
+                        fontSize: 13,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+              Radio<String>(
+                value: value,
+                groupValue: controller.closeAction.value,
+                activeColor: AppTheme.blueAccent,
+                onChanged: (val) {
+                  if (val != null) controller.setCloseAction(val);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

@@ -11,13 +11,14 @@ import 'player_controller.dart';
 
 /// Controller for settings screen and user preferences
 class SettingsController extends GetxController {
-  late final Box _prefsBox;
-  late final CacheService _cacheService;
+  late Box _prefsBox;
+  late CacheService _cacheService;
 
   final RxInt streamingQuality = Constant.qualityHigh.obs;
   final RxBool skipSilence = false.obs;
   final RxBool loudnessNormalization = true.obs;
   final RxString currentAppLanguageCode = 'en'.obs;
+  final RxString closeAction = Constant.closeActionAsk.obs;
 
   @override
   void onInit() {
@@ -33,6 +34,14 @@ class SettingsController extends GetxController {
         _prefsBox.get(Constant.prefLoudnessNormalization, defaultValue: true) as bool;
     currentAppLanguageCode.value =
         _prefsBox.get(Constant.prefCurrentAppLanguageCode, defaultValue: 'en') as String;
+    closeAction.value =
+        _prefsBox.get(Constant.prefCloseAction, defaultValue: Constant.closeActionAsk) as String;
+  }
+
+  /// Update window close action preference
+  Future<void> setCloseAction(String action) async {
+    closeAction.value = action;
+    await _prefsBox.put(Constant.prefCloseAction, action);
   }
 
   // Directory getters from CacheService
@@ -159,6 +168,7 @@ class SettingsController extends GetxController {
       loudnessNormalization.value = true;
       _cacheService.cacheSizeLimit.value = 350;
       _cacheService.autoCacheEnabled.value = true;
+      closeAction.value = Constant.closeActionAsk;
 
       _notify(
         'App Reset Complete',

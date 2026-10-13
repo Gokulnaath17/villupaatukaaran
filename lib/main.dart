@@ -14,6 +14,7 @@ import 'services/music_service.dart';
 import 'services/player_controller.dart';
 import 'services/settings_controller.dart';
 import 'services/stream_service.dart';
+import 'services/tray_and_window_service.dart';
 import 'ui/screens/home_screen.dart';
 import 'ui/theme/theme_controller.dart';
 import 'utils/linux_audio_init.dart';
@@ -61,6 +62,12 @@ Future<void> main() async {
   Get.put<SettingsController>(SettingsController(), permanent: true);
   Get.put<PlayerController>(PlayerController(), permanent: true);
   Get.put<DiscoverController>(DiscoverController(), permanent: true);
+
+  // Initialize System Tray & Window Manager for desktop
+  if (Constant.isDesktop) {
+    final trayService = await TrayAndWindowService().init();
+    Get.put<TrayAndWindowService>(trayService, permanent: true);
+  }
 
   // Lifecycle observer for session saving
   WidgetsBinding.instance.addObserver(AppLifecycleHandler());
