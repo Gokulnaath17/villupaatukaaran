@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:get/get.dart';
+import 'package:path/path.dart' as p;
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -95,25 +97,64 @@ class TrayAndWindowService extends GetxService with TrayListener, WindowListener
 
       // 3. Initialize Tray Manager
       trayManager.addListener(this);
-      await trayManager.setIcon(AppAssets.trayIcon);
-      await trayManager.setToolTip('Villupaatukaaran');
+      final iconPath = await _resolveTrayIconPath();
+      await trayManager.setIcon(iconPath);
+      await _safeSetToolTip('Villupaatukaaran');
 
       _isInitialized = true;
 
-      // 4. Listen to player observables to keep tray menu dynamically synchronized
+      // 4. Set initial context menu immediately so the tray indicator has active items
+      await updateTrayMenu();
+
+      // 5. Listen to player observables to keep tray menu dynamically synchronized
       if (Get.isRegistered<PlayerController>()) {
         final player = Get.find<PlayerController>();
         player.currentSong.listen((_) => updateTrayMenu());
         player.isPlaying.listen((_) => updateTrayMenu());
         player.likedSongIds.listen((_) => updateTrayMenu());
       }
-
-      await updateTrayMenu();
     } catch (e) {
       debugPrint('[TrayAndWindowService] Init error: $e');
     }
 
     return this;
+  }
+
+  Future<String> _resolveTrayIconPath() async {
+    // 1. If running bundled app, check if asset exists next to executable
+    try {
+      final execDir = p.dirname(Platform.resolvedExecutable);
+      final standardPath = p.joinAll([execDir, 'data', 'flutter_assets', AppAssets.trayIcon]);
+      if (await File(standardPath).exists()) {
+        return standardPath;
+      }
+    } catch (_) {}
+
+    // 2. Extract asset from rootBundle to a persistent temp file
+    // Guarantees an existing valid absolute path on disk regardless of execution environment
+    try {
+      final byteData = await rootBundle.load(AppAssets.trayIcon);
+      final tempDir = Directory.systemTemp;
+      final file = File(p.join(tempDir.path, 'villupaatukaaran_tray_icon.png'));
+      await file.writeAsBytes(
+        byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
+        flush: true,
+      );
+      return file.path;
+    } catch (e) {
+      debugPrint('[TrayAndWindowService] Error resolving tray icon: $e');
+      return AppAssets.trayIcon;
+    }
+  }
+
+  Future<void> _safeSetToolTip(String tooltip) async {
+    if (!Platform.isLinux) {
+      try {
+        await trayManager.setToolTip(tooltip);
+      } catch (e) {
+        debugPrint('[TrayAndWindowService] setToolTip error: $e');
+      }
+    }
   }
 
   @override
@@ -135,13 +176,14 @@ class TrayAndWindowService extends GetxService with TrayListener, WindowListener
       final song = player?.currentSong.value;
       final isPlaying = player?.isPlaying.value ?? false;
 
-      // Update tooltip
+      // Update tooltip on platforms that support it (Windows/macOS)
       final tooltip = song != null ? '${song.title} — ${song.artist}' : 'Villupaatukaaran';
-      await trayManager.setToolTip(tooltip);
+      await _safeSetToolTip(tooltip);
 
       final menuItems = <MenuItem>[
         // Prominent Window Show/Hide Toggle (First item for immediate access)
         MenuItem(
+          key: 'toggle_window',
           label: _isWindowVisible ? 'Hide Window' : 'Open Villupaatukaaran',
           onClick: (_) async {
             await toggleWindow();
@@ -153,6 +195,7 @@ class TrayAndWindowService extends GetxService with TrayListener, WindowListener
         // Track Information
         if (song != null) ...[
           MenuItem(
+            key: 'track_info',
             label: '${song.title} — ${song.artist}',
             disabled: true,
           ),
@@ -161,6 +204,7 @@ class TrayAndWindowService extends GetxService with TrayListener, WindowListener
 
         // Playback Controls
         MenuItem(
+          key: 'play_pause',
           label: isPlaying ? 'Pause' : 'Play',
           onClick: (_) async {
             if (player != null) await player.togglePlayPause();
@@ -168,12 +212,14 @@ class TrayAndWindowService extends GetxService with TrayListener, WindowListener
           },
         ),
         MenuItem(
+          key: 'next',
           label: 'Next Track',
           onClick: (_) async {
             if (player != null) await player.skipToNext();
           },
         ),
         MenuItem(
+          key: 'prev',
           label: 'Previous Track',
           onClick: (_) async {
             if (player != null) await player.skipToPrevious();
@@ -184,6 +230,7 @@ class TrayAndWindowService extends GetxService with TrayListener, WindowListener
 
         // Quit Entire App
         MenuItem(
+          key: 'quit',
           label: 'Quit Villupaatukaaran',
           onClick: (_) async {
             await quitApp();
@@ -285,12 +332,22 @@ class TrayAndWindowService extends GetxService with TrayListener, WindowListener
 
   @override
   void onTrayMenuItemClick(MenuItem menuItem) {
+    final key = menuItem.key ?? '';
     final label = menuItem.label ?? '';
-    if (label.contains('Open') || label.contains('Show')) {
+    final player = Get.isRegistered<PlayerController>() ? Get.find<PlayerController>() : null;
+
+    if (key == 'toggle_window' || label.contains('Open') || label.contains('Show')) {
       showWindow();
     } else if (label.contains('Hide')) {
       hideWindow();
-    } else if (label.contains('Quit')) {
+    } else if (key == 'play_pause' || label.contains('Play') || label.contains('Pause')) {
+      player?.togglePlayPause();
+      updateTrayMenu();
+    } else if (key == 'next' || label.contains('Next')) {
+      player?.skipToNext();
+    } else if (key == 'prev' || label.contains('Previous')) {
+      player?.skipToPrevious();
+    } else if (key == 'quit' || label.contains('Quit')) {
       quitApp();
     }
   }
@@ -320,6 +377,18 @@ class TrayAndWindowService extends GetxService with TrayListener, WindowListener
 
   @override
   void onWindowFocus() {
+    _isWindowVisible = true;
+    updateTrayMenu();
+  }
+
+  @override
+  void onWindowMinimize() {
+    _isWindowVisible = false;
+    updateTrayMenu();
+  }
+
+  @override
+  void onWindowRestore() {
     _isWindowVisible = true;
     updateTrayMenu();
   }

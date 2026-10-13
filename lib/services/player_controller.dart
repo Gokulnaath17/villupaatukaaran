@@ -334,7 +334,7 @@ class PlayerController extends GetxController {
         }
       }
 
-      await _historyBox.put(DateTime.now().millisecondsSinceEpoch, song.toJson());
+      await _historyBox.put(DateTime.now().millisecondsSinceEpoch.toString(), song.toJson());
 
       // Enforce cap 30
       if (_historyBox.length > Constant.libRPCap) {
