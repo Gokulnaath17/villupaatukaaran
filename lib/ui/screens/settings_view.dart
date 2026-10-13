@@ -50,7 +50,7 @@ class SettingsView extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                color: AppTheme.blueLight,
+                                color: AppTheme.redLight,
                                 fontSize: 12,
                                 fontFamily: 'monospace',
                               ),
@@ -123,7 +123,7 @@ class SettingsView extends StatelessWidget {
               borderRadius: AppTheme.radiusMedium,
               child: SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                activeColor: AppTheme.blueAccent,
+                activeColor: AppTheme.redAccent,
                 title: const Text(
                   'Auto-Cache All Played Songs',
                   style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
@@ -154,7 +154,7 @@ class SettingsView extends StatelessWidget {
                       Text(
                         '${controller.cacheSizeLimit.value} Songs (Default: 350)',
                         style: const TextStyle(
-                          color: AppTheme.blueLight,
+                          color: AppTheme.redLight,
                           fontWeight: FontWeight.w700,
                           fontSize: 12,
                         ),
@@ -167,7 +167,7 @@ class SettingsView extends StatelessWidget {
                     min: 50,
                     max: 1000,
                     divisions: 19,
-                    activeColor: AppTheme.blueAccent,
+                    activeColor: AppTheme.redAccent,
                     onChanged: (val) => controller.setCacheSizeLimit(val.toInt()),
                   ),
                   Row(
@@ -218,7 +218,7 @@ class SettingsView extends StatelessWidget {
                       value: controller.streamingQuality.value,
                       dropdownColor: AppTheme.cardSurfaceElevated,
                       underline: const SizedBox.shrink(),
-                      icon: const Icon(Icons.arrow_drop_down, color: AppTheme.blueAccent),
+                      icon: const Icon(Icons.arrow_drop_down, color: AppTheme.redAccent),
                       items: const [
                         DropdownMenuItem(
                           value: Constant.qualityHigh,
@@ -244,7 +244,7 @@ class SettingsView extends StatelessWidget {
                 ),
                 subtitle: Text(
                   'Primary: Innertube (WEB_REMIX) • Fallback: YtExplode (yt-dlp)',
-                  style: TextStyle(color: AppTheme.blueLight, fontSize: 12),
+                  style: TextStyle(color: AppTheme.redLight, fontSize: 12),
                 ),
                 trailing: Icon(Icons.check_circle_rounded, color: AppTheme.trafficGreen, size: 20),
               ),
@@ -252,7 +252,7 @@ class SettingsView extends StatelessWidget {
               // Loudness normalization
               Obx(() => SwitchListTile(
                     contentPadding: EdgeInsets.zero,
-                    activeColor: AppTheme.blueAccent,
+                    activeColor: AppTheme.redAccent,
                     title: const Text(
                       'Loudness Normalization',
                       style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
@@ -284,10 +284,10 @@ class SettingsView extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppTheme.blueAccent.withOpacity(0.12),
+                        color: AppTheme.redAccent.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.close_fullscreen_rounded, color: AppTheme.blueLight, size: 20),
+                      child: const Icon(Icons.close_fullscreen_rounded, color: AppTheme.redLight, size: 20),
                     ),
                     const SizedBox(width: 12),
                     const Expanded(
@@ -381,7 +381,7 @@ class SettingsView extends StatelessWidget {
                         ),
                         Text(
                           'v1.0.0 • Modern Glass Desktop Edition',
-                          style: TextStyle(color: AppTheme.blueLight, fontSize: 12),
+                          style: TextStyle(color: AppTheme.redLight, fontSize: 12),
                         ),
                       ],
                     ),
@@ -520,10 +520,10 @@ class SettingsView extends StatelessWidget {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? AppTheme.blueAccent.withOpacity(0.10) : Colors.white.withOpacity(0.02),
+            color: isSelected ? AppTheme.redAccent.withOpacity(0.10) : Colors.white.withOpacity(0.02),
             borderRadius: AppTheme.radiusMedium,
             border: Border.all(
-              color: isSelected ? AppTheme.blueAccent.withOpacity(0.4) : AppTheme.borderSubtle,
+              color: isSelected ? AppTheme.redAccent.withOpacity(0.4) : AppTheme.borderSubtle,
               width: 1.0,
             ),
           ),
@@ -532,7 +532,7 @@ class SettingsView extends StatelessWidget {
               Icon(
                 icon,
                 size: 18,
-                color: isSelected ? AppTheme.blueAccent : AppTheme.textMuted,
+                color: isSelected ? AppTheme.redAccent : AppTheme.textMuted,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -558,7 +558,7 @@ class SettingsView extends StatelessWidget {
               Radio<String>(
                 value: value,
                 groupValue: controller.closeAction.value,
-                activeColor: AppTheme.blueAccent,
+                activeColor: AppTheme.redAccent,
                 onChanged: (val) {
                   if (val != null) controller.setCloseAction(val);
                 },
@@ -573,7 +573,7 @@ class SettingsView extends StatelessWidget {
   Widget _buildSectionHeader(String title, IconData icon) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: AppTheme.blueAccent),
+        Icon(icon, size: 16, color: AppTheme.redAccent),
         const SizedBox(width: 8),
         Flexible(
           child: Text(

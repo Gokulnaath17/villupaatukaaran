@@ -39,26 +39,17 @@ class SongTile extends StatelessWidget {
             onTap: onTap ?? () => playerController.playSong(song),
             borderRadius: AppTheme.radiusMedium,
             hoverColor: Colors.white.withOpacity(0.04),
-            splashColor: AppTheme.blueAccent.withOpacity(0.12),
+            splashColor: AppTheme.redAccent.withOpacity(0.12),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              duration: const Duration(milliseconds: 180),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
               decoration: BoxDecoration(
-                color: isCurrent ? AppTheme.cardActive : Colors.transparent,
-                borderRadius: AppTheme.radiusMedium,
+                color: isCurrent ? AppTheme.cardSurfaceElevated : Colors.transparent,
+                borderRadius: AppTheme.radiusSmall,
                 border: Border.all(
-                  color: isCurrent ? AppTheme.blueAccent.withOpacity(0.4) : Colors.transparent,
+                  color: isCurrent ? AppTheme.redAccent.withOpacity(0.35) : Colors.transparent,
                   width: 1.0,
                 ),
-                boxShadow: isCurrent
-                    ? [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.25),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : null,
               ),
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -72,10 +63,10 @@ class SongTile extends StatelessWidget {
                         SizedBox(
                           width: 24,
                           child: Text(
-                            '${index! + 1}',
+                            '${index! + 1 < 10 ? '0' : ''}${index! + 1}',
                             style: TextStyle(
-                              color: isCurrent ? AppTheme.blueAccent : AppTheme.textMuted,
-                              fontSize: 12,
+                              color: isCurrent ? AppTheme.redAccent : AppTheme.textQuiet,
+                              fontSize: 11,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -85,11 +76,11 @@ class SongTile extends StatelessWidget {
 
                       // Rounded Album Art Thumbnail
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                         child: Container(
-                          width: isVeryCompact ? 36 : 42,
-                          height: isVeryCompact ? 36 : 42,
-                          color: const Color(0xFF252838),
+                          width: isVeryCompact ? 36 : 40,
+                          height: isVeryCompact ? 36 : 40,
+                          color: const Color(0xFF1F1F24),
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
@@ -97,8 +88,8 @@ class SongTile extends StatelessWidget {
                                 Image.network(
                                   song.thumbnailUrl!,
                                   fit: BoxFit.cover,
-                                  width: isVeryCompact ? 36 : 42,
-                                  height: isVeryCompact ? 36 : 42,
+                                  width: isVeryCompact ? 36 : 40,
+                                  height: isVeryCompact ? 36 : 40,
                                   errorBuilder: (_, __, ___) => Image.asset(
                                     AppAssets.defaultCover,
                                     fit: BoxFit.cover,
@@ -145,7 +136,7 @@ class SongTile extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 color: isCurrent ? Colors.white : AppTheme.textPrimary,
-                                fontSize: 13.5,
+                                fontSize: 12.5,
                                 fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w600,
                               ),
                             ),
@@ -155,8 +146,8 @@ class SongTile extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                color: AppTheme.textMuted,
-                                fontSize: 11.5,
+                                color: AppTheme.textSecondary,
+                                fontSize: 11,
                               ),
                             ),
                           ],
@@ -169,8 +160,8 @@ class SongTile extends StatelessWidget {
                         Text(
                           song.duration!,
                           style: const TextStyle(
-                            color: AppTheme.textMuted,
-                            fontSize: 12,
+                            color: AppTheme.textQuiet,
+                            fontSize: 11,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -180,10 +171,10 @@ class SongTile extends StatelessWidget {
                       // Quick "+" Add to Queue Button (hidden on compact widths)
                       if (!isCompact)
                         IconButton(
-                          icon: const Icon(Icons.add, size: 18),
+                          icon: const Icon(Icons.add_rounded, size: 17),
                           color: AppTheme.textMuted,
-                          hoverColor: Colors.white.withOpacity(0.1),
-                          splashRadius: 16,
+                          hoverColor: Colors.white.withOpacity(0.08),
+                          splashRadius: 15,
                           tooltip: 'Add to Queue',
                           onPressed: () {
                             playerController.addToQueue(song);
@@ -212,12 +203,12 @@ class SongTile extends StatelessWidget {
                             return Padding(
                               padding: const EdgeInsets.only(right: 6),
                               child: SizedBox(
-                                width: 16,
-                                height: 16,
+                                width: 15,
+                                height: 15,
                                 child: CircularProgressIndicator(
                                   value: task.progress.value > 0 ? task.progress.value : null,
                                   strokeWidth: 2,
-                                  color: AppTheme.blueAccent,
+                                  color: AppTheme.redAccent,
                                   backgroundColor: AppTheme.borderSubtle,
                                 ),
                               ),
@@ -230,7 +221,7 @@ class SongTile extends StatelessWidget {
                               child: Icon(
                                 Icons.check_circle_rounded,
                                 size: 14,
-                                color: AppTheme.blueLight,
+                                color: AppTheme.redLight,
                               ),
                             );
                           }
@@ -244,10 +235,10 @@ class SongTile extends StatelessWidget {
                         IconButton(
                           icon: Icon(
                             isLiked ? Icons.favorite : Icons.favorite_border,
-                            size: 17,
-                            color: isLiked ? const Color(0xFFFF3366) : AppTheme.textMuted,
+                            size: 16,
+                            color: isLiked ? AppTheme.redAccent : AppTheme.textMuted,
                           ),
-                          splashRadius: 16,
+                          splashRadius: 15,
                           tooltip: isLiked ? 'Liked' : 'Like',
                           onPressed: () => playerController.toggleLike(song),
                         ),
@@ -255,11 +246,11 @@ class SongTile extends StatelessWidget {
                       // 3-Dot Action Menu
                       IconButton(
                         icon: const Icon(
-                          Icons.more_vert,
-                          size: 17,
+                          Icons.more_horiz_rounded,
+                          size: 18,
                           color: AppTheme.textMuted,
                         ),
-                        splashRadius: 16,
+                        splashRadius: 15,
                         onPressed: () => _showSongActions(context, song),
                       ),
                     ],
@@ -278,7 +269,7 @@ class SongTile extends StatelessWidget {
       width: 2.5,
       height: height,
       decoration: BoxDecoration(
-        color: AppTheme.blueAccent,
+        color: AppTheme.redAccent,
         borderRadius: BorderRadius.circular(2),
       ),
     );
@@ -292,7 +283,7 @@ class SongTile extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppTheme.windowBg,
+      backgroundColor: AppTheme.cardSurface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         side: BorderSide(color: AppTheme.borderSubtle, width: 1),
@@ -361,7 +352,7 @@ class SongTile extends StatelessWidget {
               // Action: Play Next
               ListTile(
                 dense: true,
-                leading: const Icon(Icons.playlist_play, color: AppTheme.blueAccent),
+                leading: const Icon(Icons.playlist_play, color: AppTheme.redAccent),
                 title: const Text('Play Next', style: TextStyle(color: AppTheme.textPrimary)),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -372,7 +363,7 @@ class SongTile extends StatelessWidget {
               // Action: Add to Queue
               ListTile(
                 dense: true,
-                leading: const Icon(Icons.queue_music, color: AppTheme.blueAccent),
+                leading: const Icon(Icons.queue_music, color: AppTheme.redAccent),
                 title: const Text('Add to Queue', style: TextStyle(color: AppTheme.textPrimary)),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -387,7 +378,7 @@ class SongTile extends StatelessWidget {
                   dense: true,
                   leading: Icon(
                     isFav ? Icons.favorite : Icons.favorite_border,
-                    color: isFav ? const Color(0xFFFF3366) : AppTheme.blueAccent,
+                    color: isFav ? AppTheme.redAccent : AppTheme.redAccent,
                   ),
                   title: Text(
                     isFav ? 'Remove from Liked' : 'Like Song',
@@ -403,7 +394,7 @@ class SongTile extends StatelessWidget {
               // Action: Add to Playlist
               ListTile(
                 dense: true,
-                leading: const Icon(Icons.playlist_add, color: AppTheme.blueAccent),
+                leading: const Icon(Icons.playlist_add, color: AppTheme.redAccent),
                 title: const Text('Add to Playlist', style: TextStyle(color: AppTheme.textPrimary)),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -430,12 +421,12 @@ class SongTile extends StatelessWidget {
                         child: CircularProgressIndicator(
                           value: task.progress.value > 0 ? task.progress.value : null,
                           strokeWidth: 2.2,
-                          color: AppTheme.blueAccent,
+                          color: AppTheme.redAccent,
                         ),
                       ),
                       title: Text(
                         'Downloading... ${task.progressPercentage}',
-                        style: const TextStyle(color: AppTheme.blueAccent, fontWeight: FontWeight.w600),
+                        style: const TextStyle(color: AppTheme.redAccent, fontWeight: FontWeight.w600),
                       ),
                       subtitle: task.sizeStatusText.isNotEmpty
                           ? Text(task.sizeStatusText, style: const TextStyle(color: AppTheme.textMuted, fontSize: 11))
@@ -450,15 +441,15 @@ class SongTile extends StatelessWidget {
                   if (isDownloaded) {
                     return const ListTile(
                       dense: true,
-                      leading: Icon(Icons.offline_pin_rounded, color: AppTheme.blueLight),
-                      title: Text('Downloaded Offline', style: TextStyle(color: AppTheme.blueLight)),
+                      leading: Icon(Icons.offline_pin_rounded, color: AppTheme.redLight),
+                      title: Text('Downloaded Offline', style: TextStyle(color: AppTheme.redLight)),
                       subtitle: Text('Saved locally in base storage', style: TextStyle(color: AppTheme.textMuted, fontSize: 11)),
                     );
                   }
 
                   return ListTile(
                     dense: true,
-                    leading: const Icon(Icons.download_rounded, color: AppTheme.blueAccent),
+                    leading: const Icon(Icons.download_rounded, color: AppTheme.redAccent),
                     title: const Text('Download for Offline', style: TextStyle(color: AppTheme.textPrimary)),
                     subtitle: const Text('Save permanently to downloads folder', style: TextStyle(color: AppTheme.textMuted, fontSize: 11)),
                     onTap: () {
@@ -486,7 +477,7 @@ class SongTile extends StatelessWidget {
       context: context,
       builder: (dialogCtx) {
         return AlertDialog(
-          backgroundColor: AppTheme.windowBg,
+          backgroundColor: AppTheme.cardSurface,
           shape: RoundedRectangleBorder(
             borderRadius: AppTheme.radiusLarge,
             side: const BorderSide(color: AppTheme.borderHighlight),
@@ -494,7 +485,7 @@ class SongTile extends StatelessWidget {
           title: const Text(
             'ADD TO PLAYLIST',
             style: TextStyle(
-              color: AppTheme.blueAccent,
+              color: AppTheme.redAccent,
               fontSize: 14,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.8,
@@ -525,7 +516,7 @@ class SongTile extends StatelessWidget {
                         final p = list[i];
                         return ListTile(
                           dense: true,
-                          leading: const Icon(Icons.queue_music, color: AppTheme.blueAccent, size: 18),
+                          leading: const Icon(Icons.queue_music, color: AppTheme.redAccent, size: 18),
                           title: Text(p.title, style: const TextStyle(color: AppTheme.textPrimary)),
                           subtitle: Text('${p.songCount} songs',
                               style: const TextStyle(color: AppTheme.textMuted, fontSize: 11)),
@@ -558,7 +549,7 @@ class SongTile extends StatelessWidget {
                       borderSide: BorderSide(color: AppTheme.borderSubtle),
                     ),
                     focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: AppTheme.blueAccent),
+                      borderSide: BorderSide(color: AppTheme.redAccent),
                     ),
                   ),
                 ),
@@ -589,7 +580,7 @@ class SongTile extends StatelessWidget {
                   );
                 }
               },
-              child: const Text('CREATE & ADD', style: TextStyle(color: AppTheme.blueAccent)),
+              child: const Text('CREATE & ADD', style: TextStyle(color: AppTheme.redAccent)),
             ),
           ],
         );

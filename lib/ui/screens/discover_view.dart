@@ -63,7 +63,7 @@ class DiscoverView extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: AppTheme.blueLight,
+                          color: AppTheme.redLight,
                           fontSize: 13,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.5,
@@ -103,7 +103,7 @@ class DiscoverView extends StatelessWidget {
               const Expanded(
                 child: Row(
                   children: [
-                    Icon(Icons.local_fire_department_rounded, color: AppTheme.blueAccent, size: 20),
+                    Icon(Icons.local_fire_department_rounded, color: AppTheme.redAccent, size: 20),
                     SizedBox(width: 8),
                     Flexible(
                       child: Text(
@@ -159,7 +159,7 @@ class DiscoverView extends StatelessWidget {
               const Expanded(
                 child: Row(
                   children: [
-                    Icon(Icons.auto_awesome_rounded, color: AppTheme.blueAccent, size: 20),
+                    Icon(Icons.auto_awesome_rounded, color: AppTheme.redAccent, size: 20),
                     SizedBox(width: 8),
                     Flexible(
                       child: Text(

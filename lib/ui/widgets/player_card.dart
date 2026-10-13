@@ -39,13 +39,13 @@ class PlayerCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppTheme.cardSurface,
           border: Border.all(
-            color: isPlaying ? AppTheme.blueAccent.withOpacity(0.5) : AppTheme.borderSubtle,
+            color: isPlaying ? AppTheme.redAccent.withOpacity(0.5) : AppTheme.borderSubtle,
             width: 1.0,
           ),
           boxShadow: isPlaying
               ? [
                   BoxShadow(
-                    color: AppTheme.blueGlow,
+                    color: AppTheme.redGlow,
                     blurRadius: 18,
                     spreadRadius: 1,
                   ),
@@ -67,7 +67,7 @@ class PlayerCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xFF191B26),
                     border: Border.all(
-                      color: isPlaying ? AppTheme.blueAccent : AppTheme.borderSubtle,
+                      color: isPlaying ? AppTheme.redAccent : AppTheme.borderSubtle,
                       width: 1.0,
                     ),
                   ),
@@ -99,7 +99,7 @@ class PlayerCard extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: AppTheme.blueAccent,
+                              color: AppTheme.redAccent,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text(
@@ -152,7 +152,7 @@ class PlayerCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: AppTheme.blueLight,
+                          color: AppTheme.redLight,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -178,7 +178,7 @@ class PlayerCard extends StatelessWidget {
             // Progress Slider
             SliderTheme(
               data: SliderTheme.of(context).copyWith(
-                activeTrackColor: AppTheme.blueAccent,
+                activeTrackColor: AppTheme.redAccent,
                 inactiveTrackColor: const Color(0xFF2E3347),
                 thumbColor: Colors.white,
                 trackHeight: 3.0,
@@ -221,7 +221,7 @@ class PlayerCard extends StatelessWidget {
                 IconButton(
                   icon: Icon(
                     Icons.shuffle_rounded,
-                    color: isShuffle ? AppTheme.blueAccent : AppTheme.textMuted,
+                    color: isShuffle ? AppTheme.redAccent : AppTheme.textMuted,
                     size: 19,
                   ),
                   splashRadius: 18,
@@ -245,11 +245,11 @@ class PlayerCard extends StatelessWidget {
                       width: 44,
                       height: 44,
                       decoration: const BoxDecoration(
-                        gradient: AppTheme.blueGradient,
+                        gradient: AppTheme.redGradient,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: AppTheme.blueGlow,
+                            color: AppTheme.redGlow,
                             blurRadius: 12,
                             spreadRadius: 1,
                           ),
@@ -275,7 +275,7 @@ class PlayerCard extends StatelessWidget {
                 IconButton(
                   icon: Icon(
                     loop == LoopMode.one ? Icons.repeat_one_rounded : Icons.repeat_rounded,
-                    color: loop != LoopMode.off ? AppTheme.blueAccent : AppTheme.textMuted,
+                    color: loop != LoopMode.off ? AppTheme.redAccent : AppTheme.textMuted,
                     size: 19,
                   ),
                   splashRadius: 18,

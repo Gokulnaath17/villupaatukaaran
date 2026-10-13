@@ -462,7 +462,7 @@ class _LibraryViewState extends State<LibraryView> {
             children: [
               const Row(
                 children: [
-                  Icon(Icons.folder_shared_rounded, size: 14, color: AppTheme.blueLight),
+                  Icon(Icons.folder_shared_rounded, size: 14, color: AppTheme.redLight),
                   SizedBox(width: 6),
                   Text(
                     'STORAGE SOURCES',
@@ -493,7 +493,7 @@ class _LibraryViewState extends State<LibraryView> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.home_work_rounded, size: 13, color: AppTheme.blueLight),
+                        const Icon(Icons.home_work_rounded, size: 13, color: AppTheme.redLight),
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text(
@@ -511,14 +511,14 @@ class _LibraryViewState extends State<LibraryView> {
                     Container(
                       padding: const EdgeInsets.only(left: 10, right: 4, top: 2, bottom: 2),
                       decoration: BoxDecoration(
-                        color: AppTheme.blueAccent.withOpacity(0.12),
+                        color: AppTheme.redAccent.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(100),
-                        border: Border.all(color: AppTheme.blueAccent.withOpacity(0.3)),
+                        border: Border.all(color: AppTheme.redAccent.withOpacity(0.3)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.folder_open_rounded, size: 13, color: AppTheme.blueLight),
+                          const Icon(Icons.folder_open_rounded, size: 13, color: AppTheme.redLight),
                           const SizedBox(width: 6),
                           Text(
                             folder.split(Platform.pathSeparator).last,
@@ -572,13 +572,13 @@ class _LibraryViewState extends State<LibraryView> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: AppTheme.blueAccent.withOpacity(0.08),
+              color: AppTheme.redAccent.withOpacity(0.08),
               borderRadius: AppTheme.radiusMedium,
-              border: Border.all(color: AppTheme.blueAccent.withOpacity(0.2)),
+              border: Border.all(color: AppTheme.redAccent.withOpacity(0.2)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.drag_indicator_rounded, color: AppTheme.blueLight, size: 18),
+                const Icon(Icons.drag_indicator_rounded, color: AppTheme.redLight, size: 18),
                 const SizedBox(width: 8),
                 const Expanded(
                   child: Text(
@@ -700,7 +700,7 @@ class _LibraryViewState extends State<LibraryView> {
                                     song.album!,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(color: AppTheme.blueLight, fontSize: 11),
+                                    style: const TextStyle(color: AppTheme.redLight, fontSize: 11),
                                   ),
                                 ),
                               ],
@@ -734,7 +734,7 @@ class _LibraryViewState extends State<LibraryView> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.folder_rounded, color: AppTheme.blueLight, size: 20),
+                  const Icon(Icons.folder_rounded, color: AppTheme.redLight, size: 20),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -756,7 +756,7 @@ class _LibraryViewState extends State<LibraryView> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.play_circle_fill_rounded, color: AppTheme.blueAccent, size: 28),
+                    icon: const Icon(Icons.play_circle_fill_rounded, color: AppTheme.redAccent, size: 28),
                     tooltip: 'Play all in folder',
                     splashRadius: 20,
                     onPressed: () => playerController.playAllSongs(folderEntry.value, shuffle: false),
@@ -981,7 +981,7 @@ class _LibraryViewState extends State<LibraryView> {
         Row(
           children: [
             IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: AppTheme.blueAccent),
+              icon: const Icon(Icons.arrow_back_rounded, color: AppTheme.redAccent),
               splashRadius: 18,
               onPressed: () => setState(() => _viewingPlaylist = null),
             ),
@@ -1063,7 +1063,7 @@ class _LibraryViewState extends State<LibraryView> {
           title: const Text(
             'CREATE NEW PLAYLIST',
             style: TextStyle(
-              color: AppTheme.blueAccent,
+              color: AppTheme.redAccent,
               fontSize: 14,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.8,
@@ -1080,7 +1080,7 @@ class _LibraryViewState extends State<LibraryView> {
                 borderSide: BorderSide(color: AppTheme.borderSubtle),
               ),
               focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: AppTheme.blueAccent),
+                borderSide: BorderSide(color: AppTheme.redAccent),
               ),
             ),
           ),
@@ -1099,7 +1099,7 @@ class _LibraryViewState extends State<LibraryView> {
                   }
                 }
               },
-              child: const Text('CREATE', style: TextStyle(color: AppTheme.blueAccent)),
+              child: const Text('CREATE', style: TextStyle(color: AppTheme.redAccent)),
             ),
           ],
         );

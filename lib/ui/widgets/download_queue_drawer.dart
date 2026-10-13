@@ -31,7 +31,7 @@ class DownloadQueueDrawer extends StatelessWidget {
       return Container(
         width: drawerWidth,
         decoration: BoxDecoration(
-          color: const Color(0xF211131B), // 95% translucent dark graphite slate
+          color: AppTheme.sidebarBg,
           border: const Border(
             left: BorderSide(color: AppTheme.borderSubtle, width: 1.0),
           ),
@@ -57,7 +57,7 @@ class DownloadQueueDrawer extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.downloading_rounded, size: 18, color: AppTheme.blueAccent),
+                          const Icon(Icons.downloading_rounded, size: 18, color: AppTheme.redAccent),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -80,7 +80,7 @@ class DownloadQueueDrawer extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: activeCount > 0 ? AppTheme.blueAccent : AppTheme.textMuted,
+                          color: activeCount > 0 ? AppTheme.redAccent : AppTheme.textMuted,
                           fontSize: 11,
                           fontWeight: activeCount > 0 ? FontWeight.w600 : FontWeight.normal,
                         ),
@@ -107,7 +107,7 @@ class DownloadQueueDrawer extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.folder_special_rounded, size: 16, color: AppTheme.blueLight),
+                  const Icon(Icons.folder_special_rounded, size: 16, color: AppTheme.redLight),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -226,7 +226,7 @@ class DownloadQueueDrawer extends StatelessWidget {
           borderRadius: AppTheme.radiusSmall,
           border: Border.all(
             color: status == DownloadStatus.downloading
-                ? AppTheme.blueAccent.withOpacity(0.35)
+                ? AppTheme.redAccent.withOpacity(0.35)
                 : AppTheme.borderSubtle,
             width: 1,
           ),
@@ -242,7 +242,7 @@ class DownloadQueueDrawer extends StatelessWidget {
                   child: Container(
                     width: 38,
                     height: 38,
-                    color: const Color(0xFF1E2130),
+                    color: const Color(0xFF1F1F24),
                     child: task.song.thumbnailUrl != null && task.song.thumbnailUrl!.isNotEmpty
                         ? Image.network(
                             task.song.thumbnailUrl!,
@@ -293,14 +293,14 @@ class DownloadQueueDrawer extends StatelessWidget {
                   )
                 else if (status == DownloadStatus.completed)
                   IconButton(
-                    icon: const Icon(Icons.play_circle_fill_rounded, size: 22, color: AppTheme.blueAccent),
+                    icon: const Icon(Icons.play_circle_fill_rounded, size: 22, color: AppTheme.redAccent),
                     splashRadius: 16,
                     tooltip: 'Play Offline',
                     onPressed: () => playerController.playSong(task.song),
                   )
                 else if (status == DownloadStatus.failed || status == DownloadStatus.cancelled)
                   IconButton(
-                    icon: const Icon(Icons.refresh_rounded, size: 18, color: AppTheme.blueLight),
+                    icon: const Icon(Icons.refresh_rounded, size: 18, color: AppTheme.redLight),
                     splashRadius: 16,
                     tooltip: 'Retry',
                     onPressed: () => downloadService.retryDownload(task.videoId),
@@ -316,7 +316,7 @@ class DownloadQueueDrawer extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value: progress > 0 ? progress : null,
                   backgroundColor: AppTheme.borderSubtle,
-                  color: AppTheme.blueAccent,
+                  color: AppTheme.redAccent,
                   minHeight: 3,
                 ),
               ),
@@ -327,7 +327,7 @@ class DownloadQueueDrawer extends StatelessWidget {
                   Text(
                     task.progressPercentage,
                     style: const TextStyle(
-                      color: AppTheme.blueAccent,
+                      color: AppTheme.redAccent,
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                     ),

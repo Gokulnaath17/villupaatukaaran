@@ -36,7 +36,7 @@ class QueueList extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.queue_music_rounded, size: 16, color: AppTheme.blueAccent),
+                      const Icon(Icons.queue_music_rounded, size: 16, color: AppTheme.redAccent),
                       const SizedBox(width: 8),
                       Text(
                         'UPCOMING QUEUE (${queue.length})',
@@ -58,7 +58,7 @@ class QueueList extends StatelessWidget {
                         child: Text(
                           'CLEAR',
                           style: TextStyle(
-                            color: AppTheme.blueLight,
+                            color: AppTheme.redLight,
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                           ),
@@ -112,7 +112,7 @@ class QueueList extends StatelessWidget {
                                   borderRadius: AppTheme.radiusSmall,
                                   border: Border.all(
                                     color: isNowPlaying
-                                        ? AppTheme.blueAccent.withOpacity(0.3)
+                                        ? AppTheme.redAccent.withOpacity(0.3)
                                         : Colors.transparent,
                                     width: 1,
                                   ),
@@ -130,7 +130,7 @@ class QueueList extends StatelessWidget {
                                                 ? Icons.volume_up_rounded
                                                 : Icons.drag_indicator_rounded,
                                             size: 16,
-                                            color: isNowPlaying ? AppTheme.blueAccent : AppTheme.textMuted,
+                                            color: isNowPlaying ? AppTheme.redAccent : AppTheme.textMuted,
                                           ),
                                         ),
                                       ),

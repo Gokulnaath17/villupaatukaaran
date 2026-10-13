@@ -24,7 +24,7 @@ class QueueDrawer extends StatelessWidget {
       return Container(
         width: drawerWidth,
         decoration: BoxDecoration(
-          color: const Color(0xF211131B), // 95% translucent dark drawer
+          color: AppTheme.sidebarBg,
           border: const Border(
             left: BorderSide(color: AppTheme.borderSubtle, width: 1.0),
           ),
@@ -81,25 +81,25 @@ class QueueDrawer extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Smart Preloading Banner (addresses user issue #7)
+            // Smart Preloading Banner
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppTheme.blueAccent.withOpacity(0.08),
+                color: AppTheme.redAccent.withOpacity(0.08),
                 borderRadius: AppTheme.radiusSmall,
                 border: Border.all(
-                  color: AppTheme.blueAccent.withOpacity(0.25),
+                  color: AppTheme.redAccent.withOpacity(0.25),
                   width: 1,
                 ),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.bolt_rounded, size: 18, color: AppTheme.blueAccent),
+                  const Icon(Icons.bolt_rounded, size: 18, color: AppTheme.redAccent),
                   const SizedBox(width: 8),
                   Expanded(
                     child: RichText(
                       text: const TextSpan(
-                        style: TextStyle(fontSize: 11, color: AppTheme.blueLight, height: 1.3),
+                        style: TextStyle(fontSize: 11, color: AppTheme.redLight, height: 1.3),
                         children: [
                           TextSpan(
                             text: 'Smart Preloading Active: ',
@@ -162,11 +162,11 @@ class QueueDrawer extends StatelessWidget {
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: isCurrent ? AppTheme.cardActive : Colors.transparent,
+                                  color: isCurrent ? AppTheme.cardSurfaceElevated : Colors.transparent,
                                   borderRadius: AppTheme.radiusSmall,
                                   border: Border.all(
                                     color: isCurrent
-                                        ? AppTheme.blueAccent.withOpacity(0.3)
+                                        ? AppTheme.redAccent.withOpacity(0.35)
                                         : Colors.transparent,
                                     width: 1,
                                   ),
@@ -192,7 +192,7 @@ class QueueDrawer extends StatelessWidget {
                                       child: Container(
                                         width: 36,
                                         height: 36,
-                                        color: const Color(0xFF252838),
+                                        color: const Color(0xFF1F1F24),
                                         child: track.thumbnailUrl != null
                                             ? Image.network(
                                                 track.thumbnailUrl!,
@@ -235,7 +235,7 @@ class QueueDrawer extends StatelessWidget {
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
                                               color: isCurrent
-                                                  ? AppTheme.blueLight
+                                                  ? AppTheme.redLight
                                                   : AppTheme.textMuted,
                                               fontSize: 11,
                                               fontWeight:
@@ -249,7 +249,7 @@ class QueueDrawer extends StatelessWidget {
                                       Text(
                                         track.duration!,
                                         style: const TextStyle(
-                                          color: AppTheme.textMuted,
+                                          color: AppTheme.textQuiet,
                                           fontSize: 11,
                                         ),
                                       ),
@@ -290,12 +290,12 @@ class QueueDrawer extends StatelessWidget {
                     icon: Icon(
                       Icons.shuffle_rounded,
                       size: 16,
-                      color: controller.isShuffle.value ? AppTheme.blueAccent : AppTheme.textMuted,
+                      color: controller.isShuffle.value ? AppTheme.redAccent : AppTheme.textMuted,
                     ),
                     label: Text(
                       controller.isShuffle.value ? 'Shuffle On' : 'Shuffle',
                       style: TextStyle(
-                        color: controller.isShuffle.value ? AppTheme.blueAccent : AppTheme.textMuted,
+                        color: controller.isShuffle.value ? AppTheme.redAccent : AppTheme.textMuted,
                         fontSize: 12,
                       ),
                     ),

@@ -22,13 +22,13 @@ class SearchBarWidget extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppTheme.cardSurface,
             border: Border.all(color: AppTheme.border, width: 1.0),
-            borderRadius: BorderRadius.zero,
+            borderRadius: AppTheme.radiusSmall,
           ),
           child: Row(
             children: [
               const SizedBox(width: 8),
               IconButton(
-                icon: const Icon(Icons.search, size: 20, color: AppTheme.yellowAccent),
+                icon: const Icon(Icons.search_rounded, size: 20, color: AppTheme.textQuiet),
                 splashRadius: 18,
                 tooltip: 'Search',
                 onPressed: () => controller.performSearch(controller.searchInputController.text),

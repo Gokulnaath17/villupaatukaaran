@@ -46,8 +46,8 @@ class BoxyCard extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: effectiveRadius,
-          splashColor: AppTheme.blueAccent.withOpacity(0.12),
-          highlightColor: AppTheme.blueAccent.withOpacity(0.06),
+          splashColor: AppTheme.redAccent.withOpacity(0.12),
+          highlightColor: AppTheme.redAccent.withOpacity(0.06),
           child: content,
         ),
       );
@@ -87,16 +87,16 @@ class BoxyButton extends StatelessWidget {
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
-            color: isPrimary ? AppTheme.blueAccent : Colors.white.withOpacity(0.06),
+            color: isPrimary ? AppTheme.redAccent : Colors.white.withOpacity(0.06),
             border: Border.all(
-              color: isPrimary ? AppTheme.blueAccent : AppTheme.borderSubtle,
+              color: isPrimary ? AppTheme.redAccent : AppTheme.borderSubtle,
               width: 1.0,
             ),
             borderRadius: effectiveRadius,
             boxShadow: isPrimary
                 ? [
                     BoxShadow(
-                      color: AppTheme.blueGlow,
+                      color: AppTheme.redGlow,
                       blurRadius: 10,
                       spreadRadius: 1,
                     )
