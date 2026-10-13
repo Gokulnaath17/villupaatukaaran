@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../models/playlist_item.dart';
+import '../../services/cache_service.dart';
+import '../../services/download_service.dart';
 import '../../services/library_service.dart';
 import '../../services/player_controller.dart';
 import '../../utils/app_assets.dart';
@@ -258,11 +260,38 @@ class _LibraryViewState extends State<LibraryView> {
               ],
             ),
             if (cached.isNotEmpty)
-              BoxyButton(
-                label: 'PLAY ALL OFFLINE',
-                icon: Icons.play_arrow_rounded,
-                isPrimary: true,
-                onPressed: () => playerController.playSong(cached.first, queueContext: cached),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  BoxyButton(
+                    label: 'MOVE ALL TO DOWNLOADS',
+                    icon: Icons.download_for_offline_rounded,
+                    isPrimary: false,
+                    onPressed: () async {
+                      final downloadService = Get.isRegistered<DownloadService>() ? Get.find<DownloadService>() : null;
+                      final cacheService = Get.find<CacheService>();
+                      final count = downloadService != null
+                          ? await downloadService.moveAllCachedToDownloads()
+                          : await cacheService.moveAllCachedToDownloads();
+
+                      Get.snackbar(
+                        'Moved to Downloads',
+                        'Transferred $count track${count == 1 ? '' : 's'} to permanent offline storage',
+                        snackPosition: SnackPosition.BOTTOM,
+                        duration: const Duration(seconds: 3),
+                        backgroundColor: AppTheme.cardSurfaceElevated,
+                        colorText: AppTheme.textPrimary,
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  BoxyButton(
+                    label: 'PLAY ALL OFFLINE',
+                    icon: Icons.play_arrow_rounded,
+                    isPrimary: true,
+                    onPressed: () => playerController.playSong(cached.first, queueContext: cached),
+                  ),
+                ],
               ),
           ],
         ),

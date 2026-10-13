@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../models/song_item.dart';
+import '../../services/download_service.dart';
 import '../../services/library_service.dart';
 import '../../services/player_controller.dart';
 import '../../utils/app_assets.dart';
@@ -190,6 +191,47 @@ class SongTile extends StatelessWidget {
                     },
                   ),
 
+                  // Download Status Indicator (Progress ring or completed badge)
+                  Builder(builder: (_) {
+                    final downloadService = Get.isRegistered<DownloadService>() ? Get.find<DownloadService>() : null;
+                    if (downloadService == null) return const SizedBox.shrink();
+
+                    return Obx(() {
+                      final task = downloadService.getTask(song.videoId);
+                      final isDownloading = task != null && task.status.value == DownloadStatus.downloading;
+                      final isDownloaded = downloadService.isSongDownloaded(song.videoId) || song.isDownloaded;
+
+                      if (isDownloading) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              value: task.progress.value > 0 ? task.progress.value : null,
+                              strokeWidth: 2,
+                              color: AppTheme.blueAccent,
+                              backgroundColor: AppTheme.borderSubtle,
+                            ),
+                          ),
+                        );
+                      }
+
+                      if (isDownloaded) {
+                        return const Padding(
+                          padding: EdgeInsets.only(right: 6),
+                          child: Icon(
+                            Icons.check_circle_rounded,
+                            size: 14,
+                            color: AppTheme.blueLight,
+                          ),
+                        );
+                      }
+
+                      return const SizedBox.shrink();
+                    });
+                  }),
+
                   // Like Shortcut Button
                   IconButton(
                     icon: Icon(
@@ -357,23 +399,63 @@ class SongTile extends StatelessWidget {
                 },
               ),
 
-              // Action: Download
-              ListTile(
-                dense: true,
-                leading: const Icon(Icons.download, color: AppTheme.blueAccent),
-                title: const Text('Download for Offline', style: TextStyle(color: AppTheme.textPrimary)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  Get.snackbar(
-                    'Downloading',
-                    'Saving ${song.title} to offline storage',
-                    snackPosition: SnackPosition.BOTTOM,
-                    duration: const Duration(seconds: 2),
-                    backgroundColor: AppTheme.cardSurfaceElevated,
-                    colorText: AppTheme.textPrimary,
+              // Action: Download for offline
+              Builder(builder: (_) {
+                final downloadService = Get.isRegistered<DownloadService>() ? Get.find<DownloadService>() : null;
+                if (downloadService == null) return const SizedBox.shrink();
+
+                return Obx(() {
+                  final task = downloadService.getTask(song.videoId);
+                  final isDownloading = task != null && task.status.value == DownloadStatus.downloading;
+                  final isDownloaded = downloadService.isSongDownloaded(song.videoId) || song.isDownloaded;
+
+                  if (isDownloading) {
+                    return ListTile(
+                      dense: true,
+                      leading: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          value: task.progress.value > 0 ? task.progress.value : null,
+                          strokeWidth: 2.2,
+                          color: AppTheme.blueAccent,
+                        ),
+                      ),
+                      title: Text(
+                        'Downloading... ${task.progressPercentage}',
+                        style: const TextStyle(color: AppTheme.blueAccent, fontWeight: FontWeight.w600),
+                      ),
+                      subtitle: task.sizeStatusText.isNotEmpty
+                          ? Text(task.sizeStatusText, style: const TextStyle(color: AppTheme.textMuted, fontSize: 11))
+                          : null,
+                      trailing: IconButton(
+                        icon: const Icon(Icons.close, size: 16, color: AppTheme.textMuted),
+                        onPressed: () => downloadService.cancelDownload(song.videoId),
+                      ),
+                    );
+                  }
+
+                  if (isDownloaded) {
+                    return const ListTile(
+                      dense: true,
+                      leading: Icon(Icons.offline_pin_rounded, color: AppTheme.blueLight),
+                      title: Text('Downloaded Offline', style: TextStyle(color: AppTheme.blueLight)),
+                      subtitle: Text('Saved locally in base storage', style: TextStyle(color: AppTheme.textMuted, fontSize: 11)),
+                    );
+                  }
+
+                  return ListTile(
+                    dense: true,
+                    leading: const Icon(Icons.download_rounded, color: AppTheme.blueAccent),
+                    title: const Text('Download for Offline', style: TextStyle(color: AppTheme.textPrimary)),
+                    subtitle: const Text('Save permanently to downloads folder', style: TextStyle(color: AppTheme.textMuted, fontSize: 11)),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      downloadService.downloadSong(song);
+                    },
                   );
-                },
-              ),
+                });
+              }),
               const SizedBox(height: 8),
             ],
           ),

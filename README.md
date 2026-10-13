@@ -19,14 +19,25 @@ A sleek, modern desktop & mobile music streaming client inspired by the traditio
 
 ## 🚀 Download & Installation
 
-### Linux
-Download the latest pre-built release package from the [Releases](https://github.com/gokulnaatheswaran/villupaatukaaran/releases) page:
+### Linux Debian / Ubuntu Package (`.deb`)
+Download the `.deb` package from the [Releases](https://github.com/gokulnaatheswaran/villupaatukaaran/releases) page:
 
+```bash
+# Install with apt or dpkg
+sudo apt install ./villupaatukaaran_1.1.0_amd64.deb
+# or
+sudo dpkg -i villupaatukaaran_1.1.0_amd64.deb
+
+# Launch from your app launcher or via CLI:
+villupaatukaaran
+```
+
+### Standalone Portable Bundle (`.tar.gz`)
 ```bash
 # Extract the release bundle
 tar -xzf villupaatukaaran-linux-x64.tar.gz
 
-# Run Villupaatukaaran
+# Run Villupaatukaaran directly
 ./villupaatukaaran/villupaatukaaran
 ```
 

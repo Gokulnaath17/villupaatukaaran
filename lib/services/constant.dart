@@ -62,7 +62,7 @@ class Constant {
   static const String prefPipedToken = 'pipedToken';
   static const String prefBackgroundPlayback = 'backgroundPlayback';
   static const String prefShowLyrics = 'showLyrics';
-  static const String prefLyricsMode = 'lyricsMode'; // 0: synced, 1: plain
+  static const String prefBaseStorageDir = 'baseStorageDir';
 
   // Streaming quality
   static const int qualityLow = 0;
@@ -99,8 +99,9 @@ class Constant {
   static const int maxPlaylistSongs = 5000;
 
   // Directories
-  static const String tempCacheDirName = 'cachedSongs';
-  static const String downloadDirName = 'Music';
+  static const String baseDirName = 'Villupaatukaaran';
+  static const String tempCacheDirName = 'cache';
+  static const String downloadDirName = 'downloads';
 
   // Notification
   static const String notificationChannelId = 'com.harmonymusic.audio';

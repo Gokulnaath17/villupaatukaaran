@@ -19,30 +19,98 @@ class SettingsView extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       children: [
         // Section: Storage Folders
-        _buildSectionHeader('STORAGE & BASE DIRECTORIES', Icons.folder_open_rounded),
+        _buildSectionHeader('BASE STORAGE DIRECTORY', Icons.folder_special_rounded),
         const SizedBox(height: 12),
 
-        // Base Audio Directory
-        Obx(() => _buildFolderTile(
-              title: 'Base Audio / Music Folder',
-              subtitle: controller.audioDir.value,
-              onBrowse: controller.pickAudioDirectory,
-            )),
-        const SizedBox(height: 10),
-
-        // Base Video Directory
-        Obx(() => _buildFolderTile(
-              title: 'Base Videos Folder',
-              subtitle: controller.videoDir.value,
-              onBrowse: controller.pickVideoDirectory,
-            )),
-        const SizedBox(height: 10),
-
-        // Cache Directory
-        Obx(() => _buildFolderTile(
-              title: 'Local Cache Directory',
-              subtitle: controller.cacheDir.value,
-              onBrowse: controller.pickCacheDirectory,
+        // Unified Base Directory Card
+        Obx(() => BoxyCard(
+              borderRadius: AppTheme.radiusMedium,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Unified Music & Storage Vault',
+                              style: TextStyle(
+                                color: AppTheme.textPrimary,
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              controller.baseDir.value.isEmpty
+                                  ? 'Default: ~/Music/Villupaatukaaran'
+                                  : controller.baseDir.value,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: AppTheme.blueLight,
+                                fontSize: 12,
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      BoxyButton(
+                        label: 'CHANGE FOLDER',
+                        icon: Icons.folder_open_rounded,
+                        onPressed: controller.pickBaseDirectory,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  const Divider(color: AppTheme.borderSubtle),
+                  const SizedBox(height: 8),
+                  // Subfolder layout explanation
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '• Downloads Subfolder',
+                              style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600),
+                            ),
+                            Text(
+                              controller.downloadsDir.value,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '• Cache Subfolder',
+                              style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600),
+                            ),
+                            Text(
+                              controller.cacheDir.value,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             )),
         const SizedBox(height: 28),
 
@@ -246,8 +314,103 @@ class SettingsView extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 28),
+
+        // Section: Danger Zone & Factory Reset
+        _buildSectionHeader('DANGER ZONE & FACTORY RESET', Icons.warning_amber_rounded),
+        const SizedBox(height: 12),
+
+        BoxyCard(
+          borderRadius: AppTheme.radiusMedium,
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Reset Entire Application',
+                      style: TextStyle(
+                        color: AppTheme.textWhite,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Permanently erase all offline downloads, cached songs, custom playlists, likes, playback history, and restore settings to defaults.',
+                      style: TextStyle(color: AppTheme.textMuted, fontSize: 12, height: 1.3),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              BoxyButton(
+                label: 'RESET ENTIRE APP',
+                icon: Icons.delete_forever_rounded,
+                isPrimary: true,
+                onPressed: () => _showResetConfirmationDialog(context, controller),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 32),
       ],
+    );
+  }
+
+  void _showResetConfirmationDialog(BuildContext context, SettingsController controller) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return AlertDialog(
+          backgroundColor: AppTheme.windowBg,
+          shape: RoundedRectangleBorder(
+            borderRadius: AppTheme.radiusLarge,
+            side: const BorderSide(color: AppTheme.trafficRed, width: 1.5),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_rounded, color: AppTheme.trafficRed, size: 22),
+              SizedBox(width: 10),
+              Text(
+                'RESET VILLUPAATUKAARAN?',
+                style: TextStyle(
+                  color: AppTheme.textWhite,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ],
+          ),
+          content: const Text(
+            'This action is irreversible. All offline songs, downloaded tracks, cache vault, playlists, liked songs, history, and preferences will be permanently wiped.\n\nAre you sure you want to proceed?',
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.4),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text('CANCEL', style: TextStyle(color: AppTheme.textSecondary)),
+            ),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.trafficRed,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: AppTheme.radiusSmall),
+              ),
+              onPressed: () async {
+                Navigator.pop(dialogCtx);
+                await controller.resetEntireApp();
+              },
+              icon: const Icon(Icons.delete_forever_rounded, size: 16),
+              label: const Text('YES, RESET EVERYTHING', style: TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -266,48 +429,6 @@ class SettingsView extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildFolderTile({
-    required String title,
-    required String subtitle,
-    required VoidCallback onBrowse,
-  }) {
-    return BoxyCard(
-      borderRadius: AppTheme.radiusMedium,
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle.isEmpty ? 'Not configured (using defaults)' : subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          BoxyButton(
-            label: 'BROWSE',
-            icon: Icons.folder_rounded,
-            onPressed: onBrowse,
-          ),
-        ],
-      ),
     );
   }
 }

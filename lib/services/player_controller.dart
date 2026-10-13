@@ -187,6 +187,13 @@ class PlayerController extends GetxController {
     }
   }
 
+  /// Action: Stop playback
+  Future<void> stop() async {
+    await _audioHandler.stop();
+    currentSong.value = null;
+    queue.clear();
+  }
+
   /// Action: Seek
   Future<void> seek(Duration pos) async {
     await _audioHandler.seek(pos);

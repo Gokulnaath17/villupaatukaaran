@@ -8,6 +8,7 @@ import 'services/audio_handler.dart';
 import 'services/cache_service.dart';
 import 'services/constant.dart';
 import 'services/discover_controller.dart';
+import 'services/download_service.dart';
 import 'services/library_service.dart';
 import 'services/music_service.dart';
 import 'services/player_controller.dart';
@@ -31,11 +32,14 @@ Future<void> main() async {
   final musicService = await MusicService().init();
   Get.put<MusicService>(musicService, permanent: true);
 
+  final cacheService = await CacheService().init();
+  Get.put<CacheService>(cacheService, permanent: true);
+
   final streamService = await StreamService().init();
   Get.put<StreamService>(streamService, permanent: true);
 
-  final cacheService = await CacheService().init();
-  Get.put<CacheService>(cacheService, permanent: true);
+  final downloadService = await DownloadService().init();
+  Get.put<DownloadService>(downloadService, permanent: true);
 
   final libraryService = await LibraryService().init();
   Get.put<LibraryService>(libraryService, permanent: true);

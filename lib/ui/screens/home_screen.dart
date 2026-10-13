@@ -5,11 +5,13 @@ import 'package:get/get.dart';
 import '../../models/song_item.dart';
 import '../../services/cache_service.dart';
 import '../../services/discover_controller.dart';
+import '../../services/download_service.dart';
 import '../../services/library_service.dart';
 import '../../services/player_controller.dart';
 import '../../services/settings_controller.dart';
 import '../../utils/app_assets.dart';
 import '../theme/theme_controller.dart';
+import '../widgets/download_queue_drawer.dart';
 import '../widgets/player_dock_bar.dart';
 import '../widgets/queue_drawer.dart';
 import '../widgets/song_tile.dart';
@@ -33,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLibraryExpanded = true;
   bool _isPlaylistsExpanded = true;
   bool _isQueueOpen = false;
+  bool _isDownloadsOpen = false;
 
   // Active Spotlight Artist
   String _selectedArtistKey = 'subbu';
@@ -68,6 +71,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void _toggleQueue() {
     setState(() {
       _isQueueOpen = !_isQueueOpen;
+      if (_isQueueOpen) _isDownloadsOpen = false;
+    });
+  }
+
+  void _toggleDownloads() {
+    setState(() {
+      _isDownloadsOpen = !_isDownloadsOpen;
+      if (_isDownloadsOpen) _isQueueOpen = false;
     });
   }
 
@@ -145,6 +156,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   right: 0,
                   bottom: 0,
                   child: QueueDrawer(onClose: _toggleQueue),
+                ),
+
+              // Slide-out Download Queue Drawer
+              if (_isDownloadsOpen)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: DownloadQueueDrawer(onClose: _toggleDownloads),
                 ),
             ],
           ),
@@ -725,6 +745,68 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(width: 12),
 
+          // Download Status Pill / Drawer Toggle
+          Builder(builder: (_) {
+            final downloadService = Get.isRegistered<DownloadService>() ? Get.find<DownloadService>() : null;
+            if (downloadService == null) return const SizedBox.shrink();
+
+            return Obx(() {
+              final activeCount = downloadService.activeDownloadsCount.value;
+              final isDownloading = activeCount > 0;
+
+              if (isDownloading) {
+                return InkWell(
+                  onTap: _toggleDownloads,
+                  borderRadius: AppTheme.radiusSmall,
+                  child: Container(
+                    height: 32,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: AppTheme.blueAccent.withOpacity(0.15),
+                      borderRadius: AppTheme.radiusSmall,
+                      border: Border.all(color: AppTheme.blueAccent.withOpacity(0.4)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppTheme.blueAccent,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '$activeCount DOWNLOADING',
+                          style: const TextStyle(
+                            color: AppTheme.blueAccent,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              return IconButton(
+                icon: Icon(
+                  Icons.download_done_rounded,
+                  color: _isDownloadsOpen ? AppTheme.blueAccent : AppTheme.textSecondary,
+                  size: 20,
+                ),
+                splashRadius: 18,
+                tooltip: 'Download Queue',
+                onPressed: _toggleDownloads,
+              );
+            });
+          }),
+          const SizedBox(width: 4),
+
           // Queue button
           IconButton(
             icon: Icon(
@@ -733,6 +815,7 @@ class _HomeScreenState extends State<HomeScreen> {
               size: 20,
             ),
             splashRadius: 18,
+            tooltip: 'Up Next Queue',
             onPressed: _toggleQueue,
           ),
         ],

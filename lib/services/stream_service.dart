@@ -4,6 +4,7 @@ import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import 'package:hive/hive.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
+import 'cache_service.dart';
 import 'constant.dart';
 import 'settings_controller.dart';
 import 'utils.dart';
@@ -24,19 +25,19 @@ class StreamService extends GetxService {
     _songsCacheBox = Hive.box(Constant.boxSongsCache);
     _songDownloadsBox = Hive.box(Constant.boxSongDownloads);
 
-    // Setup directories
-    final appDir = await getApplicationDocumentsDirectory();
-    _tempCacheDir = Directory('${appDir.path}/${Constant.tempCacheDirName}');
-    if (!await _tempCacheDir.exists()) {
-      await _tempCacheDir.create(recursive: true);
+    // Setup unified directories
+    if (Get.isRegistered<CacheService>()) {
+      final cacheService = Get.find<CacheService>();
+      _tempCacheDir = Directory(cacheService.cacheDir.value);
+      _downloadDir = Directory(cacheService.downloadsDir.value);
+    } else {
+      final appDir = await getApplicationDocumentsDirectory();
+      _tempCacheDir = Directory('${appDir.path}/${Constant.tempCacheDirName}');
+      _downloadDir = Directory('${appDir.path}/${Constant.downloadDirName}');
     }
 
-    // Download directory (platform-specific)
-    if (Constant.isDesktop) {
-      _downloadDir = Directory('${appDir.path}/${Constant.downloadDirName}');
-    } else {
-      // Android: use external storage
-      _downloadDir = Directory('/storage/emulated/0/${Constant.downloadDirName}');
+    if (!await _tempCacheDir.exists()) {
+      await _tempCacheDir.create(recursive: true);
     }
     if (!await _downloadDir.exists()) {
       await _downloadDir.create(recursive: true);

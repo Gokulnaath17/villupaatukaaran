@@ -16,13 +16,42 @@ class CacheService extends GetxService {
   late Box _downloadsBox;
   final Dio _dio = Dio();
 
-  final RxString audioDir = ''.obs;
-  final RxString videoDir = ''.obs;
+  final RxString baseDir = ''.obs;
+  final RxString downloadsDir = ''.obs;
   final RxString cacheDir = ''.obs;
   final RxInt cacheSizeLimit = 350.obs; // Default 350 songs limit
   final RxBool autoCacheEnabled = true.obs;
   final RxInt cachedSongsCount = 0.obs;
   final RxString cachedTotalSize = '0 MB'.obs;
+
+  // Backward compatibility getters
+  RxString get audioDir => downloadsDir;
+  RxString get videoDir => downloadsDir;
+
+  /// Resolves the default storage root directory on the system
+  static Future<String> resolveDefaultBaseDir() async {
+    if (Constant.isLinux || Constant.isMacOS) {
+      final home = Platform.environment['HOME'];
+      if (home != null && home.isNotEmpty) {
+        final music = Directory('$home/Music');
+        if (await music.exists()) {
+          return '$home/Music/${Constant.baseDirName}';
+        }
+        return '$home/${Constant.baseDirName}';
+      }
+    } else if (Constant.isWindows) {
+      final userProfile = Platform.environment['USERPROFILE'];
+      if (userProfile != null && userProfile.isNotEmpty) {
+        final music = Directory('$userProfile\\Music');
+        if (await music.exists()) {
+          return '$userProfile\\Music\\${Constant.baseDirName}';
+        }
+        return '$userProfile\\${Constant.baseDirName}';
+      }
+    }
+    final appDir = await getApplicationDocumentsDirectory();
+    return '${appDir.path}/${Constant.baseDirName}';
+  }
 
   Future<CacheService> init() async {
     _prefsBox = Hive.box(Constant.boxAppPrefs);
@@ -33,45 +62,34 @@ class CacheService extends GetxService {
     cacheSizeLimit.value = _prefsBox.get('cacheSizeLimit', defaultValue: 350) as int;
     autoCacheEnabled.value = _prefsBox.get(Constant.prefCacheSongs, defaultValue: true) as bool;
 
-    // Initialize default directories
-    final appDir = await getApplicationDocumentsDirectory();
+    // Initialize unified base directory
+    final savedBaseDir = _prefsBox.get(Constant.prefBaseStorageDir) as String?;
+    final defaultBase = await resolveDefaultBaseDir();
+    final effectiveBase = (savedBaseDir != null && savedBaseDir.isNotEmpty) ? savedBaseDir : defaultBase;
 
-    final savedAudioDir = _prefsBox.get('customAudioDir') as String?;
-    final savedVideoDir = _prefsBox.get('customVideoDir') as String?;
-    final savedCacheDir = _prefsBox.get('customCacheDir') as String?;
-
-    audioDir.value = savedAudioDir ?? '${appDir.path}/Music';
-    videoDir.value = savedVideoDir ?? '${appDir.path}/Videos';
-    cacheDir.value = savedCacheDir ?? '${appDir.path}/${Constant.tempCacheDirName}';
-
-    // Create directories if they don't exist
-    await Directory(audioDir.value).create(recursive: true);
-    await Directory(videoDir.value).create(recursive: true);
-    await Directory(cacheDir.value).create(recursive: true);
-
+    await setBaseDir(effectiveBase);
     await updateCacheStats();
     return this;
   }
 
-  /// Update directory path in settings
-  Future<void> setAudioDir(String path) async {
-    audioDir.value = path;
-    await _prefsBox.put('customAudioDir', path);
-    await Directory(path).create(recursive: true);
-  }
+  /// Update unified base storage directory and its subfolders
+  Future<void> setBaseDir(String path) async {
+    baseDir.value = path;
+    downloadsDir.value = '$path/${Constant.downloadDirName}';
+    cacheDir.value = '$path/${Constant.tempCacheDirName}';
 
-  Future<void> setVideoDir(String path) async {
-    videoDir.value = path;
-    await _prefsBox.put('customVideoDir', path);
-    await Directory(path).create(recursive: true);
-  }
+    await _prefsBox.put(Constant.prefBaseStorageDir, path);
 
-  Future<void> setCacheDir(String path) async {
-    cacheDir.value = path;
-    await _prefsBox.put('customCacheDir', path);
-    await Directory(path).create(recursive: true);
+    // Ensure subdirectories exist
+    await Directory(downloadsDir.value).create(recursive: true);
+    await Directory(cacheDir.value).create(recursive: true);
     await updateCacheStats();
   }
+
+  // Backward compatibility setters
+  Future<void> setAudioDir(String path) async => setBaseDir(path);
+  Future<void> setVideoDir(String path) async => setBaseDir(path);
+  Future<void> setCacheDir(String path) async => setBaseDir(path);
 
   Future<void> setCacheLimit(int limit) async {
     cacheSizeLimit.value = limit;
@@ -238,6 +256,63 @@ class CacheService extends GetxService {
     cachedTotalSize.value = mb > 1024
         ? '${(mb / 1024).toStringAsFixed(1)} GB'
         : '${mb.toStringAsFixed(1)} MB';
+  }
+
+  /// Batch-move all cached songs to the permanent offline downloads directory
+  Future<int> moveAllCachedToDownloads() async {
+    int count = 0;
+    final keys = _cacheBox.keys.toList();
+
+    for (final key in keys) {
+      final val = _cacheBox.get(key);
+      if (val is Map) {
+        final cachedPath = val['filePath'] as String?;
+        if (cachedPath != null && File(cachedPath).existsSync()) {
+          final ext = cachedPath.contains('.') ? cachedPath.split('.').last : 'opus';
+          final targetPath = '${downloadsDir.value}/$key.$ext';
+          try {
+            await File(cachedPath).copy(targetPath);
+            final targetFile = File(targetPath);
+            final targetSize = await targetFile.length();
+
+            final songData = Map<String, dynamic>.from(val);
+            songData['filePath'] = targetPath;
+            songData['url'] = targetPath;
+            songData['isDownloaded'] = true;
+            songData['downloadedAt'] = DateTime.now().millisecondsSinceEpoch;
+            songData['sizeBytes'] = targetSize;
+
+            await _downloadsBox.put(key, songData);
+            count++;
+          } catch (e) {
+            debugPrint('[CacheService] Error moving cached song $key to downloads: $e');
+          }
+        }
+      }
+    }
+    return count;
+  }
+
+  /// Wipes all files from cache and downloads folders
+  Future<void> wipeAllStorageFiles() async {
+    for (final dirPath in [cacheDir.value, downloadsDir.value]) {
+      final dir = Directory(dirPath);
+      if (await dir.exists()) {
+        try {
+          final entities = dir.listSync();
+          for (final e in entities) {
+            if (e is File) {
+              try {
+                await e.delete();
+              } catch (_) {}
+            }
+          }
+        } catch (_) {}
+      }
+    }
+    await _cacheBox.clear();
+    await _downloadsBox.clear();
+    await updateCacheStats();
   }
 }
 

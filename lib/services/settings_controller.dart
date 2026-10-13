@@ -5,6 +5,9 @@ import 'package:hive/hive.dart';
 
 import 'cache_service.dart';
 import 'constant.dart';
+import 'download_service.dart';
+import 'library_service.dart';
+import 'player_controller.dart';
 
 /// Controller for settings screen and user preferences
 class SettingsController extends GetxController {
@@ -33,55 +36,37 @@ class SettingsController extends GetxController {
   }
 
   // Directory getters from CacheService
-  RxString get audioDir => _cacheService.audioDir;
-  RxString get videoDir => _cacheService.videoDir;
+  RxString get baseDir => _cacheService.baseDir;
+  RxString get downloadsDir => _cacheService.downloadsDir;
   RxString get cacheDir => _cacheService.cacheDir;
+  RxString get audioDir => _cacheService.downloadsDir;
+  RxString get videoDir => _cacheService.downloadsDir;
   RxInt get cacheSizeLimit => _cacheService.cacheSizeLimit;
   RxBool get autoCacheEnabled => _cacheService.autoCacheEnabled;
   RxInt get cachedSongsCount => _cacheService.cachedSongsCount;
   RxString get cachedTotalSize => _cacheService.cachedTotalSize;
 
-  /// Pick base audio directory using native folder picker
-  Future<void> pickAudioDirectory() async {
+  /// Pick unified base storage directory
+  Future<void> pickBaseDirectory() async {
     try {
       final selected = await FilePicker.getDirectoryPath(
-        dialogTitle: 'Select Base Audio / Music Directory',
+        dialogTitle: 'Select Base Storage Directory',
       );
       if (selected != null && selected.isNotEmpty) {
-        await _cacheService.setAudioDir(selected);
+        await _cacheService.setBaseDir(selected);
+        if (Get.isRegistered<LibraryService>()) {
+          await Get.find<LibraryService>().refreshAll();
+        }
       }
     } catch (e) {
-      debugPrint('[Settings] Directory picker error: $e');
+      debugPrint('[Settings] Base directory picker error: $e');
     }
   }
 
-  /// Pick base video directory
-  Future<void> pickVideoDirectory() async {
-    try {
-      final selected = await FilePicker.getDirectoryPath(
-        dialogTitle: 'Select Base Video Directory',
-      );
-      if (selected != null && selected.isNotEmpty) {
-        await _cacheService.setVideoDir(selected);
-      }
-    } catch (e) {
-      debugPrint('[Settings] Directory picker error: $e');
-    }
-  }
-
-  /// Pick cache directory
-  Future<void> pickCacheDirectory() async {
-    try {
-      final selected = await FilePicker.getDirectoryPath(
-        dialogTitle: 'Select Cache Directory',
-      );
-      if (selected != null && selected.isNotEmpty) {
-        await _cacheService.setCacheDir(selected);
-      }
-    } catch (e) {
-      debugPrint('[Settings] Directory picker error: $e');
-    }
-  }
+  // Backward compatibility pickers
+  Future<void> pickAudioDirectory() async => pickBaseDirectory();
+  Future<void> pickVideoDirectory() async => pickBaseDirectory();
+  Future<void> pickCacheDirectory() async => pickBaseDirectory();
 
   /// Set cache limit (up to 350 default, or custom)
   Future<void> setCacheSizeLimit(int limit) async {
@@ -115,4 +100,83 @@ class SettingsController extends GetxController {
     loudnessNormalization.value = enabled;
     await _prefsBox.put(Constant.prefLoudnessNormalization, enabled);
   }
+
+  /// Factory reset: Wipes all databases, caches, downloads, and restores pristine clean slate
+  Future<void> resetEntireApp() async {
+    try {
+      // 1. Stop audio playback immediately
+      if (Get.isRegistered<PlayerController>()) {
+        try {
+          await Get.find<PlayerController>().stop();
+        } catch (_) {}
+      }
+
+      // 2. Clear all open Hive boxes
+      final boxNames = [
+        Constant.boxSongsCache,
+        Constant.boxSongDownloads,
+        Constant.boxSongsUrlCache,
+        Constant.boxAppPrefs,
+        Constant.boxLibraryPlaylists,
+        Constant.boxLibFav,
+        Constant.boxLibRP,
+        Constant.boxHomeScreenData,
+        Constant.boxPrevSessionData,
+        Constant.boxSearchQuery,
+      ];
+
+      for (final name in boxNames) {
+        if (Hive.isBoxOpen(name)) {
+          try {
+            await Hive.box(name).clear();
+          } catch (_) {}
+        }
+      }
+
+      // 3. Wipe all downloaded and cached media files from disk
+      await _cacheService.wipeAllStorageFiles();
+
+      // 4. Reset default base storage directory
+      final defaultBase = await CacheService.resolveDefaultBaseDir();
+      await _cacheService.setBaseDir(defaultBase);
+
+      // 5. Reset download queue if registered
+      if (Get.isRegistered<DownloadService>()) {
+        Get.find<DownloadService>().clearAllTasks();
+      }
+
+      // 6. Refresh library state
+      if (Get.isRegistered<LibraryService>()) {
+        await Get.find<LibraryService>().refreshAll();
+      }
+
+      // 7. Reset settings observables to defaults
+      streamingQuality.value = Constant.qualityHigh;
+      skipSilence.value = false;
+      loudnessNormalization.value = true;
+      _cacheService.cacheSizeLimit.value = 350;
+      _cacheService.autoCacheEnabled.value = true;
+
+      _notify(
+        'App Reset Complete',
+        'Villupaatukaaran has been restored to factory defaults',
+      );
+    } catch (e) {
+      debugPrint('[SettingsController] Reset app error: $e');
+    }
+  }
+
+  void _notify(String title, String message) {
+    if (Get.context != null) {
+      try {
+        Get.snackbar(
+          title,
+          message,
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 3),
+        );
+      } catch (_) {}
+    }
+  }
 }
+
