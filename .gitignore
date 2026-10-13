@@ -59,6 +59,7 @@ macos/Flutter/ephemeral/
 **/ios/Flutter/flutter_export_environment.sh
 
 # Build outputs & release packages
+dist/
 *.apk
 *.aab
 *.exe
@@ -69,12 +70,20 @@ macos/Flutter/ephemeral/
 *.rpm
 *.tar.gz
 *.tar.xz
+*.tar.bz2
+*.tar.zst
 *.zip
+compile_commands.json
+CMakeUserPresets.json
 
 # Local runtime caching & downloads
 cachedSongs/
 downloads/
 
-# Ephemeral design artifacts
+# Ephemeral design artifacts & editor backups
 mod.png
 design_prototype.html
+*.bak
+*.orig
+*.env*
+.directory

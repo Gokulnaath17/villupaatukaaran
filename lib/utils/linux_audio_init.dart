@@ -31,6 +31,21 @@ class LinuxAudioInit {
   static void ensureInitialized() {
     if (_initialized || !Constant.isDesktop) return;
 
+    if (!Platform.isLinux) {
+      try {
+        JustAudioMediaKit.ensureInitialized(
+          linux: false,
+          windows: true,
+        );
+        JustAudioMediaKit.title = 'Villupaatukaran';
+        JustAudioMediaKit.protocolWhitelist = ['http', 'https', 'file'];
+        _initialized = true;
+      } catch (e) {
+        debugPrint('[AudioInit] Windows/Desktop init note: $e');
+      }
+      return;
+    }
+
     try {
       String? exeDir;
       try {

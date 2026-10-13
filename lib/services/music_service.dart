@@ -297,17 +297,21 @@ class MusicService extends GetxService {
 
     final candidates = [
       if (exeDir != null) '$exeDir/bin/yt-dlp',
+      if (exeDir != null) '$exeDir/bin/yt-dlp.exe',
       if (exeDir != null) '$exeDir/yt-dlp',
+      if (exeDir != null) '$exeDir/yt-dlp.exe',
       '/home/gokul/.local/bin/yt-dlp',
       '/home/gokul/Dev/Github/self/villupaatukaaran/linux/bin/yt-dlp',
       'yt-dlp',
+      'yt-dlp.exe',
     ];
     for (final p in candidates) {
-      if (p == 'yt-dlp') {
+      if (p == 'yt-dlp' || p == 'yt-dlp.exe') {
         try {
-          final which = await Process.run('which', ['yt-dlp']);
+          final cmd = Platform.isWindows ? 'where' : 'which';
+          final which = await Process.run(cmd, [p]);
           if (which.exitCode == 0 && which.stdout.toString().trim().isNotEmpty) {
-            return which.stdout.toString().trim();
+            return which.stdout.toString().trim().split(RegExp(r'[\r\n]+')).first.trim();
           }
         } catch (_) {}
       } else if (File(p).existsSync()) {
