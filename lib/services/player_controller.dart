@@ -60,8 +60,11 @@ class PlayerController extends GetxController {
         ? Hive.box(Constant.boxLibRP)
         : await Hive.openBox(Constant.boxLibRP);
 
-    // Load liked song IDs into set
-    likedSongIds.addAll(_favBox.keys.map((k) => k.toString()));
+    // Load liked song IDs into set and watch for external mutations/resets
+    likedSongIds.assignAll(_favBox.keys.map((k) => k.toString()));
+    _favBox.watch().listen((_) {
+      likedSongIds.assignAll(_favBox.keys.map((k) => k.toString()));
+    });
 
     // Listen to mediaItem changes
     _mediaSub = _audioHandler.mediaItem.listen((item) {
@@ -131,10 +134,22 @@ class PlayerController extends GetxController {
     final mediaItems = list.map((s) => s.toMediaItem()).toList();
     await _audioHandler.setQueueAndPlay(mediaItems, initialIndex: index);
 
-    // If queueContext has only 1 track, fetch radio continuation in background
-    if (list.length == 1) {
+    // If queueContext has only 1 track and it's not a local file, fetch radio continuation in background
+    if (list.length == 1 && !song.videoId.startsWith('local_')) {
       _fetchRadioContinuation(song.videoId);
     }
+  }
+
+  /// Play an entire list of songs with optional shuffle and initial index
+  Future<void> playAllSongs(List<SongItem> songs, {bool shuffle = false, int initialIndex = 0}) async {
+    if (songs.isEmpty) return;
+    final list = List<SongItem>.from(songs);
+    if (shuffle) {
+      list.shuffle();
+    }
+    final mediaItems = list.map((s) => s.toMediaItem()).toList();
+    final safeIndex = (initialIndex >= 0 && initialIndex < mediaItems.length) ? initialIndex : 0;
+    await _audioHandler.setQueueAndPlay(mediaItems, initialIndex: safeIndex);
   }
 
   /// Fetch radio queue continuation (auto-play similar tracks)
@@ -281,6 +296,14 @@ class PlayerController extends GetxController {
   }
 
   bool isLiked(String videoId) => likedSongIds.contains(videoId);
+
+  /// Clear all in-memory liked song IDs and reset active track's liked flag
+  void clearLikedState() {
+    likedSongIds.clear();
+    if (currentSong.value != null && currentSong.value!.isLiked) {
+      currentSong.value = currentSong.value!.copyWith(isLiked: false);
+    }
+  }
 
   /// Add track to recently played history (cap 30)
   Future<void> _addToHistory(SongItem song) async {

@@ -14,6 +14,7 @@ class LibraryService extends GetxService {
   late Box _favBox;
   late Box _cacheBox;
   late Box _downloadsBox;
+  late Box _prefsBox;
   late CacheService _cacheService;
 
   final RxList<PlaylistItem> playlists = <PlaylistItem>[].obs;
@@ -21,6 +22,8 @@ class LibraryService extends GetxService {
   final RxList<SongItem> cachedSongs = <SongItem>[].obs;
   final RxList<SongItem> downloadedSongs = <SongItem>[].obs;
   final RxList<SongItem> localSongs = <SongItem>[].obs;
+  final RxMap<String, List<SongItem>> localSongsByFolder = <String, List<SongItem>>{}.obs;
+  final RxList<String> additionalFolders = <String>[].obs;
   final RxList<SongItem> allSongs = <SongItem>[].obs;
 
   Future<LibraryService> init() async {
@@ -40,7 +43,17 @@ class LibraryService extends GetxService {
         ? Hive.box(Constant.boxSongDownloads)
         : await Hive.openBox(Constant.boxSongDownloads);
 
+    _prefsBox = Hive.isBoxOpen(Constant.boxAppPrefs)
+        ? Hive.box(Constant.boxAppPrefs)
+        : await Hive.openBox(Constant.boxAppPrefs);
+
     _cacheService = Get.find<CacheService>();
+
+    // Load saved additional local folders
+    final savedFolders = _prefsBox.get('additionalLocalFolders');
+    if (savedFolders is List) {
+      additionalFolders.value = savedFolders.map((e) => e.toString()).toList();
+    }
 
     // Live box watchers to keep reactive lists synchronized automatically
     _favBox.watch().listen((_) => loadLikedSongs());
@@ -54,6 +67,13 @@ class LibraryService extends GetxService {
 
   /// Reload all library sections from Hive and disk
   Future<void> refreshAll() async {
+    final savedFolders = _prefsBox.get('additionalLocalFolders');
+    if (savedFolders is List) {
+      additionalFolders.value = savedFolders.map((e) => e.toString()).toList();
+    } else {
+      additionalFolders.clear();
+    }
+
     await loadPlaylists();
     await loadLikedSongs();
     await loadCachedSongs();
@@ -107,44 +127,162 @@ class LibraryService extends GetxService {
     _updateAllSongs();
   }
 
-  /// Scan and load audio files from local music directory
+  /// Grant access to an additional music directory
+  Future<void> addAdditionalFolder(String folderPath) async {
+    final trimmed = folderPath.trim();
+    if (trimmed.isEmpty) return;
+    if (!additionalFolders.contains(trimmed)) {
+      additionalFolders.add(trimmed);
+      await _prefsBox.put('additionalLocalFolders', additionalFolders.toList());
+      await loadLocalSongs();
+    }
+  }
+
+  /// Revoke access to an additional music directory
+  Future<void> removeAdditionalFolder(String folderPath) async {
+    additionalFolders.remove(folderPath);
+    await _prefsBox.put('additionalLocalFolders', additionalFolders.toList());
+    await loadLocalSongs();
+  }
+
+  /// Scan and load audio files from base directory and all granted additional directories recursively
   Future<void> loadLocalSongs() async {
     final list = <SongItem>[];
-    try {
-      final musicPath = _cacheService.audioDir.value;
-      if (musicPath.isNotEmpty) {
-        final dir = Directory(musicPath);
-        if (await dir.exists()) {
-          final supportedExts = ['.mp3', '.m4a', '.opus', '.wav', '.flac', '.ogg'];
-          final entities = dir.listSync(recursive: false);
-          for (final entity in entities) {
-            if (entity is File) {
-              final path = entity.path;
-              final dotIdx = path.lastIndexOf('.');
-              if (dotIdx != -1) {
-                final ext = path.substring(dotIdx).toLowerCase();
-                if (supportedExts.contains(ext)) {
-                  final sep = Platform.pathSeparator;
-                  final fileName = path.contains(sep) ? path.substring(path.lastIndexOf(sep) + 1) : path;
-                  final title = fileName.substring(0, fileName.lastIndexOf('.'));
-                  list.add(SongItem(
-                    videoId: 'local_${path.hashCode.abs()}',
-                    title: title,
-                    artist: 'Local Audio',
-                    album: 'Device Music',
-                    url: path,
-                    isDownloaded: true,
-                  ));
-                }
-              }
-            }
-          }
+    final folderMap = <String, List<SongItem>>{};
+    final seenPaths = <String>{};
+    final supportedExts = {'.mp3', '.m4a', '.opus', '.wav', '.flac', '.ogg', '.aac', '.wma'};
+    final cachePath = _cacheService.cacheDir.value;
+
+    final dirsToScan = <Directory>[];
+
+    // 1. Base storage directory
+    final basePath = _cacheService.baseDir.value;
+    if (basePath.isNotEmpty) {
+      final baseDir = Directory(basePath);
+      if (await baseDir.exists()) {
+        dirsToScan.add(baseDir);
+      }
+    }
+
+    // 2. Additional granted directories
+    for (final extraPath in additionalFolders) {
+      if (extraPath.isNotEmpty) {
+        final extraDir = Directory(extraPath);
+        if (await extraDir.exists()) {
+          dirsToScan.add(extraDir);
         }
       }
-    } catch (e) {
-      debugPrint('[LibraryService] Error scanning local songs: $e');
+    }
+
+    for (final dir in dirsToScan) {
+      try {
+        final entities = dir.listSync(recursive: true, followLinks: false);
+        for (final entity in entities) {
+          if (entity is File) {
+            final path = entity.path;
+            // Skip internal streaming cache files
+            if (cachePath.isNotEmpty && path.startsWith(cachePath)) {
+              continue;
+            }
+
+            if (seenPaths.contains(path)) continue;
+
+            final dotIdx = path.lastIndexOf('.');
+            if (dotIdx == -1) continue;
+            final ext = path.substring(dotIdx).toLowerCase();
+            if (!supportedExts.contains(ext)) continue;
+
+            final sep = Platform.pathSeparator;
+            final fileName = path.contains(sep) ? path.substring(path.lastIndexOf(sep) + 1) : path;
+            if (fileName.startsWith('.')) continue;
+
+            final baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+            String artist = 'Local Audio';
+            String title = baseName;
+
+            if (baseName.contains(' - ')) {
+              final parts = baseName.split(' - ');
+              if (parts.length >= 2) {
+                artist = parts[0].trim();
+                title = parts.sublist(1).join(' - ').trim();
+              }
+            }
+
+            // Group by parent folder name
+            final parentDir = entity.parent;
+            final folderName = parentDir.path.split(sep).last;
+            final cleanFolderName = folderName.isNotEmpty ? folderName : 'Local Files';
+
+            final song = SongItem(
+              videoId: 'local_${path.hashCode.abs()}',
+              title: title.isNotEmpty ? title : fileName,
+              artist: artist.isNotEmpty ? artist : 'Local Audio',
+              album: cleanFolderName,
+              url: path,
+              isDownloaded: true,
+            );
+
+            seenPaths.add(path);
+            list.add(song);
+
+            folderMap.putIfAbsent(cleanFolderName, () => []).add(song);
+          }
+        }
+      } catch (e) {
+        debugPrint('[LibraryService] Error scanning dir ${dir.path}: $e');
+      }
+    }
+
+    // Apply custom order if saved
+    final savedOrder = _prefsBox.get('localSongsOrder');
+    if (savedOrder is List && savedOrder.isNotEmpty) {
+      final orderMap = <String, int>{};
+      for (int i = 0; i < savedOrder.length; i++) {
+        orderMap[savedOrder[i].toString()] = i;
+      }
+      list.sort((a, b) {
+        final aKey = a.url ?? a.videoId;
+        final bKey = b.url ?? b.videoId;
+        final aIndex = orderMap[aKey] ?? 999999;
+        final bIndex = orderMap[bKey] ?? 999999;
+        return aIndex.compareTo(bIndex);
+      });
+    }
+
+    localSongs.value = list;
+    localSongsByFolder.value = folderMap;
+    _updateAllSongs();
+  }
+
+  /// Reorder local songs list and persist custom arrangement
+  Future<void> reorderLocalSongs(int oldIndex, int newIndex) async {
+    if (oldIndex < 0 || oldIndex >= localSongs.length) return;
+    if (newIndex < 0 || newIndex > localSongs.length) return;
+
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    final item = localSongs.removeAt(oldIndex);
+    localSongs.insert(newIndex, item);
+
+    final orderList = localSongs.map((s) => s.url ?? s.videoId).toList();
+    await _prefsBox.put('localSongsOrder', orderList);
+    _updateAllSongs();
+  }
+
+  /// Sort local songs by title, artist, or folder
+  Future<void> sortLocalSongs(String sortType) async {
+    final list = List<SongItem>.from(localSongs);
+    if (sortType == 'title') {
+      list.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+    } else if (sortType == 'artist') {
+      list.sort((a, b) => a.artist.toLowerCase().compareTo(b.artist.toLowerCase()));
+    } else if (sortType == 'folder') {
+      list.sort((a, b) => (a.album ?? '').toLowerCase().compareTo((b.album ?? '').toLowerCase()));
     }
     localSongs.value = list;
+    final orderList = localSongs.map((s) => s.url ?? s.videoId).toList();
+    await _prefsBox.put('localSongsOrder', orderList);
     _updateAllSongs();
   }
 

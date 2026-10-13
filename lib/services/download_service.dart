@@ -74,6 +74,30 @@ class DownloadService extends GetxService {
     return this;
   }
 
+  /// Clean filename string for safe filesystem storage
+  static String sanitizeFileName(String name) {
+    return name
+        .replaceAll(RegExp(r'[\\/:*?"<>|]'), '_')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  /// Generate human-readable offline filename: "Artist - Title.ext"
+  static String generateSongFileName(SongItem song, String ext) {
+    final cleanArtist = sanitizeFileName(song.artist);
+    final cleanTitle = sanitizeFileName(song.title);
+    String base;
+    if (cleanArtist.isNotEmpty && cleanArtist.toLowerCase() != 'unknown artist') {
+      base = '$cleanArtist - $cleanTitle';
+    } else {
+      base = cleanTitle.isNotEmpty ? cleanTitle : song.videoId;
+    }
+    if (base.length > 120) {
+      base = base.substring(0, 120).trim();
+    }
+    return '$base.$ext';
+  }
+
   /// Check if a song is currently in the download queue
   bool isSongDownloading(String videoId) {
     return downloadQueue.any((t) =>
@@ -118,7 +142,8 @@ class DownloadService extends GetxService {
       if (cachedPath != null && File(cachedPath).existsSync()) {
         try {
           final ext = cachedPath.contains('.') ? cachedPath.split('.').last : 'opus';
-          final targetPath = '${_cacheService.downloadsDir.value}/${song.videoId}.$ext';
+          final fileName = generateSongFileName(song, ext);
+          final targetPath = '${_cacheService.downloadsDir.value}/$fileName';
           await File(cachedPath).copy(targetPath);
           final fileSize = await File(targetPath).length();
 
@@ -191,7 +216,7 @@ class DownloadService extends GetxService {
       // 2. Prepare target file path in unified downloads folder
       final isM4a = streamInfo.codec.contains('mp4') || streamInfo.url.contains('.m4a');
       final ext = isM4a ? 'm4a' : 'opus';
-      final fileName = '${task.song.videoId}.$ext';
+      final fileName = generateSongFileName(task.song, ext);
       final savePath = '${_cacheService.downloadsDir.value}/$fileName';
 
       task.cancelToken = CancelToken();

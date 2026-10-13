@@ -114,7 +114,7 @@ class SongItem {
       thumbnailUrl: json['thumbnailUrl']?.toString() ??
           (json['thumbnail'] is Map ? json['thumbnail']['url']?.toString() : null),
       highResThumbnail: json['highResThumbnail']?.toString(),
-      url: json['url']?.toString(),
+      url: (json['url'] ?? json['filePath'])?.toString(),
       isCached: json['isCached'] == true,
       isDownloaded: json['isDownloaded'] == true,
       isLiked: json['isLiked'] == true,

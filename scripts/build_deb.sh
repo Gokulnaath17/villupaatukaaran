@@ -76,3 +76,4 @@ dpkg-deb --build --root-owner-group "${STAGE_DIR}" "${DEB_FILE}"
 
 echo "Debian package created successfully: ${DEB_FILE}"
 ls -lh "${DEB_FILE}"
+

@@ -120,7 +120,8 @@ void main() {
     // Should now be downloaded instantly via local copy
     expect(downloadService.isSongDownloaded(videoId), isTrue);
 
-    final targetFile = File('${cacheService.downloadsDir.value}/$videoId.opus');
+    final expectedFileName = DownloadService.generateSongFileName(song, 'opus');
+    final targetFile = File('${cacheService.downloadsDir.value}/$expectedFileName');
     expect(targetFile.existsSync(), isTrue);
     expect(targetFile.readAsStringSync(), equals('mock audio byte data'));
 
@@ -160,7 +161,7 @@ void main() {
     for (int i = 1; i <= 3; i++) {
       final id = 'song_$i';
       expect(downloadsBox.containsKey(id), isTrue);
-      final destFile = File('${cacheService.downloadsDir.value}/$id.opus');
+      final destFile = File('${cacheService.downloadsDir.value}/Artist $i - Track $i.opus');
       expect(destFile.existsSync(), isTrue);
     }
   });
@@ -203,5 +204,60 @@ void main() {
     expect(Hive.box(Constant.boxLibFav).isEmpty, isTrue);
     expect(Hive.box(Constant.boxSongsCache).isEmpty, isTrue);
     expect(file.existsSync(), isFalse);
+  });
+
+  test('LibraryService scans recursively, groups by folder, and allows reordering', () async {
+    final cacheService = CacheService();
+    await cacheService.init();
+    Get.put<CacheService>(cacheService);
+
+    final libraryService = LibraryService();
+    await libraryService.init();
+    Get.put<LibraryService>(libraryService);
+
+    // 1. Create nested folders in baseDir
+    final subFolder = Directory('${cacheService.baseDir.value}/TamilClassics');
+    await subFolder.create(recursive: true);
+    final songFile1 = File('${subFolder.path}/Subbu Arumugam - Villu Song.opus');
+    await songFile1.writeAsString('audio 1');
+
+    final songFile2 = File('${cacheService.downloadsDir.value}/Anirudh - Hukum.mp3');
+    await songFile2.writeAsString('audio 2');
+
+    // 2. Create additional granted folder
+    final extraDir = Directory('${tempRoot.path}/ExternalMusic/Ilaiyaraaja');
+    await extraDir.create(recursive: true);
+    final songFile3 = File('${extraDir.path}/Ilaiyaraaja - Thendral Vandhu.wav');
+    await songFile3.writeAsString('audio 3');
+
+    // Add granted folder
+    await libraryService.addAdditionalFolder(extraDir.path);
+    expect(libraryService.additionalFolders.contains(extraDir.path), isTrue);
+
+    // Scan
+    await libraryService.loadLocalSongs();
+
+    // Verify all 3 songs are found recursively
+    expect(libraryService.localSongs.length, equals(3));
+    expect(libraryService.localSongs.any((s) => s.title == 'Villu Song'), isTrue);
+    expect(libraryService.localSongs.any((s) => s.title == 'Hukum'), isTrue);
+    expect(libraryService.localSongs.any((s) => s.title == 'Thendral Vandhu'), isTrue);
+
+    // Verify folder grouping
+    final groups = libraryService.localSongsByFolder;
+    expect(groups.containsKey('TamilClassics'), isTrue);
+    expect(groups['TamilClassics']!.length, equals(1));
+    expect(groups.containsKey(Constant.downloadDirName), isTrue);
+    expect(groups.containsKey('Ilaiyaraaja'), isTrue);
+
+    // Verify reordering
+    final firstSongId = libraryService.localSongs[0].videoId;
+    await libraryService.reorderLocalSongs(0, 2);
+    expect(libraryService.localSongs[1].videoId, equals(firstSongId));
+
+    // Verify removing additional folder
+    await libraryService.removeAdditionalFolder(extraDir.path);
+    expect(libraryService.additionalFolders.contains(extraDir.path), isFalse);
+    expect(libraryService.localSongs.length, equals(2));
   });
 }

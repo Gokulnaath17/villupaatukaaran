@@ -145,7 +145,10 @@ class SettingsController extends GetxController {
         Get.find<DownloadService>().clearAllTasks();
       }
 
-      // 6. Refresh library state
+      // 6. Refresh library and player state
+      if (Get.isRegistered<PlayerController>()) {
+        Get.find<PlayerController>().clearLikedState();
+      }
       if (Get.isRegistered<LibraryService>()) {
         await Get.find<LibraryService>().refreshAll();
       }

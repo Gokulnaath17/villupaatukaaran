@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -72,6 +73,11 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       final nextItem = q[nextIndex];
       if (_preloadedVideoId == nextItem.id) return;
       _preloadedVideoId = nextItem.id;
+
+      // Skip preloading for local files or already offline files
+      if (nextItem.id.startsWith('local_')) return;
+      final extraUrl = nextItem.extras?['url']?.toString();
+      if (extraUrl != null && (extraUrl.startsWith('/') || extraUrl.startsWith('file://'))) return;
 
       try {
         debugPrint('[AudioHandler] Preloading upcoming track: ${nextItem.title}');
@@ -152,33 +158,78 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     try {
       final videoId = targetItem.id;
-      final streamData = await _streamService.getStreamingData(videoId);
+      String? resolvedPathOrUrl;
+      bool isLocalFile = false;
 
-      // Check if another request superseded this one
-      if (reqId != _currentRequestId) return;
-
-      if (!streamData.playable) {
-        throw Exception(streamData.statusMsg.isNotEmpty
-            ? streamData.statusMsg
-            : 'Track is not playable');
+      // 1. Direct local file path check from extras['url']
+      final extraUrl = targetItem.extras?['url']?.toString();
+      if (extraUrl != null && extraUrl.isNotEmpty) {
+        final cleanPath = extraUrl.replaceFirst('file://', '');
+        if (File(cleanPath).existsSync()) {
+          resolvedPathOrUrl = cleanPath;
+          isLocalFile = true;
+        }
       }
 
-      final url = streamData.high?.url ?? streamData.low?.url;
-      if (url == null || url.isEmpty) {
-        throw Exception('Failed to resolve audio stream URL');
+      // 2. Check SongDownloads Hive box for offline file
+      if (resolvedPathOrUrl == null && Hive.isBoxOpen(Constant.boxSongDownloads)) {
+        final dlHit = Hive.box(Constant.boxSongDownloads).get(videoId);
+        if (dlHit is Map) {
+          final p = (dlHit['filePath'] ?? dlHit['url'])?.toString().replaceFirst('file://', '');
+          if (p != null && File(p).existsSync()) {
+            resolvedPathOrUrl = p;
+            isLocalFile = true;
+          }
+        }
+      }
+
+      // 3. Check SongsCache Hive box for cached file
+      if (resolvedPathOrUrl == null && Hive.isBoxOpen(Constant.boxSongsCache)) {
+        final cHit = Hive.box(Constant.boxSongsCache).get(videoId);
+        if (cHit is Map) {
+          final p = (cHit['filePath'] ?? cHit['url'])?.toString().replaceFirst('file://', '');
+          if (p != null && File(p).existsSync()) {
+            resolvedPathOrUrl = p;
+            isLocalFile = true;
+          }
+        }
+      }
+
+      // 4. Online stream resolution if not found locally
+      if (resolvedPathOrUrl == null) {
+        if (videoId.startsWith('local_')) {
+          throw Exception('Local audio file not found on disk: $extraUrl');
+        }
+
+        final streamData = await _streamService.getStreamingData(videoId);
+        if (reqId != _currentRequestId) return;
+
+        if (!streamData.playable) {
+          throw Exception(streamData.statusMsg.isNotEmpty
+              ? streamData.statusMsg
+              : 'Track is not playable');
+        }
+
+        final streamUrl = streamData.high?.url ?? streamData.low?.url;
+        if (streamUrl == null || streamUrl.isEmpty) {
+          throw Exception('Failed to resolve audio stream URL');
+        }
+
+        if (streamUrl.startsWith('/') || streamUrl.startsWith('file://')) {
+          resolvedPathOrUrl = streamUrl.replaceFirst('file://', '');
+          isLocalFile = true;
+        } else {
+          resolvedPathOrUrl = streamUrl;
+          isLocalFile = false;
+        }
       }
 
       // Check if another request superseded this one while resolving URL
       if (reqId != _currentRequestId) return;
 
-      // Check if source is a local file
-      AudioSource source;
-      if (url.startsWith('/') || url.startsWith('file://')) {
-        final filePath = url.replaceFirst('file://', '');
-        source = AudioSource.file(filePath, tag: targetItem);
-      } else {
-        source = AudioSource.uri(Uri.parse(url), tag: targetItem);
-      }
+      AudioSource source = isLocalFile
+          ? AudioSource.file(resolvedPathOrUrl, tag: targetItem)
+          : AudioSource.uri(Uri.parse(resolvedPathOrUrl), tag: targetItem);
 
       await _player.setAudioSource(source);
 
@@ -186,10 +237,10 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       if (reqId != _currentRequestId) return;
       await _player.play();
 
-      // Trigger background auto-cache for instant re-playback
-      if (Get.isRegistered<CacheService>()) {
+      // Trigger background auto-cache for online tracks
+      if (!isLocalFile && Get.isRegistered<CacheService>()) {
         final songItem = SongItem.fromMediaItem(targetItem);
-        Get.find<CacheService>().autoCacheSong(songItem, url);
+        Get.find<CacheService>().autoCacheSong(songItem, resolvedPathOrUrl);
       }
     } catch (e) {
       debugPrint('[AudioHandler] Playback error: $e');
@@ -197,14 +248,18 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         processingState: AudioProcessingState.idle,
         playing: false,
       ));
-      Get.snackbar(
-        'Playback Error',
-        'Could not stream "${targetItem.title}": $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFF221111),
-        colorText: const Color(0xFFFF5555),
-        duration: const Duration(seconds: 4),
-      );
+      if (Get.context != null) {
+        try {
+          Get.snackbar(
+            'Playback Error',
+            'Could not stream "${targetItem.title}": $e',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: const Color(0xFF221111),
+            colorText: const Color(0xFFFF5555),
+            duration: const Duration(seconds: 4),
+          );
+        } catch (_) {}
+      }
     }
   }
 

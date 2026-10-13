@@ -94,3 +94,15 @@ flutter build linux --release
 5. **Safe Int Parsing & Duration Deserialization (`String is not a subtype of type int?`)**:
    - Upstream services or cache entries may store duration as string (e.g. `"245"` or `"4:05"`).
    - Solved with `_safeInt(val)` helper across `StreamService`, `SongItem`, `PlaylistItem`, and `CacheService` to safely parse numbers, numeric strings, and `"mm:ss"` formats without casting exceptions.
+
+6. **Direct Local & Download Offline Playback (No YouTube Lookup)**:
+   - For local tracks (`videoId.startsWith('local_')`) and downloaded tracks, playback failed when passed to `StreamService.getStreamingData()`. Solved with first-class local file resolution in `MyAudioHandler.playByIndex()` checking `extras['url']`, `SongDownloads`, and `SongsCache` for valid files on disk and playing directly via `AudioSource.file(path)`.
+
+7. **Human-Readable Offline Filenames**:
+   - Downloads previously saved as obscure IDs (`${song.videoId}.$ext`). Solved with `generateSongFileName(song, ext)` which writes `${artist} - ${title}.${ext}` with path-safe character sanitization.
+
+8. **In-Memory Liked State Sync & Factory Reset**:
+   - `PlayerController` in-memory `likedSongIds` set wasn't cleared when `SettingsController.resetEntireApp()` wiped the `LIBFAV` box, leaving heart icons active. Solved with reactive `_favBox.watch()` synchronization and explicit `playerController.clearLikedState()` invocation during reset.
+
+9. **Multi-Folder Local Library, Grouping, Reorder & Local Shuffle**:
+   - `LibraryService` recursively scans the unified base directory and all user-granted additional directories, groups songs by folder (`localSongsByFolder`), supports drag-and-drop reordering with persistent custom order, and provides `PLAY ALL` / `SHUFFLE ALL` that queues only local tracks without radio continuation.

@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -39,6 +41,38 @@ class LibraryView extends StatefulWidget {
 class _LibraryViewState extends State<LibraryView> {
   late LibraryCategory _selectedCategory;
   PlaylistItem? _viewingPlaylist;
+  bool _isReorderMode = false;
+
+  Future<void> _pickAndAddFolder(LibraryService libraryService) async {
+    final selectedDirectory = await FilePicker.getDirectoryPath(
+      dialogTitle: 'Select Music Folder to Grant Access',
+    );
+    if (selectedDirectory != null && selectedDirectory.isNotEmpty) {
+      await libraryService.addAdditionalFolder(selectedDirectory);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Granted access to: $selectedDirectory'),
+            backgroundColor: const Color(0xE61C1C1E),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _removeFolder(LibraryService libraryService, String folder) async {
+    await libraryService.removeAdditionalFolder(folder);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Revoked access to: $folder'),
+          backgroundColor: const Color(0xE61C1C1E),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -323,62 +357,403 @@ class _LibraryViewState extends State<LibraryView> {
   // 4. LOCAL SONGS TAB
   Widget _buildLocalSongsTab(LibraryService libraryService, PlayerController playerController) {
     final local = libraryService.localSongs;
+    final folders = libraryService.localSongsByFolder;
+    final additionalFolders = libraryService.additionalFolders;
+    final cacheService = Get.find<CacheService>();
 
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'LOCAL FILES (${local.length})',
-                  style: const TextStyle(
-                    color: AppTheme.textWhite,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'LOCAL FILES (${local.length})',
+                    style: const TextStyle(
+                      color: AppTheme.textWhite,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  'Audio files scanned from your configured Music folder',
-                  style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Scanned from Base Folder and granted music directories',
+                    style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (local.isNotEmpty) ...[
+                  BoxyButton(
+                    label: 'PLAY ALL',
+                    icon: Icons.play_arrow_rounded,
+                    onPressed: () => playerController.playAllSongs(local, shuffle: false),
+                  ),
+                  BoxyButton(
+                    label: 'SHUFFLE ALL',
+                    icon: Icons.shuffle_rounded,
+                    isPrimary: true,
+                    onPressed: () => playerController.playAllSongs(local, shuffle: true),
+                  ),
+                  BoxyButton(
+                    label: _isReorderMode ? 'DONE' : 'REORDER',
+                    icon: _isReorderMode ? Icons.check_rounded : Icons.swap_vert_rounded,
+                    onPressed: () {
+                      setState(() {
+                        _isReorderMode = !_isReorderMode;
+                      });
+                    },
+                  ),
+                ],
+                BoxyButton(
+                  label: '+ ADD FOLDER',
+                  icon: Icons.create_new_folder_rounded,
+                  onPressed: () => _pickAndAddFolder(libraryService),
                 ),
               ],
             ),
-            if (local.isNotEmpty)
-              BoxyButton(
-                label: 'PLAY ALL',
-                icon: Icons.play_arrow_rounded,
-                isPrimary: true,
-                onPressed: () => playerController.playSong(local.first, queueContext: local),
-              ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
+
+        // Storage Sources Strip
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppTheme.cardSurface,
+            borderRadius: AppTheme.radiusMedium,
+            border: Border.all(color: AppTheme.borderSubtle),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.folder_shared_rounded, size: 14, color: AppTheme.blueLight),
+                  SizedBox(width: 6),
+                  Text(
+                    'STORAGE SOURCES',
+                    style: TextStyle(
+                      color: AppTheme.textMuted,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  // Base directory chip
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.04),
+                      borderRadius: BorderRadius.circular(100),
+                      border: Border.all(color: AppTheme.borderSubtle),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.home_work_rounded, size: 13, color: AppTheme.blueLight),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Base: ${cacheService.baseDir.value}',
+                          style: const TextStyle(color: AppTheme.textPrimary, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Granted additional folders
+                  for (final folder in additionalFolders)
+                    Container(
+                      padding: const EdgeInsets.only(left: 10, right: 4, top: 2, bottom: 2),
+                      decoration: BoxDecoration(
+                        color: AppTheme.blueAccent.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(100),
+                        border: Border.all(color: AppTheme.blueAccent.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.folder_open_rounded, size: 13, color: AppTheme.blueLight),
+                          const SizedBox(width: 6),
+                          Text(
+                            folder.split(Platform.pathSeparator).last,
+                            style: const TextStyle(color: AppTheme.textPrimary, fontSize: 11, fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            icon: const Icon(Icons.close_rounded, size: 14, color: AppTheme.textMuted),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+                            splashRadius: 12,
+                            tooltip: 'Revoke folder access',
+                            onPressed: () => _removeFolder(libraryService, folder),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
         if (local.isEmpty)
-          const Center(
+          Center(
             child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 40),
-              child: Text(
-                'No local audio files detected in your Music directory.\nYou can configure your Music path in Settings.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              child: Column(
+                children: [
+                  const Icon(Icons.folder_off_rounded, size: 48, color: AppTheme.textMuted),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'No local audio files detected in your Base Folder.\nAdd music to your Base Folder or grant access to another folder.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                  ),
+                  const SizedBox(height: 16),
+                  BoxyButton(
+                    label: '+ GRANT FOLDER ACCESS',
+                    icon: Icons.create_new_folder_rounded,
+                    isPrimary: true,
+                    onPressed: () => _pickAndAddFolder(libraryService),
+                  ),
+                ],
               ),
             ),
           )
-        else
-          ...local.asMap().entries.map((e) {
-            return SongTile(
-              song: e.value,
-              showIndex: true,
-              index: e.key,
-              onTap: () => playerController.playSong(e.value, queueContext: local, index: e.key),
-            );
-          }),
+        else if (_isReorderMode) ...[
+          const SizedBox(height: 16),
+          // Reorder hint & quick sort bar
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppTheme.blueAccent.withOpacity(0.08),
+              borderRadius: AppTheme.radiusMedium,
+              border: Border.all(color: AppTheme.blueAccent.withOpacity(0.2)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.drag_indicator_rounded, color: AppTheme.blueLight, size: 18),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'Drag items using the handle to rearrange your custom playback order.',
+                    style: TextStyle(color: AppTheme.textPrimary, fontSize: 12),
+                  ),
+                ),
+                Wrap(
+                  spacing: 6,
+                  children: [
+                    InkWell(
+                      onTap: () => libraryService.sortLocalSongs('title'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text('A-Z Title', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () => libraryService.sortLocalSongs('artist'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text('Artist', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () => libraryService.sortLocalSongs('folder'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text('Folder', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          ReorderableListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            buildDefaultDragHandles: false,
+            itemCount: local.length,
+            onReorder: (oldIndex, newIndex) => libraryService.reorderLocalSongs(oldIndex, newIndex),
+            itemBuilder: (context, index) {
+              final song = local[index];
+              return Container(
+                key: ValueKey(song.url ?? song.videoId),
+                margin: const EdgeInsets.symmetric(vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.cardSurface,
+                  borderRadius: AppTheme.radiusMedium,
+                  border: Border.all(color: AppTheme.borderSubtle),
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 28,
+                      child: Text(
+                        '${index + 1}',
+                        style: const TextStyle(
+                          color: AppTheme.textMuted,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        width: 38,
+                        height: 38,
+                        color: const Color(0xFF252838),
+                        child: Image.asset(AppAssets.defaultCover, fit: BoxFit.cover),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            song.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppTheme.textPrimary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Text(
+                                song.artist,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                              ),
+                              if (song.album != null && song.album!.isNotEmpty) ...[
+                                const Text(' • ', style: TextStyle(color: AppTheme.textMuted, fontSize: 11)),
+                                Text(
+                                  song.album!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: AppTheme.blueLight, fontSize: 11),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    ReorderableDragStartListener(
+                      index: index,
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: Icon(Icons.drag_handle_rounded, color: AppTheme.textMuted),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ] else ...[
+          const SizedBox(height: 16),
+          for (final folderEntry in folders.entries) ...[
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppTheme.cardSurface,
+                borderRadius: AppTheme.radiusMedium,
+                border: Border.all(color: AppTheme.borderSubtle),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.folder_rounded, color: AppTheme.blueLight, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          folderEntry.key,
+                          style: const TextStyle(
+                            color: AppTheme.textWhite,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          '${folderEntry.value.length} track${folderEntry.value.length == 1 ? '' : 's'}',
+                          style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.play_circle_fill_rounded, color: AppTheme.blueAccent, size: 28),
+                    tooltip: 'Play all in folder',
+                    splashRadius: 20,
+                    onPressed: () => playerController.playAllSongs(folderEntry.value, shuffle: false),
+                  ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    icon: const Icon(Icons.shuffle_rounded, color: AppTheme.textSecondary, size: 20),
+                    tooltip: 'Shuffle folder',
+                    splashRadius: 20,
+                    onPressed: () => playerController.playAllSongs(folderEntry.value, shuffle: true),
+                  ),
+                ],
+              ),
+            ),
+            ...folderEntry.value.asMap().entries.map((e) {
+              return SongTile(
+                song: e.value,
+                showIndex: true,
+                index: e.key,
+                onTap: () => playerController.playSong(
+                  e.value,
+                  queueContext: folderEntry.value,
+                  index: e.key,
+                ),
+              );
+            }),
+          ],
+        ],
       ],
     );
   }

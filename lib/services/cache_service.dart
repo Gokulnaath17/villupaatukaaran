@@ -269,7 +269,20 @@ class CacheService extends GetxService {
         final cachedPath = val['filePath'] as String?;
         if (cachedPath != null && File(cachedPath).existsSync()) {
           final ext = cachedPath.contains('.') ? cachedPath.split('.').last : 'opus';
-          final targetPath = '${downloadsDir.value}/$key.$ext';
+          final song = SongItem.fromJson(Map<String, dynamic>.from(val));
+          final cleanArtist = song.artist
+              .replaceAll(RegExp(r'[\\/:*?"<>|]'), '_')
+              .replaceAll(RegExp(r'\s+'), ' ')
+              .trim();
+          final cleanTitle = song.title
+              .replaceAll(RegExp(r'[\\/:*?"<>|]'), '_')
+              .replaceAll(RegExp(r'\s+'), ' ')
+              .trim();
+          String baseName = (cleanArtist.isNotEmpty && cleanArtist.toLowerCase() != 'unknown artist')
+              ? '$cleanArtist - $cleanTitle'
+              : (cleanTitle.isNotEmpty ? cleanTitle : key.toString());
+          if (baseName.length > 120) baseName = baseName.substring(0, 120).trim();
+          final targetPath = '${downloadsDir.value}/$baseName.$ext';
           try {
             await File(cachedPath).copy(targetPath);
             final targetFile = File(targetPath);
