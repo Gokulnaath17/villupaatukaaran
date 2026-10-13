@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Villupaatukaaran — Design Reference</title>
+<style>
+  :root{
+    color-scheme:dark;
+    --bg:#101012; --sidebar:#151517; --surface:#1b1b1e; --surface-2:#232327;
+    --line:rgba(255,255,255,.075); --text:#f5f4f5; --muted:#a09fa6; --quiet:#77767e;
+    --accent:#fa3b55; --accent-soft:rgba(250,59,85,.14); --radius:17px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{background:var(--bg);color:var(--text);font:14px/1.45 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-.01em;overflow:hidden}
+  button,input{font:inherit} button{color:inherit;cursor:pointer}
+  .app{height:100dvh;min-height:580px;display:grid;grid-template-columns:224px minmax(0,1fr);grid-template-rows:minmax(0,1fr) 88px;background:var(--bg)}
+  .sidebar{grid-column:1;grid-row:1 / 3;background:var(--sidebar);border-right:1px solid var(--line);padding:25px 15px 18px;display:flex;flex-direction:column;min-height:0;z-index:3}
+  .brand{display:flex;align-items:center;gap:11px;padding:0 9px 29px}
+  .brand-mark{width:36px;height:36px;border-radius:12px;background:linear-gradient(145deg,#ff6a78,#df183d);box-shadow:0 7px 25px #f3294930;display:grid;place-items:center;font-size:20px;font-weight:700;color:white}
+  .brand-name{font-weight:740;font-size:15px;letter-spacing:-.035em}.brand-sub{font-size:10px;color:#85848c;letter-spacing:.15em;text-transform:uppercase;margin-top:2px}
+  .nav-label{color:#75747c;font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:750;padding:0 12px;margin:8px 0 9px}
+  .nav{display:grid;gap:4px}.nav-item{width:100%;border:0;background:transparent;color:#aaa9b0;display:flex;align-items:center;gap:12px;text-align:left;padding:10px 12px;border-radius:10px;font-size:13px;transition:background .18s,color .18s}
+  .nav-item:hover{background:#ffffff08;color:#fff}.nav-item.active{background:var(--accent-soft);color:#fff}.nav-item.active .ico{color:#ff6579}.ico{width:17px;height:17px;display:inline-grid;place-items:center;color:#8d8c95;font-size:17px;flex:none}
+  .nav-count{margin-left:auto;border-radius:6px;padding:1px 6px;color:#85848c;font-size:10px;background:#ffffff08}
+  .nav-divider{height:1px;background:var(--line);margin:18px 10px 14px}.side-heading{display:flex;align-items:center;justify-content:space-between;padding-right:8px}.plus{border:0;background:transparent;color:#85848c;font-size:19px;padding:0 5px}.plus:hover{color:#fff}
+  .playlist-link{color:#a4a3aa;padding:8px 12px;font-size:12px;display:flex;align-items:center;gap:10px;border-radius:8px}.playlist-link:hover{background:#ffffff08;color:#fff}.playlist-dot{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;background:linear-gradient(145deg,#7553a8,#df8391);font-size:11px;color:#fff}
+  .side-spacer{flex:1;min-height:15px}.offline{margin:12px 3px 0;padding:12px;background:linear-gradient(135deg,#242428,#1a1a1d);border:1px solid var(--line);border-radius:13px}.offline-top{display:flex;align-items:center;gap:9px}.offline-icon{width:30px;height:30px;background:#ffffff0a;border-radius:9px;display:grid;place-items:center;color:#ff7584}.offline strong{font-size:11px;font-weight:650}.offline small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.offline-line{height:3px;background:#ffffff13;border-radius:3px;margin-top:12px;overflow:hidden}.offline-line span{display:block;width:34%;height:100%;background:#f45a70;border-radius:3px}
+  .main{grid-column:2;grid-row:1;min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden}.topbar{height:72px;flex:none;display:flex;align-items:center;padding:0 34px;gap:17px;border-bottom:1px solid var(--line);background:#101012eF;z-index:2}.history{display:flex;gap:8px}.circle-btn{height:32px;width:32px;border:1px solid var(--line);background:#19191c;border-radius:50%;display:grid;place-items:center;color:#b4b3ba;font-size:17px}.circle-btn:hover{background:#2a292e;color:#fff}.search{margin-left:auto;width:min(320px,38%);height:38px;border-radius:11px;border:1px solid #ffffff0c;background:#1a1a1d;display:flex;align-items:center;gap:9px;padding:0 12px;color:#8a8992}.search input{background:transparent;border:0;outline:0;color:#fff;width:100%;font-size:12px}.search input::placeholder{color:#77767e}.top-actions{display:flex;gap:8px;align-items:center}.icon-action{border:0;background:transparent;color:#9c9ba2;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:17px}.icon-action:hover{background:#ffffff0a;color:white}.avatar{width:30px;height:30px;border:2px solid #38383e;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#e1a783,#85506b);font-size:10px;font-weight:800;color:#201b20}
+  .content{overflow:auto;min-width:0;padding:25px 34px 40px;scrollbar-width:thin;scrollbar-color:#39383e transparent}.content::-webkit-scrollbar{width:8px}.content::-webkit-scrollbar-thumb{background:#39383e;border-radius:10px}
+  .eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:#ff7888;font-weight:750}.greeting{font-size:25px;letter-spacing:-.055em;font-weight:730;margin:4px 0 19px}
+  .hero{min-height:238px;position:relative;border-radius:20px;overflow:hidden;padding:27px 30px;display:flex;align-items:center;background:radial-gradient(ellipse at 76% 36%,#ab3654 0,transparent 30%),radial-gradient(ellipse at 100% 100%,#482b69 0,transparent 38%),linear-gradient(110deg,#331f2d 0%,#251c2a 47%,#191821 100%);border:1px solid #ffffff0c}
+  .hero:before{content:"";position:absolute;width:270px;height:270px;border-radius:50%;right:9%;top:-22%;border:1px solid #ffffff1b;box-shadow:0 0 0 19px #ffffff05,0 0 0 40px #ffffff04,0 0 70px #fa3b5533}
+  .hero:after{content:"";position:absolute;width:168px;height:168px;border-radius:50%;right:14%;top:15%;background:repeating-radial-gradient(circle at center,#20191f 0 2px,#39303b 3px 5px,#17151b 6px 8px);border:6px solid #16151a;box-shadow:0 14px 45px #0007}
+  .hero-art{position:absolute;right:calc(14% + 49px);top:calc(15% + 49px);z-index:1;width:70px;height:70px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 27%,#ffb4a2,#d64e73 44%,#50264a 100%);border:5px solid #29222c;color:#f9d8cf;font-size:22px;box-shadow:0 0 0 1px #ffffff26}
+  .hero-copy{position:relative;z-index:2;max-width:430px}.hero .eyebrow{color:#ffb0ba}.hero h2{font-size:34px;letter-spacing:-.06em;line-height:1.04;margin:10px 0 9px;font-weight:760;max-width:400px}.hero p{font-size:12px;line-height:1.6;color:#d1c2cc;max-width:320px;margin:0 0 19px}.hero-actions{display:flex;gap:10px;align-items:center}.primary-btn,.secondary-btn{border:0;border-radius:100px;padding:10px 17px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:8px}.primary-btn{background:#fa3b55;color:white;box-shadow:0 6px 20px #fa3b552c}.primary-btn:hover{background:#ff536a}.secondary-btn{background:#ffffff12;border:1px solid #ffffff1a}.secondary-btn:hover{background:#ffffff20}
+  .section{margin-top:28px}.section-head{display:flex;align-items:end;justify-content:space-between;margin-bottom:13px;gap:12px}.section-title{font-size:17px;letter-spacing:-.035em;font-weight:730;margin:0}.section-sub{font-size:11px;color:var(--muted);margin-top:3px}.text-link{background:transparent;border:0;color:#b3b2b9;font-size:11px;padding:5px 0}.text-link:hover{color:white}
+  .album-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:17px}.album-card{min-width:0;cursor:pointer}.cover{aspect-ratio:1/1;border-radius:13px;position:relative;overflow:hidden;box-shadow:0 8px 18px #0002;transition:transform .2s ease,filter .2s ease}.album-card:hover .cover{transform:translateY(-3px);filter:brightness(1.08)}.cover:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,#0007)}.cover-title{position:absolute;z-index:1;left:12px;right:9px;bottom:11px;font-size:11px;font-weight:800;letter-spacing:-.025em;text-shadow:0 2px 9px #0009;line-height:1.15}.cover-note{position:absolute;right:12px;top:10px;color:#ffffffb8;font-size:9px;letter-spacing:.14em;font-weight:700;z-index:1}.cover.leo{background:radial-gradient(ellipse at 68% 24%,#edc08a,transparent 26%),linear-gradient(137deg,#c77753,#632f35 46%,#191a29)}.cover.jailer{background:radial-gradient(circle at 38% 34%,#e3b67b,transparent 18%),linear-gradient(150deg,#2b443a,#b77a4d 44%,#351b23)}.cover.ps{background:radial-gradient(ellipse at 70% 30%,#e7c174,transparent 23%),linear-gradient(125deg,#5e315e,#c47464 48%,#211e36)}.cover.vikram{background:radial-gradient(circle at 70% 25%,#ff8f73,transparent 19%),linear-gradient(135deg,#202c38,#8d3438 52%,#15151b)}.cover.raaja{background:radial-gradient(circle at 45% 30%,#ffdc8f,transparent 25%),linear-gradient(135deg,#6a784c,#c1a36a 52%,#29362b)}
+  .art-geometry{position:absolute;width:55%;height:76%;left:23%;top:9%;border:1px solid #ffffff3d;transform:rotate(13deg);border-radius:48% 48% 11% 11%;background:linear-gradient(150deg,#ffffff26,transparent 42%)}.art-geometry:after{content:"";position:absolute;width:70%;height:75%;left:15%;top:15%;border-left:1px solid #ffffff47;border-right:1px solid #ffffff2d;border-radius:50%}.album-name{font-size:12px;font-weight:650;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;margin-top:9px}.album-meta{font-size:10px;color:var(--muted);margin-top:3px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+  .lower-grid{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(300px,.92fr);gap:30px;margin-top:30px}.track-list{display:grid;gap:2px}.track{display:grid;grid-template-columns:24px 40px minmax(0,1fr) auto 25px;align-items:center;gap:10px;padding:7px 9px;border-radius:10px;min-width:0}.track:hover{background:#ffffff07}.track-num{font-size:10px;color:#7c7b83;text-align:center}.track-art{width:40px;height:40px;border-radius:8px;position:relative;overflow:hidden;background:linear-gradient(135deg,#a64a5d,#282544)}.track-art:after{content:"";position:absolute;width:65%;height:65%;border:1px solid #ffffff5c;border-radius:50%;left:17%;top:17%}.track-art.a2{background:linear-gradient(135deg,#bf8e56,#334d49)}.track-art.a3{background:linear-gradient(135deg,#59437d,#d46b67)}.track-art.a4{background:linear-gradient(135deg,#2d5359,#d2a66b)}.track-art.a5{background:linear-gradient(135deg,#b64c47,#30263f)}.track-name{font-size:11px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.track-artist{font-size:10px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.track-duration{font-size:10px;color:#85848c}.track-more{border:0;background:transparent;color:#7f7e86;font-size:18px;border-radius:7px;width:25px;height:28px}.track-more:hover{color:#fff;background:#ffffff0d}
+  .mix-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mix-card{border-radius:13px;overflow:hidden;min-height:82px;display:flex;align-items:center;gap:12px;padding:12px;background:linear-gradient(110deg,#28212c,#1c1b20);border:1px solid #ffffff08;position:relative;cursor:pointer}.mix-card:hover{background:#29262f}.mix-art{width:52px;height:52px;flex:none;border-radius:9px;display:grid;place-items:center;font-size:21px;color:#fff;background:linear-gradient(145deg,#ab5865,#3e2c51)}.mix-art.folk{background:linear-gradient(145deg,#bf8a52,#536346)}.mix-art.midnight{background:linear-gradient(145deg,#2b3e6f,#9d668f)}.mix-art.classical{background:linear-gradient(145deg,#8e7244,#3d5553)}.mix-copy{min-width:0}.mix-copy strong{font-size:11px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mix-copy span{display:block;font-size:10px;color:var(--muted);margin-top:4px}.mix-play{margin-left:auto;flex:none;width:30px;height:30px;border-radius:50%;border:0;background:#fa3b55;color:#fff;opacity:0;transform:translateY(3px);transition:.18s}.mix-card:hover .mix-play{opacity:1;transform:translateY(0)}
+  .player{grid-column:2;grid-row:2;z-index:4;border-top:1px solid #ffffff12;background:rgba(24,24,27,.97);display:grid;grid-template-columns:minmax(190px,1fr) minmax(300px,1.25fr) minmax(160px,1fr);align-items:center;gap:18px;padding:0 25px;backdrop-filter:blur(18px)}.now-playing{display:flex;align-items:center;gap:11px;min-width:0}.now-art{width:48px;height:48px;border-radius:8px;flex:none;background:radial-gradient(circle at 65% 32%,#f5c18a,transparent 18%),linear-gradient(135deg,#9e4650,#29243e);position:relative;overflow:hidden}.now-art:after{content:"";position:absolute;inset:8px;border:1px solid #ffffff70;border-radius:50%}.now-copy{min-width:0}.now-title{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.now-artist{font-size:10px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.like{border:0;background:transparent;color:#aaa9b1;font-size:16px;margin-left:3px}.like:hover,.like.liked{color:#fa536a}.controls{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}.control-buttons{display:flex;align-items:center;justify-content:center;gap:18px}.control-btn{border:0;background:transparent;color:#aaa9b1;padding:2px;font-size:15px;line-height:1}.control-btn:hover{color:#fff}.control-btn.main-play{width:31px;height:31px;border-radius:50%;background:#fff;color:#18181a;font-size:13px;display:grid;place-items:center}.control-btn.main-play:hover{transform:scale(1.04)}.progress{width:100%;display:grid;grid-template-columns:32px minmax(0,1fr) 32px;align-items:center;gap:9px;font-size:9px;color:#85848c}.progress-bar{height:4px;border-radius:5px;background:#45444b;overflow:hidden;cursor:pointer}.progress-fill{height:100%;width:29%;border-radius:5px;background:#e8e7eb;position:relative}.progress-fill:after{content:"";position:absolute;right:-3px;top:-2px;width:8px;height:8px;background:white;border-radius:50%;opacity:0}.progress-bar:hover .progress-fill:after{opacity:1}.player-right{display:flex;align-items:center;justify-content:flex-end;gap:13px}.player-right button{border:0;background:transparent;color:#9a99a1;font-size:15px}.player-right button:hover{color:#fff}.volume{width:72px;height:4px;border-radius:5px;background:#48474d;overflow:hidden}.volume span{display:block;width:68%;height:100%;background:#d7d6db}.queue-btn{font-size:11px!important;padding:7px 9px;border-radius:8px!important;background:#ffffff08!important}
+  @media(max-width:1120px){.app{grid-template-columns:198px minmax(0,1fr)}.sidebar{padding-left:11px;padding-right:11px}.content{padding-left:25px;padding-right:25px}.topbar{padding:0 25px}.hero:before{right:3%}.hero:after{right:8%}.hero-art{right:calc(8% + 49px)}.lower-grid{gap:20px}.player{padding:0 17px;gap:12px;grid-template-columns:minmax(150px,.9fr) minmax(260px,1.2fr) minmax(90px,.7fr)}.player-right .volume,.player-right .vol-icon{display:none}}
+  @media(max-width:850px){.app{grid-template-columns:68px minmax(0,1fr)}.sidebar{padding:20px 9px 14px;align-items:center}.brand{padding:0 0 24px}.brand-copy,.nav-label,.nav-item span:not(.ico),.nav-count,.nav-divider,.side-heading,.playlist-link,.offline{display:none}.nav{width:100%}.nav-item{justify-content:center;padding:12px 0}.ico{font-size:19px}.hero h2{font-size:29px}.hero:before{right:-10%}.hero:after{right:3%;width:145px;height:145px;top:20%}.hero-art{right:calc(3% + 42px);top:calc(20% + 42px);width:61px;height:61px}.album-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.album-card:nth-child(n+4){display:none}.lower-grid{grid-template-columns:1fr}.mix-section{margin-top:20px}.player{grid-template-columns:minmax(110px,1fr) minmax(210px,1.2fr) auto}.player-right .queue-btn,.player-right .volume,.player-right .vol-icon{display:none}.now-art{width:40px;height:40px}.control-buttons{gap:12px}}
+  @media(max-width:600px){.app{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 76px;min-height:520px}.sidebar{display:none}.main{grid-column:1}.topbar{height:60px;padding:0 15px;gap:10px}.history{display:none}.search{width:auto;flex:1;margin:0}.top-actions{gap:0}.content{padding:20px 16px 28px}.greeting{font-size:23px;margin-bottom:15px}.hero{min-height:265px;align-items:flex-start;padding:23px 21px}.hero-copy{max-width:78%}.hero h2{font-size:30px}.hero p{max-width:245px}.hero:before{width:190px;height:190px;right:-40px;top:105px}.hero:after{width:112px;height:112px;right:7px;top:132px}.hero-art{width:46px;height:46px;right:40px;top:165px;font-size:16px;border-width:3px}.hero-actions{flex-wrap:wrap}.album-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.album-card:nth-child(3){display:none}.section{margin-top:25px}.section-title{font-size:16px}.lower-grid{margin-top:24px}.track{grid-template-columns:20px 38px minmax(0,1fr) 22px;gap:8px;padding:7px 3px}.track-duration{display:none}.track-art{width:38px;height:38px}.mix-grid{grid-template-columns:1fr}.mix-card{min-height:70px}.player{grid-column:1;grid-row:2;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:0 13px}.now-art{width:43px;height:43px}.now-copy{max-width:calc(100vw - 250px)}.now-artist{max-width:100%}.like{display:none}.controls{align-items:flex-end;gap:4px}.control-buttons{gap:13px}.control-btn:not(.main-play){display:none}.progress{display:none}.player-right{display:none}}
+  @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">வ</div><div class="brand-copy"><div class="brand-name">Villupaatukaaran</div><div class="brand-sub">Music, with roots</div></div></div>
+    <div class="nav-label">Listen</div>
+    <nav class="nav" aria-label="Main navigation">
+      <button class="nav-item active"><span class="ico">⌂</span><span>Home</span></button>
+      <button class="nav-item"><span class="ico">⌕</span><span>Discover</span></button>
+    </nav>
+    <div class="nav-divider"></div>
+    <div class="nav-label">Your library</div>
+    <nav class="nav" aria-label="Music library">
+      <button class="nav-item"><span class="ico">▤</span><span>All Songs</span><span class="nav-count">128</span></button>
+      <button class="nav-item"><span class="ico">♥</span><span>Liked Songs</span><span class="nav-count">24</span></button>
+      <button class="nav-item"><span class="ico">⇩</span><span>Downloaded</span><span class="nav-count">36</span></button>
+      <button class="nav-item"><span class="ico">ϟ</span><span>Cached</span></button>
+      <button class="nav-item"><span class="ico">▧</span><span>Local Files</span></button>
+    </nav>
+    <div class="nav-divider"></div>
+    <div class="side-heading"><div class="nav-label" style="margin:0">Playlists</div><button class="plus" aria-label="Create playlist">+</button></div>
+    <div style="margin-top:8px">
+      <div class="playlist-link"><span class="playlist-dot">♫</span><span>My Folk Mix</span></div>
+      <div class="playlist-link"><span class="playlist-dot" style="background:linear-gradient(145deg,#8a536d,#363a69)">☾</span><span>Late Night Drive</span></div>
+    </div>
+    <div class="side-spacer"></div>
+    <button class="nav-item"><span class="ico">⚙</span><span>Settings</span></button>
+    <div class="offline"><div class="offline-top"><div class="offline-icon">⇩</div><div><strong>Offline library</strong><small>36 tracks downloaded</small></div></div><div class="offline-line"><span></span></div></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="history"><button class="circle-btn" aria-label="Back">‹</button><button class="circle-btn" aria-label="Forward">›</button></div>
+      <div class="search"><span>⌕</span><input type="search" placeholder="Songs, artists, albums…" aria-label="Search music"><span style="font-size:10px;color:#686770">⌘ K</span></div>
+      <div class="top-actions"><button class="icon-action" aria-label="Downloads">⇩</button><button class="icon-action" aria-label="Queue">≡</button><div class="avatar" title="Profile">G</div></div>
+    </header>
+    <div class="content">
+      <div class="eyebrow">Your sound, your roots</div>
+      <h1 class="greeting">Good afternoon<span style="color:#fa6579">.</span></h1>
+      <section class="hero" aria-label="Featured music">
+        <div class="hero-copy">
+          <div class="eyebrow">Featured mix · Tamil essentials</div>
+          <h2>Every beat has<br>a story.</h2>
+          <p>From timeless melodies to today's sounds — a little something for every kind of listener.</p>
+          <div class="hero-actions"><button class="primary-btn" id="heroPlay">▶ &nbsp; Play mix</button><button class="secondary-btn" id="heroShuffle">⤨ &nbsp; Shuffle</button></div>
+        </div>
+        <div class="hero-art" aria-hidden="true">♪</div>
+      </section>
+
+      <section class="section">
+        <div class="section-head"><div><h2 class="section-title">Pick up where you left off</h2><div class="section-sub">Your recent listens, right here.</div></div><button class="text-link">See all&nbsp; ↗</button></div>
+        <div class="album-grid">
+          <article class="album-card"><div class="cover leo"><span class="cover-note">FILM · 2023</span><div class="art-geometry"></div><div class="cover-title">LEO</div></div><div class="album-name">Leo</div><div class="album-meta">Anirudh Ravichander</div></article>
+          <article class="album-card"><div class="cover jailer"><span class="cover-note">FILM · 2023</span><div class="art-geometry"></div><div class="cover-title">JAILER</div></div><div class="album-name">Jailer</div><div class="album-meta">Anirudh Ravichander</div></article>
+          <article class="album-card"><div class="cover ps"><span class="cover-note">FILM · 2022</span><div class="art-geometry"></div><div class="cover-title">PONNIYIN SELVAN</div></div><div class="album-name">Ponniyin Selvan</div><div class="album-meta">A. R. Rahman</div></article>
+          <article class="album-card"><div class="cover vikram"><span class="cover-note">FILM · 2022</span><div class="art-geometry"></div><div class="cover-title">VIKRAM</div></div><div class="album-name">Vikram</div><div class="album-meta">Anirudh Ravichander</div></article>
+          <article class="album-card"><div class="cover raaja"><span class="cover-note">CLASSIC · 1991</span><div class="art-geometry"></div><div class="cover-title">THALAPATHI</div></div><div class="album-name">Thalapathi</div><div class="album-meta">Ilaiyaraaja</div></article>
+        </div>
+      </section>
+
+      <div class="lower-grid">
+        <section class="section" style="margin-top:0">
+          <div class="section-head"><div><h2 class="section-title">Popular right now</h2><div class="section-sub">Tracks making the rounds.</div></div><button class="text-link">View all&nbsp; ↗</button></div>
+          <div class="track-list">
+            <div class="track"><div class="track-num">01</div><div class="track-art"></div><div><div class="track-name">Naa Ready</div><div class="track-artist">Thalapathy Vijay · Anirudh</div></div><div class="track-duration">4:08</div><button class="track-more" aria-label="More options">···</button></div>
+            <div class="track"><div class="track-num">02</div><div class="track-art a2"></div><div><div class="track-name">Kaavaalaa</div><div class="track-artist">Shilpa Rao · Anirudh</div></div><div class="track-duration">3:10</div><button class="track-more" aria-label="More options">···</button></div>
+            <div class="track"><div class="track-num">03</div><div class="track-art a3"></div><div><div class="track-name">Chinnanjiru Nilave</div><div class="track-artist">Haricharan · A. R. Rahman</div></div><div class="track-duration">4:11</div><button class="track-more" aria-label="More options">···</button></div>
+            <div class="track"><div class="track-num">04</div><div class="track-art a4"></div><div><div class="track-name">Katchi Sera</div><div class="track-artist">Sai Abhyankkar</div></div><div class="track-duration">3:02</div><button class="track-more" aria-label="More options">···</button></div>
+            <div class="track"><div class="track-num">05</div><div class="track-art a5"></div><div><div class="track-name">Hukum</div><div class="track-artist">Super Subu · Anirudh</div></div><div class="track-duration">3:27</div><button class="track-more" aria-label="More options">···</button></div>
+          </div>
+        </section>
+        <section class="section mix-section" style="margin-top:0">
+          <div class="section-head"><div><h2 class="section-title">Made for your mood</h2><div class="section-sub">A sound for every moment.</div></div><button class="text-link">Explore&nbsp; ↗</button></div>
+          <div class="mix-grid">
+            <article class="mix-card"><div class="mix-art folk">♬</div><div class="mix-copy"><strong>Folk Heritage</strong><span>Parambariyam · 28 tracks</span></div><button class="mix-play" aria-label="Play Folk Heritage">▶</button></article>
+            <article class="mix-card"><div class="mix-art">♫</div><div class="mix-copy"><strong>Gaana &amp; Kuthu</strong><span>Full volume · 34 tracks</span></div><button class="mix-play" aria-label="Play Gaana and Kuthu">▶</button></article>
+            <article class="mix-card"><div class="mix-art midnight">☾</div><div class="mix-copy"><strong>Midnight Melodies</strong><span>Slow down · 22 tracks</span></div><button class="mix-play" aria-label="Play Midnight Melodies">▶</button></article>
+            <article class="mix-card"><div class="mix-art classical">❋</div><div class="mix-copy"><strong>Acoustic &amp; Classical</strong><span>Just listen · 19 tracks</span></div><button class="mix-play" aria-label="Play Acoustic and Classical">▶</button></article>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="player" aria-label="Music player">
+    <div class="now-playing"><div class="now-art"></div><div class="now-copy"><div class="now-title" id="currentTitle">Naa Ready</div><div class="now-artist" id="currentArtist">Thalapathy Vijay · Anirudh Ravichander</div></div><button class="like" id="likeButton" aria-label="Like track">♡</button></div>
+    <div class="controls"><div class="control-buttons"><button class="control-btn" aria-label="Shuffle">⤨</button><button class="control-btn" aria-label="Previous track">◂◂</button><button class="control-btn main-play" id="playButton" aria-label="Play or pause">▶</button><button class="control-btn" aria-label="Next track">▸▸</button><button class="control-btn" aria-label="Repeat">↻</button></div><div class="progress"><span>1:12</span><div class="progress-bar"><div class="progress-fill"></div></div><span>4:08</span></div></div>
+    <div class="player-right"><button class="vol-icon" aria-label="Volume">◖))</button><div class="volume"><span></span></div><button class="queue-btn" aria-label="Open queue">☷ &nbsp; Queue</button></div>
+  </footer>
+</div>
+<script>
+  const playButton=document.getElementById('playButton');
+  let playing=false;
+  function togglePlay(){playing=!playing;playButton.textContent=playing?'Ⅱ':'▶';playButton.setAttribute('aria-label',playing?'Pause':'Play');}
+  playButton.addEventListener('click',togglePlay);
+  document.getElementById('heroPlay').addEventListener('click',()=>{document.getElementById('currentTitle').textContent='Tamil Essentials';document.getElementById('currentArtist').textContent='Villupaatukaaran Mix';if(!playing)togglePlay();});
+  document.getElementById('heroShuffle').addEventListener('click',()=>{if(!playing)togglePlay();document.getElementById('currentTitle').textContent='Shuffling Tamil Essentials';document.getElementById('currentArtist').textContent='Villupaatukaaran Mix';});
+  document.getElementById('likeButton').addEventListener('click',e=>{const b=e.currentTarget;b.classList.toggle('liked');b.textContent=b.classList.contains('liked')?'♥':'♡';});
+  document.querySelectorAll('.nav-item').forEach(item=>item.addEventListener('click',()=>{document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));item.classList.add('active');}));
+</script>
+</body>
+</html>

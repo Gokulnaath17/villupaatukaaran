@@ -1,0 +1,19 @@
+Redesign the existing Villupaatukaaran UI using the supplied HTML mockup as the visual direction and reference. Keep the app's existing framework, architecture, state management, playback engine, navigation routes, models, and working behavior. Do not rebuild the app or replace real functionality with mock data.
+
+Design goals:
+- Make the interface feel polished, calm, and music-first, with the restraint, spacing, typography, album-art emphasis, and clear hierarchy found in high-quality modern music players. Use the supplied mockup as inspiration, not as a pixel-perfect or branded copy of Apple Music.
+- Keep the existing Villupaatukaaran identity and Tamil-music character. Use a refined dark palette, a restrained warm red/coral accent, subtle surfaces and borders, consistent corner radii, and strong readable text contrast.
+- Simplify and rebalance the current layout. Prioritize a clear sidebar, compact top bar with search, spacious home content, attractive album/playlist art, easy-to-scan track rows, and an unobtrusive bottom player dock. Reduce excessive outlines, nested cards, labels, pills, glow effects, and visual noise.
+- Use natural hierarchy and consistent spacing. Artwork should lead; metadata should be secondary. Buttons should be easy to identify without making every action look like a primary call to action. Avoid oversized empty hero areas and over-rounded generic UI.
+- Make desktop, narrow windows, and mobile layouts feel intentionally designed. Prevent overflow, clipped controls, crowded track rows, and awkward wrapping. Keep queue/download drawers visually integrated and usable at smaller widths.
+
+Implementation constraints:
+1. First inspect the current UI files, shared widgets, theme, navigation/state flow, playback dock, queue/download drawers, library, discover/search, settings, dialogs, and system-tray integration. Identify reusable pieces before editing.
+2. Implement the redesign within the existing codebase and conventions. Reuse or refine current components where sensible; combine or split layout sections only when it improves clarity. Do not add new product features just to fill space. Home-page recommendation sections may use existing data; where content is genuinely unavailable, use a restrained empty/loading state rather than fake functional data.
+3. Preserve all existing behavior: play/pause, previous/next, seeking, volume, shuffle/repeat, likes, queue reorder/remove/clear, downloads and progress/cancellation/retry, cached/offline tracks, local-file folders, playlists, search, settings, close-to-tray/background playback, and window/tray controls. Keep accessibility labels and keyboard behavior where present.
+4. Do not remove screens, actions, settings, or data pathways merely because they are not shown on the home mockup. Apply the same design system consistently to library categories, playlist details, search results, settings, song action sheets, dialogs, queue/download drawers, mobile layout, and tray-related UI where applicable.
+5. Avoid introducing large dependencies or changing the audio/download/provider stack. Do not hard-code mock songs into production, break persistence, or change unrelated business logic. Do not rename public interfaces or restructure files unnecessarily.
+6. Use the project's existing formatting and naming conventions. Keep styles/tokens centralized where the current architecture supports it, and remove obsolete styles only after confirming they are no longer used.
+7. Run the available formatter, analyzer/linter, and relevant build or tests after the changes. Fix regressions introduced by the redesign. Summarize the files changed, the main UI decisions, and any checks that could not be run.
+
+Prioritize coherent visual quality and preserving working functionality over adding features. Make practical design decisions without asking for approval for every small detail.

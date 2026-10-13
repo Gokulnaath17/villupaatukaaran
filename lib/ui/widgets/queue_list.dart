@@ -82,92 +82,112 @@ class QueueList extends StatelessWidget {
                         ),
                       ),
                     )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: queue.length,
-                      itemBuilder: (ctx, index) {
-                        final song = queue[index];
-                        final isNowPlaying = currentSong?.videoId == song.videoId;
+                  : Theme(
+                      data: Theme.of(context).copyWith(
+                        canvasColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                      ),
+                      child: ReorderableListView.builder(
+                        buildDefaultDragHandles: false,
+                        padding: const EdgeInsets.all(8),
+                        itemCount: queue.length,
+                        onReorder: (oldIndex, newIndex) {
+                          controller.reorderQueue(oldIndex, newIndex);
+                        },
+                        itemBuilder: (ctx, index) {
+                          final song = queue[index];
+                          final isNowPlaying = currentSong?.videoId == song.videoId;
 
-                        return Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () => controller.skipToQueueIndex(index),
-                            borderRadius: AppTheme.radiusSmall,
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(vertical: 2),
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                              decoration: BoxDecoration(
-                                color: isNowPlaying ? AppTheme.cardActive : Colors.transparent,
-                                borderRadius: AppTheme.radiusSmall,
-                                border: Border.all(
-                                  color: isNowPlaying
-                                      ? AppTheme.blueAccent.withOpacity(0.3)
-                                      : Colors.transparent,
-                                  width: 1,
+                          return Material(
+                            key: ValueKey('queue_tile_${song.videoId}_$index'),
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => controller.skipToQueueIndex(index),
+                              borderRadius: AppTheme.radiusSmall,
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(vertical: 2),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                                decoration: BoxDecoration(
+                                  color: isNowPlaying ? AppTheme.cardActive : Colors.transparent,
+                                  borderRadius: AppTheme.radiusSmall,
+                                  border: Border.all(
+                                    color: isNowPlaying
+                                        ? AppTheme.blueAccent.withOpacity(0.3)
+                                        : Colors.transparent,
+                                    width: 1,
+                                  ),
                                 ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    isNowPlaying
-                                        ? Icons.volume_up_rounded
-                                        : Icons.drag_indicator_rounded,
-                                    size: 16,
-                                    color: isNowPlaying ? AppTheme.blueAccent : AppTheme.textMuted,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          song.title,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: isNowPlaying
-                                                ? AppTheme.textWhite
-                                                : AppTheme.textPrimary,
-                                            fontSize: 12,
-                                            fontWeight: isNowPlaying
-                                                ? FontWeight.w700
-                                                : FontWeight.w500,
+                                child: Row(
+                                  children: [
+                                    ReorderableDragStartListener(
+                                      index: index,
+                                      child: MouseRegion(
+                                        cursor: SystemMouseCursors.grab,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(4.0),
+                                          child: Icon(
+                                            isNowPlaying
+                                                ? Icons.volume_up_rounded
+                                                : Icons.drag_indicator_rounded,
+                                            size: 16,
+                                            color: isNowPlaying ? AppTheme.blueAccent : AppTheme.textMuted,
                                           ),
                                         ),
-                                        Text(
-                                          song.artist,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            color: AppTheme.textMuted,
-                                            fontSize: 10.5,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (song.duration != null)
-                                    Text(
-                                      song.duration!,
-                                      style: const TextStyle(
-                                        color: AppTheme.textMuted,
-                                        fontSize: 11,
                                       ),
                                     ),
-                                  const SizedBox(width: 4),
-                                  IconButton(
-                                    icon: const Icon(Icons.close_rounded, size: 14),
-                                    color: AppTheme.textMuted,
-                                    splashRadius: 14,
-                                    onPressed: () => controller.removeFromQueue(index),
-                                  ),
-                                ],
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            song.title,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              color: isNowPlaying
+                                                  ? AppTheme.textWhite
+                                                  : AppTheme.textPrimary,
+                                              fontSize: 12,
+                                              fontWeight: isNowPlaying
+                                                  ? FontWeight.w700
+                                                  : FontWeight.w500,
+                                            ),
+                                          ),
+                                          Text(
+                                            song.artist,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              color: AppTheme.textMuted,
+                                              fontSize: 10.5,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (song.duration != null)
+                                      Text(
+                                        song.duration!,
+                                        style: const TextStyle(
+                                          color: AppTheme.textMuted,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    const SizedBox(width: 4),
+                                    IconButton(
+                                      icon: const Icon(Icons.close_rounded, size: 14),
+                                      color: AppTheme.textMuted,
+                                      splashRadius: 14,
+                                      onPressed: () => controller.removeFromQueue(index),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
             ),
           ],

@@ -14,14 +14,66 @@ import '../utils/app_assets.dart';
 /// Service managing the desktop system tray icon, Apple Music-like context menu,
 /// and window close behaviors (play in background vs exit app).
 class TrayAndWindowService extends GetxService with TrayListener, WindowListener {
+  static const int singleInstancePort = 45328;
+  ServerSocket? _singleInstanceServer;
+
   bool _isWindowVisible = true;
   bool _isInitialized = false;
+
+  /// Check if another instance is already running on desktop.
+  /// If running, signal it to show its window and return false (caller should exit).
+  /// If not running, return true.
+  static Future<bool> ensureSingleInstance() async {
+    if (!Constant.isDesktop) return true;
+
+    try {
+      final socket = await Socket.connect(
+        InternetAddress.loopbackIPv4,
+        singleInstancePort,
+        timeout: const Duration(milliseconds: 300),
+      );
+      // Connected successfully -> Primary instance is already running
+      socket.write('SHOW\n');
+      await socket.flush();
+      await socket.close();
+      debugPrint('[SingleInstance] Signaled running instance to show window. Exiting secondary process.');
+      return false;
+    } catch (_) {
+      // Failed to connect -> We are the primary instance
+      return true;
+    }
+  }
+
+  void _startSingleInstanceServer() async {
+    if (!Constant.isDesktop) return;
+
+    try {
+      _singleInstanceServer = await ServerSocket.bind(
+        InternetAddress.loopbackIPv4,
+        singleInstancePort,
+      );
+      _singleInstanceServer?.listen((client) {
+        client.listen((data) {
+          final message = String.fromCharCodes(data).trim();
+          if (message == 'SHOW') {
+            debugPrint('[SingleInstance] Received SHOW signal, restoring window.');
+            showWindow();
+          }
+        });
+      });
+    } catch (e) {
+      debugPrint('[SingleInstance] Server bind error: $e');
+    }
+  }
 
   Future<TrayAndWindowService> init() async {
     if (!Constant.isDesktop) return this;
 
     try {
-      // 1. Initialize Window Manager
+      // 1. Initialize Single Instance IPC Server
+      _startSingleInstanceServer();
+
+      // 2. Initialize Window Manager
       await windowManager.ensureInitialized();
       windowManager.addListener(this);
       await windowManager.setPreventClose(true);
@@ -41,14 +93,14 @@ class TrayAndWindowService extends GetxService with TrayListener, WindowListener
         _isWindowVisible = true;
       });
 
-      // 2. Initialize Tray Manager
+      // 3. Initialize Tray Manager
       trayManager.addListener(this);
       await trayManager.setIcon(AppAssets.trayIcon);
       await trayManager.setToolTip('Villupaatukaaran');
 
       _isInitialized = true;
 
-      // 3. Listen to player observables to keep tray menu dynamically synchronized
+      // 4. Listen to player observables to keep tray menu dynamically synchronized
       if (Get.isRegistered<PlayerController>()) {
         final player = Get.find<PlayerController>();
         player.currentSong.listen((_) => updateTrayMenu());
@@ -67,13 +119,14 @@ class TrayAndWindowService extends GetxService with TrayListener, WindowListener
   @override
   void onClose() {
     if (Constant.isDesktop) {
+      _singleInstanceServer?.close();
       trayManager.removeListener(this);
       windowManager.removeListener(this);
     }
     super.onClose();
   }
 
-  /// Update the system tray context menu dynamically like Apple Music
+  /// Update the system tray context menu dynamically
   Future<void> updateTrayMenu() async {
     if (!_isInitialized || !Constant.isDesktop) return;
 
@@ -81,27 +134,26 @@ class TrayAndWindowService extends GetxService with TrayListener, WindowListener
       final player = Get.isRegistered<PlayerController>() ? Get.find<PlayerController>() : null;
       final song = player?.currentSong.value;
       final isPlaying = player?.isPlaying.value ?? false;
-      final isLiked = (song != null && player != null) ? player.isLiked(song.videoId) : false;
 
       // Update tooltip
       final tooltip = song != null ? '${song.title} — ${song.artist}' : 'Villupaatukaaran';
       await trayManager.setToolTip(tooltip);
 
       final menuItems = <MenuItem>[
-        // Now Playing Header (Apple Music style)
+        // Prominent Window Show/Hide Toggle (First item for immediate access)
+        MenuItem(
+          label: _isWindowVisible ? 'Hide Window' : 'Open Villupaatukaaran',
+          onClick: (_) async {
+            await toggleWindow();
+          },
+        ),
+
+        MenuItem.separator(),
+
+        // Track Information
         if (song != null) ...[
           MenuItem(
-            label: '🎵  ${song.title}',
-            disabled: true,
-          ),
-          MenuItem(
-            label: '     ${song.artist}',
-            disabled: true,
-          ),
-          MenuItem.separator(),
-        ] else ...[
-          MenuItem(
-            label: '🎵  Villupaatukaaran',
+            label: '${song.title} — ${song.artist}',
             disabled: true,
           ),
           MenuItem.separator(),
@@ -109,40 +161,22 @@ class TrayAndWindowService extends GetxService with TrayListener, WindowListener
 
         // Playback Controls
         MenuItem(
-          label: isPlaying ? '⏸   Pause' : '▶   Play',
+          label: isPlaying ? 'Pause' : 'Play',
           onClick: (_) async {
             if (player != null) await player.togglePlayPause();
             await updateTrayMenu();
           },
         ),
         MenuItem(
-          label: '⏭   Next Track',
+          label: 'Next Track',
           onClick: (_) async {
             if (player != null) await player.skipToNext();
           },
         ),
         MenuItem(
-          label: '⏮   Previous Track',
+          label: 'Previous Track',
           onClick: (_) async {
             if (player != null) await player.skipToPrevious();
-          },
-        ),
-        if (song != null)
-          MenuItem(
-            label: isLiked ? '♥   Liked' : '♡   Like',
-            onClick: (_) async {
-              if (player != null) await player.toggleLike(song);
-              await updateTrayMenu();
-            },
-          ),
-
-        MenuItem.separator(),
-
-        // Window Controls
-        MenuItem(
-          label: _isWindowVisible ? 'Hide Window' : 'Open Villupaatukaaran',
-          onClick: (_) async {
-            await toggleWindow();
           },
         ),
 
@@ -168,23 +202,39 @@ class TrayAndWindowService extends GetxService with TrayListener, WindowListener
     if (!Constant.isDesktop) return;
 
     final isVis = await windowManager.isVisible();
-    if (isVis) {
-      await windowManager.hide();
-      _isWindowVisible = false;
+    if (isVis && _isWindowVisible) {
+      await hideWindow();
     } else {
-      await windowManager.show();
-      await windowManager.focus();
-      _isWindowVisible = true;
+      await showWindow();
     }
-    await updateTrayMenu();
   }
 
   /// Show and bring window to front
   Future<void> showWindow() async {
     if (!Constant.isDesktop) return;
-    await windowManager.show();
-    await windowManager.focus();
-    _isWindowVisible = true;
+
+    try {
+      final isMinimized = await windowManager.isMinimized();
+      if (isMinimized) {
+        await windowManager.restore();
+      }
+      await windowManager.show();
+      await windowManager.focus();
+      _isWindowVisible = true;
+
+      // Linux compositor texture repaint nudge
+      if (Platform.isLinux) {
+        final size = await windowManager.getSize();
+        await windowManager.setSize(Size(size.width, size.height + 1));
+        await Future.delayed(const Duration(milliseconds: 25));
+        await windowManager.setSize(size);
+      }
+
+      WidgetsBinding.instance.scheduleFrame();
+    } catch (e) {
+      debugPrint('[TrayAndWindowService] showWindow error: $e');
+    }
+
     await updateTrayMenu();
   }
 
@@ -199,6 +249,7 @@ class TrayAndWindowService extends GetxService with TrayListener, WindowListener
   /// Quit application entirely
   Future<void> quitApp() async {
     try {
+      _singleInstanceServer?.close();
       if (Get.isRegistered<PlayerController>()) {
         Get.find<PlayerController>().saveSession();
         await Get.find<PlayerController>().stop();
@@ -218,8 +269,30 @@ class TrayAndWindowService extends GetxService with TrayListener, WindowListener
   }
 
   @override
+  void onTrayIconMouseUp() {
+    showWindow();
+  }
+
+  @override
   void onTrayIconRightMouseDown() {
     trayManager.popUpContextMenu();
+  }
+
+  @override
+  void onTrayIconRightMouseUp() {
+    trayManager.popUpContextMenu();
+  }
+
+  @override
+  void onTrayMenuItemClick(MenuItem menuItem) {
+    final label = menuItem.label ?? '';
+    if (label.contains('Open') || label.contains('Show')) {
+      showWindow();
+    } else if (label.contains('Hide')) {
+      hideWindow();
+    } else if (label.contains('Quit')) {
+      quitApp();
+    }
   }
 
   // --- WindowListener Callbacks ---

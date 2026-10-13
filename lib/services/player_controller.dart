@@ -234,6 +234,23 @@ class PlayerController extends GetxController {
     await _audioHandler.removeQueueItemAt(index);
   }
 
+  /// Action: Reorder queue
+  Future<void> reorderQueue(int oldIndex, int newIndex) async {
+    if (oldIndex < 0 || oldIndex >= queue.length) return;
+    if (newIndex < 0 || newIndex > queue.length) return;
+
+    var targetIndex = newIndex;
+    if (oldIndex < targetIndex) {
+      targetIndex -= 1;
+    }
+
+    // Optimistically update reactive list for immediate UI response
+    final item = queue.removeAt(oldIndex);
+    queue.insert(targetIndex, item);
+
+    await _audioHandler.reorderQueue(oldIndex, newIndex);
+  }
+
   /// Action: Clear Queue
   Future<void> clearQueue() async {
     await _audioHandler.clearUpcomingQueue();

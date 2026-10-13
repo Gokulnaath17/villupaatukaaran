@@ -127,14 +127,33 @@ class QueueDrawer extends StatelessWidget {
                         style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
                       ),
                     )
-                  : ListView.builder(
-                      itemCount: queue.length,
-                      itemBuilder: (ctx, i) {
-                        final track = queue[i];
-                        final isCurrent = track.videoId == currentSong?.videoId;
+                  : Theme(
+                      data: Theme.of(context).copyWith(
+                        canvasColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                      ),
+                      child: ReorderableListView.builder(
+                        buildDefaultDragHandles: false,
+                        itemCount: queue.length,
+                        onReorder: (oldIndex, newIndex) {
+                          controller.reorderQueue(oldIndex, newIndex);
+                        },
+                        proxyDecorator: (child, index, animation) {
+                          return Material(
+                            color: Colors.transparent,
+                            elevation: 8,
+                            shadowColor: Colors.black.withOpacity(0.6),
+                            borderRadius: AppTheme.radiusSmall,
+                            child: child,
+                          );
+                        },
+                        itemBuilder: (ctx, i) {
+                          final track = queue[i];
+                          final isCurrent = track.videoId == currentSong?.videoId;
 
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 3),
+                          return Padding(
+                            key: ValueKey('queue_item_${track.videoId}_$i'),
+                            padding: const EdgeInsets.symmetric(vertical: 3),
                           child: Material(
                             color: Colors.transparent,
                             child: InkWell(
@@ -154,6 +173,20 @@ class QueueDrawer extends StatelessWidget {
                                 ),
                                 child: Row(
                                   children: [
+                                    ReorderableDragStartListener(
+                                      index: i,
+                                      child: MouseRegion(
+                                        cursor: SystemMouseCursors.grab,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(right: 8),
+                                          child: Icon(
+                                            Icons.drag_handle_rounded,
+                                            size: 18,
+                                            color: AppTheme.textMuted.withOpacity(0.7),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(8),
                                       child: Container(
@@ -235,6 +268,7 @@ class QueueDrawer extends StatelessWidget {
                         );
                       },
                     ),
+                  ),
             ),
 
             // Queue Actions (Clear Queue)

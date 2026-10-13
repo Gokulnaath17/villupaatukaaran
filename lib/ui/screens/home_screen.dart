@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
 import '../../models/song_item.dart';
@@ -9,7 +8,6 @@ import '../../services/download_service.dart';
 import '../../services/library_service.dart';
 import '../../services/player_controller.dart';
 import '../../services/settings_controller.dart';
-import '../../utils/app_assets.dart';
 import '../theme/theme_controller.dart';
 import '../widgets/download_queue_drawer.dart';
 import '../widgets/player_dock_bar.dart';
@@ -37,16 +35,28 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isQueueOpen = false;
   bool _isDownloadsOpen = false;
 
-  // Active Spotlight Artist
-  String _selectedArtistKey = 'subbu';
+  // Active Spotlight Category / Artist
+  String _selectedArtistKey = 'trending';
   final TextEditingController _searchController = TextEditingController();
 
   final Map<String, Map<String, String>> _artistsMetadata = {
-    'subbu': {
-      'name': 'Subbu Arumugam',
-      'badge': 'PADMA SHRI',
-      'subtitle': 'Legendary Tamil Villu Paatu Bard • 40+ Years of Folk Ballads',
-      'query': 'Subbu Arumugam Villu Paatu',
+    'trending': {
+      'name': 'Trending Tamil Hits',
+      'badge': "TODAY'S TOP HITS",
+      'subtitle': 'The hottest Tamil chartbusters, viral sound waves & cinematic masterpieces',
+      'query': 'Top Tamil Songs',
+    },
+    'anirudh': {
+      'name': 'Anirudh Ravichander',
+      'badge': 'ROCKSTAR',
+      'subtitle': 'Contemporary Hitmaker • High-Energy Kuthu & Cinematic Anthems',
+      'query': 'Anirudh Tamil Hits',
+    },
+    'rahman': {
+      'name': 'A.R. Rahman',
+      'badge': 'OSCAR & GRAMMY',
+      'subtitle': 'Isai Puyal • Pioneer of Modern Tamil World Music & Classical Integrations',
+      'query': 'AR Rahman Tamil Classics',
     },
     'raaja': {
       'name': 'Ilaiyaraaja',
@@ -54,17 +64,11 @@ class _HomeScreenState extends State<HomeScreen> {
       'subtitle': 'Maestro of Symphonic & Rural Tamil Melodies • 1,000+ Soundtracks',
       'query': 'Ilaiyaraaja Tamil Hits',
     },
-    'rahman': {
-      'name': 'AR Rahman',
-      'badge': 'OSCAR & GRAMMY',
-      'subtitle': 'Isai Puyal • Pioneer of Modern Tamil World Music & Folk Integrations',
-      'query': 'AR Rahman Tamil Classics',
-    },
-    'anirudh': {
-      'name': 'Anirudh Ravichander',
-      'badge': 'ROCKSTAR',
-      'subtitle': 'Contemporary Hitmaker • High-Energy Kuthu & Cinematic Anthems',
-      'query': 'Anirudh Tamil Hits',
+    'yuvan': {
+      'name': 'Yuvan Shankar Raja',
+      'badge': 'U1 DRUGS',
+      'subtitle': 'Youth Icon • Soulful Melodies, Lo-fi Grooves & Iconic Soundtracks',
+      'query': 'Yuvan Shankar Raja Hits',
     },
   };
 
@@ -86,6 +90,10 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _selectedArtistKey = key;
     });
+    if (key == 'trending') {
+      Get.find<DiscoverController>().loadHomeFeed();
+      return;
+    }
     final query = _artistsMetadata[key]?['query'];
     if (query != null) {
       Get.find<DiscoverController>().search(query);
@@ -712,62 +720,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          const Spacer(),
+          const SizedBox(width: 14),
 
-          // Search Field
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 240, minWidth: 100),
-            child: SizedBox(
-              width: 200,
-              height: 34,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF181A25),
-                  borderRadius: AppTheme.radiusSmall,
-                  border: Border.all(color: AppTheme.borderSubtle, width: 1),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Row(
-                  children: [
-                    const Icon(Icons.search_rounded, size: 15, color: AppTheme.textMuted),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        style: const TextStyle(color: AppTheme.textWhite, fontSize: 12),
-                        decoration: const InputDecoration(
-                          hintText: 'Search songs, bards...',
-                          hintStyle: TextStyle(color: AppTheme.textMuted, fontSize: 12),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        onSubmitted: (query) {
-                          if (query.trim().isNotEmpty) {
-                            Get.find<DiscoverController>().search(query.trim());
-                            setState(() => _activeNavKey = 'search');
-                          }
-                        },
-                      ),
-                    ),
-                    if (_searchController.text.isNotEmpty)
-                      GestureDetector(
-                        onTap: () {
-                          _searchController.clear();
-                          Get.find<DiscoverController>().clearSearch();
-                          setState(() => _activeNavKey = 'home');
-                        },
-                        child: const Icon(Icons.close_rounded, size: 14, color: AppTheme.textMuted),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // Download Status Pill / Drawer Toggle
+          // Download Status Pill / Drawer Toggle (Aligned to Left)
           Builder(builder: (_) {
             final downloadService = Get.isRegistered<DownloadService>() ? Get.find<DownloadService>() : null;
             if (downloadService == null) return const SizedBox.shrink();
@@ -829,7 +784,7 @@ class _HomeScreenState extends State<HomeScreen> {
           }),
           const SizedBox(width: 4),
 
-          // Queue button
+          // Up Next Queue button (Aligned to Left)
           IconButton(
             icon: Icon(
               Icons.queue_music_rounded,
@@ -839,6 +794,59 @@ class _HomeScreenState extends State<HomeScreen> {
             splashRadius: 18,
             tooltip: 'Up Next Queue',
             onPressed: _toggleQueue,
+          ),
+
+          const Spacer(),
+
+          // Search Field
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 240, minWidth: 100),
+            child: SizedBox(
+              width: 200,
+              height: 34,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF181A25),
+                  borderRadius: AppTheme.radiusSmall,
+                  border: Border.all(color: AppTheme.borderSubtle, width: 1),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Row(
+                  children: [
+                    const Icon(Icons.search_rounded, size: 15, color: AppTheme.textMuted),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        style: const TextStyle(color: AppTheme.textWhite, fontSize: 12),
+                        decoration: const InputDecoration(
+                          hintText: 'Search songs, bards...',
+                          hintStyle: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        onSubmitted: (query) {
+                          if (query.trim().isNotEmpty) {
+                            Get.find<DiscoverController>().search(query.trim());
+                            setState(() => _activeNavKey = 'search');
+                          }
+                        },
+                      ),
+                    ),
+                    if (_searchController.text.isNotEmpty)
+                      GestureDetector(
+                        onTap: () {
+                          _searchController.clear();
+                          Get.find<DiscoverController>().clearSearch();
+                          setState(() => _activeNavKey = 'home');
+                        },
+                        child: const Icon(Icons.close_rounded, size: 14, color: AppTheme.textMuted),
+                      ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -908,7 +916,7 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
 
-      final artist = _artistsMetadata[_selectedArtistKey] ?? _artistsMetadata['subbu']!;
+      final artist = _artistsMetadata[_selectedArtistKey] ?? _artistsMetadata['trending']!;
       final songs = discoverController.topSongs;
 
       return ListView(
@@ -1027,6 +1035,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Hero Spotlight Banner with Cutout Silhouette, Badges, and Action Buttons
+  /// Hero Spotlight Banner with Modern Music Graphic, Badges, and Action Buttons
   Widget _buildHeroBanner(Map<String, String> artist) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -1038,40 +1047,41 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              // Back button
-              Positioned(
-                top: 0,
-                left: 0,
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () => _switchArtist('subbu'),
-                    borderRadius: BorderRadius.circular(100),
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.06),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppTheme.borderSubtle, width: 1),
+              // Back button (if currently viewing a specific artist)
+              if (_selectedArtistKey != 'trending')
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => _switchArtist('trending'),
+                      borderRadius: BorderRadius.circular(100),
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.06),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppTheme.borderSubtle, width: 1),
+                        ),
+                        child: const Icon(Icons.arrow_back_rounded, size: 16, color: Colors.white),
                       ),
-                      child: const Icon(Icons.arrow_back_rounded, size: 16, color: Colors.white),
                     ),
                   ),
                 ),
-              ),
 
-              // Cutout Silhouette of Bard with Villu Bow
+              // Glowing Vinyl / Modern Music Art Graphic
               Positioned(
-                left: isCompact ? 10 : 50,
-                bottom: -10,
+                left: isCompact ? 10 : 30,
+                bottom: -6,
                 child: SizedBox(
-                  width: isCompact ? 140 : 190,
-                  height: isCompact ? 170 : 210,
+                  width: isCompact ? 130 : 170,
+                  height: isCompact ? 150 : 190,
                   child: Stack(
-                    alignment: Alignment.bottomCenter,
+                    alignment: Alignment.center,
                     children: [
-                      // Ambient Blue/Amber glow behind silhouette
+                      // Ambient glow
                       Container(
                         width: isCompact ? 110 : 140,
                         height: isCompact ? 110 : 140,
@@ -1079,20 +1089,53 @@ class _HomeScreenState extends State<HomeScreen> {
                           shape: BoxShape.circle,
                           gradient: RadialGradient(
                             colors: [
-                              AppTheme.blueAccent.withOpacity(0.25),
+                              AppTheme.redAccent.withOpacity(0.28),
+                              AppTheme.blueAccent.withOpacity(0.15),
                               Colors.transparent,
                             ],
                           ),
                         ),
                       ),
-                      // Logo / Bard Cutout Image
-                      Image.asset(
-                        AppAssets.logo,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.person_pin_rounded,
-                          size: 110,
-                          color: AppTheme.blueAccent,
+                      // Modern 3D Vinyl Disc
+                      Container(
+                        width: isCompact ? 110 : 140,
+                        height: isCompact ? 110 : 140,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFF2C2D35), Color(0xFF15161E)],
+                          ),
+                          border: Border.all(color: Colors.white.withOpacity(0.15), width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.6),
+                              blurRadius: 22,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Container(
+                            width: isCompact ? 44 : 54,
+                            height: isCompact ? 44 : 54,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: AppTheme.blueGradient,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.blueAccent.withOpacity(0.5),
+                                  blurRadius: 14,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.music_note_rounded,
+                              color: Colors.white,
+                              size: 26,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -1102,7 +1145,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // Artist Details and Controls (Title, Subtitle, Shuffle & Play buttons)
               Positioned(
-                left: isCompact ? 160 : 260,
+                left: isCompact ? 155 : 220,
                 right: 0,
                 bottom: 12,
                 child: Row(
@@ -1169,13 +1212,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               const Text(
-                                'Quick spotlight: ',
+                                'Spotlight: ',
                                 style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
                               ),
-                              _buildArtistPill('subbu', 'Subbu Arumugam'),
-                              _buildArtistPill('raaja', 'Ilaiyaraaja'),
-                              _buildArtistPill('rahman', 'AR Rahman'),
+                              _buildArtistPill('trending', 'Top Hits'),
                               _buildArtistPill('anirudh', 'Anirudh'),
+                              _buildArtistPill('rahman', 'A.R. Rahman'),
+                              _buildArtistPill('raaja', 'Ilaiyaraaja'),
+                              _buildArtistPill('yuvan', 'Yuvan'),
                             ],
                           ),
                         ],
@@ -1279,57 +1323,52 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// 5-Album Carousel Row (matching mod.png colors & layout with transparent thumbnail images)
+  /// 5-Album Carousel Row with high-res music thumbnails
   Widget _buildAlbumCarouselRow() {
     return Row(
       children: [
         Expanded(
           child: _buildAlbumCard(
-            title: 'Villisai Paamalai',
-            year: '1982',
-            svgAsset: AppAssets.cardThumb1,
-            color: AppTheme.albumYellow,
-            query: 'Subbu Arumugam Villisai',
+            title: 'Leo',
+            artistOrYear: 'Anirudh • 2023',
+            imageUrl: 'https://i.ytimg.com/vi/szvt1vD0Uug/hqdefault.jpg',
+            query: 'Leo Tamil Songs',
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: _buildAlbumCard(
-            title: 'Gaana Ulagam',
-            year: '2024',
-            svgAsset: AppAssets.cardThumb2,
-            color: AppTheme.albumCyan,
-            query: 'Chennai Gaana Songs',
+            title: 'Jailer',
+            artistOrYear: 'Anirudh • 2023',
+            imageUrl: 'https://i.ytimg.com/vi/Y5BeWdODPqo/hqdefault.jpg',
+            query: 'Jailer Tamil Songs',
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: _buildAlbumCard(
-            title: 'Raaja Kaatril',
-            year: '1989',
-            svgAsset: AppAssets.cardThumb3,
-            color: AppTheme.albumLavender,
-            query: 'Ilaiyaraaja 80s Hits',
+            title: 'Ponniyin Selvan',
+            artistOrYear: 'A.R. Rahman • 2022',
+            imageUrl: 'https://i.ytimg.com/vi/Q_O03B_3U2s/hqdefault.jpg',
+            query: 'Ponniyin Selvan Songs',
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: _buildAlbumCard(
-            title: 'Thalapathi Beats',
-            year: '2023',
-            svgAsset: AppAssets.cardThumb4,
-            color: AppTheme.albumPink,
-            query: 'Anirudh Hits',
+            title: 'Vikram',
+            artistOrYear: 'Anirudh • 2022',
+            imageUrl: 'https://i.ytimg.com/vi/1F3hm6MfR1k/hqdefault.jpg',
+            query: 'Vikram Tamil Songs',
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: _buildAlbumCard(
-            title: 'Gramaathu Isai',
-            year: '2021',
-            svgAsset: AppAssets.cardThumb5,
-            color: AppTheme.albumMint,
-            query: 'Tamil Village Folk Songs',
+            title: 'Thalapathi',
+            artistOrYear: 'Ilaiyaraaja • 1991',
+            imageUrl: 'https://i.ytimg.com/vi/g31iL_y045g/hqdefault.jpg',
+            query: 'Thalapathi Tamil Songs',
           ),
         ),
       ],
@@ -1338,9 +1377,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildAlbumCard({
     required String title,
-    required String year,
-    required String svgAsset,
-    required Color color,
+    required String artistOrYear,
+    required String imageUrl,
     required String query,
   }) {
     return Material(
@@ -1359,21 +1397,44 @@ class _HomeScreenState extends State<HomeScreen> {
               aspectRatio: 1.0,
               child: Container(
                 decoration: BoxDecoration(
-                  color: color,
                   borderRadius: AppTheme.radiusLarge,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withOpacity(0.35),
                       blurRadius: 16,
                       offset: const Offset(0, 8),
                     ),
                   ],
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: SvgPicture.asset(
-                    svgAsset,
-                    fit: BoxFit.contain,
+                child: ClipRRect(
+                  borderRadius: AppTheme.radiusLarge,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Container(color: const Color(0xFF222533)),
+                      Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          color: const Color(0xFF1C1E2A),
+                          child: const Center(
+                            child: Icon(Icons.album_rounded, size: 36, color: AppTheme.blueAccent),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.35),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -1391,7 +1452,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 1),
             Text(
-              year,
+              artistOrYear,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: AppTheme.textMuted,
                 fontSize: 11,
@@ -1446,11 +1509,11 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildPlaylistCard(
-                title: 'Temple & Stories',
-                subtitle: 'கோயில் வில்லிசை',
+                title: 'Acoustic & Classical',
+                subtitle: 'இன்னிசை ராகங்கள்',
                 imageUrl:
-                    'https://images.unsplash.com/photo-1544717305-2782549b5136?w=500&auto=format&fit=crop&q=80',
-                query: 'Villu Paatu Temple Stories',
+                    'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=500&auto=format&fit=crop&q=80',
+                query: 'Tamil Classical Acoustic Songs',
               ),
             ),
           ],

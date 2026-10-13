@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -22,6 +23,14 @@ import 'utils/linux_audio_init.dart';
 /// Application Entry Point
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Desktop single-instance check: if another instance is running, signal it to show and exit immediately
+  if (Constant.isDesktop) {
+    final isPrimary = await TrayAndWindowService.ensureSingleInstance();
+    if (!isPrimary) {
+      exit(0);
+    }
+  }
 
   // Desktop audio engine init
   LinuxAudioInit.ensureInitialized();

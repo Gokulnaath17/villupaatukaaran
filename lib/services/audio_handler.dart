@@ -304,6 +304,32 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
   }
 
+  /// Reorder items in the queue
+  Future<void> reorderQueue(int oldIndex, int newIndex) async {
+    final currentQueue = List<MediaItem>.from(queue.value);
+    if (oldIndex < 0 || oldIndex >= currentQueue.length) return;
+    if (newIndex < 0 || newIndex > currentQueue.length) return;
+
+    var targetIndex = newIndex;
+    if (oldIndex < targetIndex) {
+      targetIndex -= 1;
+    }
+
+    final item = currentQueue.removeAt(oldIndex);
+    currentQueue.insert(targetIndex, item);
+
+    // Keep active queue pointer synchronized
+    if (_currentQueueIndex == oldIndex) {
+      _currentQueueIndex = targetIndex;
+    } else if (oldIndex < _currentQueueIndex && targetIndex >= _currentQueueIndex) {
+      _currentQueueIndex--;
+    } else if (oldIndex > _currentQueueIndex && targetIndex <= _currentQueueIndex) {
+      _currentQueueIndex++;
+    }
+
+    await updateQueue(currentQueue);
+  }
+
   /// Clear the entire upcoming queue (keeping current track)
   Future<void> clearUpcomingQueue() async {
     final currentIndex = _player.currentIndex ?? 0;
