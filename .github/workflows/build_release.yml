@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release Tag (e.g. v1.1.0)'
+        description: 'Release Tag (e.g. v1.2.0)'
         required: true
-        default: 'v1.1.0'
+        default: 'v1.2.0'
   push:
     tags:
       - 'v*'
@@ -15,12 +15,17 @@ permissions:
   contents: write
 
 jobs:
-  build-windows:
-    name: Build Windows Release
-    runs-on: windows-2022
+  build-linux:
+    name: Build Linux Release
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Install Linux Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libayatana-appindicator3-dev libmpv-dev
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -29,28 +34,31 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Enable Windows Desktop
-        run: flutter config --enable-windows-desktop
-
-      - name: Flutter Doctor
-        run: flutter doctor -v
+      - name: Enable Linux Desktop
+        run: flutter config --enable-linux-desktop
 
       - name: Get Dependencies
         run: flutter pub get
 
-      - name: Build Windows Release
-        run: flutter build windows --release
+      - name: Build Linux Release
+        run: flutter build linux --release
 
-      - name: Package Windows Bundle (Zip)
-        shell: pwsh
+      - name: Package Linux Assets (.deb and .tar.gz)
         run: |
-          New-Item -ItemType Directory -Force -Path dist
-          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "dist\villupaatukaaran_windows_x64.zip" -Force
+          mkdir -p dist
+          TAG_VAL="${{ github.event.inputs.tag || github.ref_name }}"
+          CLEAN_VER="${TAG_VAL#v}"
+          bash scripts/build_deb.sh "${CLEAN_VER}"
+          cp "build/linux/x64/release/villupaatukaaran_${CLEAN_VER}_amd64.deb" "dist/"
+          tar -czf "dist/villupaatukaaran_${CLEAN_VER}_linux_x64.tar.gz" -C build/linux/x64/release/bundle .
 
-      - name: Upload Windows Asset to GitHub Release
+      - name: Upload Linux Assets to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
-          files: dist/villupaatukaaran_windows_x64.zip
+          files: |
+            dist/*.deb
+            dist/*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

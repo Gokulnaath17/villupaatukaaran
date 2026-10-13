@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="1.1.0"
+VERSION="${1:-1.2.0}"
+VERSION="${VERSION#v}"
 ARCH="amd64"
 PKG_NAME="villupaatukaaran"
 STAGE_DIR="build/deb_staging"

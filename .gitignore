@@ -87,3 +87,18 @@ design_prototype.html
 *.orig
 *.env*
 .directory
+
+# Design prototypes, specs, and agent docs
+*.md
+!README.md
+*.html
+*.txt
+!linux/CMakeLists.txt
+!linux/flutter/CMakeLists.txt
+!windows/CMakeLists.txt
+!windows/flutter/CMakeLists.txt
+!windows/runner/CMakeLists.txt
+architecture/
+villupaatukaaran-agent-redesign-prompt.txt
+villupaatukaaran-redesign.html
+AGENTS.md
