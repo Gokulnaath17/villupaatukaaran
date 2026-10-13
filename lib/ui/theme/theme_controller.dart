@@ -23,6 +23,7 @@ class AppTheme {
 
   // Signature Warm Red / Coral Accent Palette
   static const Color redAccent = Color(0xFFFA3B55);
+  static const Color accentCoral = redAccent;
   static const Color redAccentSoft = Color(0x24FA3B55); // rgba(250, 59, 85, 0.14)
   static const Color redGlow = Color(0x40FA3B55);
   static const Color redLight = Color(0xFFFF6579);
@@ -69,6 +70,7 @@ class AppTheme {
 
   // Standard Rounded Geometry
   static final BorderRadius radiusSmall = BorderRadius.circular(10);
+  static final BorderRadius radiusCard = BorderRadius.circular(13);
   static final BorderRadius radiusMedium = BorderRadius.circular(13);
   static final BorderRadius radiusLarge = BorderRadius.circular(17);
   static final BorderRadius radiusXLarge = BorderRadius.circular(20);

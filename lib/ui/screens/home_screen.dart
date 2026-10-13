@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -8,6 +9,7 @@ import '../../services/discover_controller.dart';
 import '../../services/download_service.dart';
 import '../../services/library_service.dart';
 import '../../services/player_controller.dart';
+import '../../utils/app_assets.dart';
 import '../theme/theme_controller.dart';
 import '../widgets/download_queue_drawer.dart';
 import '../widgets/player_dock_bar.dart';
@@ -1552,6 +1554,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 artist: 'Anirudh Ravichander',
                 badge: 'FILM · 2023',
                 coverTitle: 'LEO',
+                imageAsset: AppAssets.albumLeo,
+                imageUrl: AppAssets.albumLeoUrl,
                 gradientColors: const [Color(0xFFC77753), Color(0xFF632F35), Color(0xFF191A29)],
                 query: 'Leo Tamil Songs',
               ),
@@ -1563,6 +1567,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 artist: 'Anirudh Ravichander',
                 badge: 'FILM · 2023',
                 coverTitle: 'JAILER',
+                imageAsset: AppAssets.albumJailer,
+                imageUrl: AppAssets.albumJailerUrl,
                 gradientColors: const [Color(0xFF2B443A), Color(0xFFB77A4D), Color(0xFF351B23)],
                 query: 'Jailer Tamil Songs',
               ),
@@ -1574,6 +1580,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 artist: 'A. R. Rahman',
                 badge: 'FILM · 2022',
                 coverTitle: 'PONNIYIN SELVAN',
+                imageAsset: AppAssets.albumPs1,
+                imageUrl: AppAssets.albumPs1Url,
                 gradientColors: const [Color(0xFF5E315E), Color(0xFFC47464), Color(0xFF211E36)],
                 query: 'Ponniyin Selvan Songs',
               ),
@@ -1585,6 +1593,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 artist: 'Anirudh Ravichander',
                 badge: 'FILM · 2022',
                 coverTitle: 'VIKRAM',
+                imageAsset: AppAssets.albumVikram,
+                imageUrl: AppAssets.albumVikramUrl,
                 gradientColors: const [Color(0xFF202C38), Color(0xFF8D3438), Color(0xFF15151B)],
                 query: 'Vikram Tamil Songs',
               ),
@@ -1596,6 +1606,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 artist: 'Ilaiyaraaja',
                 badge: 'CLASSIC · 1991',
                 coverTitle: 'THALAPATHI',
+                imageAsset: AppAssets.albumThalapathi,
+                imageUrl: AppAssets.albumThalapathiUrl,
                 gradientColors: const [Color(0xFF6A784C), Color(0xFFC1A36A), Color(0xFF29362B)],
                 query: 'Thalapathi Tamil Songs',
               ),
@@ -1613,114 +1625,22 @@ class _HomeScreenState extends State<HomeScreen> {
     required String coverTitle,
     required List<Color> gradientColors,
     required String query,
+    String? imageAsset,
+    String? imageUrl,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          Get.find<DiscoverController>().search(query);
-          _navigateTo('search');
-        },
-        borderRadius: AppTheme.radiusMedium,
-        hoverColor: Colors.white.withOpacity(0.04),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AspectRatio(
-              aspectRatio: 1.0,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: AppTheme.radiusMedium,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: gradientColors,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Stack(
-                  children: [
-                    // Badge (e.g. FILM · 2023)
-                    Positioned(
-                      top: 8,
-                      right: 10,
-                      child: Text(
-                        badge,
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
-                          fontSize: 8.5,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                    ),
-                    // Geometric circle accent
-                    Positioned(
-                      top: 18,
-                      left: 18,
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white.withOpacity(0.12)),
-                        ),
-                      ),
-                    ),
-                    // Title Overlay at Bottom
-                    Positioned(
-                      left: 10,
-                      right: 10,
-                      bottom: 8,
-                      child: Text(
-                        coverTitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.2,
-                          shadows: [
-                            Shadow(color: Colors.black54, blurRadius: 6),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 7),
-            Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: AppTheme.textPrimary,
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 1),
-            Text(
-              artist,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: AppTheme.textMuted,
-                fontSize: 10,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return _AlbumHoverCard(
+      title: title,
+      artist: artist,
+      badge: badge,
+      coverTitle: coverTitle,
+      gradientColors: gradientColors,
+      query: query,
+      imageAsset: imageAsset,
+      imageUrl: imageUrl,
+      onTap: () {
+        Get.find<DiscoverController>().search(query);
+        _navigateTo('search');
+      },
     );
   }
 
@@ -2010,3 +1930,227 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
+/// Modern Glassmorphic Album Card with Artwork Thumbnail and Hover Play Action
+class _AlbumHoverCard extends StatefulWidget {
+  final String title;
+  final String artist;
+  final String badge;
+  final String coverTitle;
+  final List<Color> gradientColors;
+  final String query;
+  final String? imageAsset;
+  final String? imageUrl;
+  final VoidCallback onTap;
+
+  const _AlbumHoverCard({
+    required this.title,
+    required this.artist,
+    required this.badge,
+    required this.coverTitle,
+    required this.gradientColors,
+    required this.query,
+    this.imageAsset,
+    this.imageUrl,
+    required this.onTap,
+  });
+
+  @override
+  State<_AlbumHoverCard> createState() => _AlbumHoverCardState();
+}
+
+class _AlbumHoverCardState extends State<_AlbumHoverCard> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AspectRatio(
+              aspectRatio: 1.0,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOut,
+                transform: _isHovered
+                    ? (Matrix4.identity()..translate(0.0, -3.0))
+                    : Matrix4.identity(),
+                decoration: BoxDecoration(
+                  borderRadius: AppTheme.radiusCard,
+                  boxShadow: [
+                    BoxShadow(
+                      color: _isHovered
+                          ? AppTheme.accentCoral.withOpacity(0.25)
+                          : Colors.black.withOpacity(0.4),
+                      blurRadius: _isHovered ? 18 : 12,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: AppTheme.radiusCard,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Base gradient background
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: widget.gradientColors,
+                          ),
+                        ),
+                      ),
+
+                      // Thumbnail Artwork (Local Asset with Network Fallback)
+                      if (widget.imageAsset != null)
+                        Image.asset(
+                          widget.imageAsset!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (ctx, err, stack) {
+                            if (widget.imageUrl != null) {
+                              return CachedNetworkImage(
+                                imageUrl: widget.imageUrl!,
+                                fit: BoxFit.cover,
+                                errorWidget: (_, __, ___) => const SizedBox.shrink(),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        )
+                      else if (widget.imageUrl != null)
+                        CachedNetworkImage(
+                          imageUrl: widget.imageUrl!,
+                          fit: BoxFit.cover,
+                          errorWidget: (_, __, ___) => const SizedBox.shrink(),
+                        ),
+
+                      // Vignette / Gradient Scrim for typography contrast
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withOpacity(0.45),
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.88),
+                            ],
+                            stops: const [0.0, 0.45, 1.0],
+                          ),
+                        ),
+                      ),
+
+                      // Sleek Glassmorphic Badge (Top Right)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.6),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: Colors.white.withOpacity(0.12), width: 0.5),
+                          ),
+                          child: Text(
+                            widget.badge,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Cover Title (Bottom Left)
+                      Positioned(
+                        left: 10,
+                        right: 42,
+                        bottom: 8,
+                        child: Text(
+                          widget.coverTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.2,
+                            shadows: [
+                              Shadow(color: Colors.black, blurRadius: 8),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Hover Play Button (Bottom Right)
+                      Positioned(
+                        right: 8,
+                        bottom: 8,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 180),
+                          opacity: _isHovered ? 1.0 : 0.0,
+                          child: Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: AppTheme.accentCoral,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.accentCoral.withOpacity(0.5),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.play_arrow_rounded,
+                              color: Colors.white,
+                              size: 19,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              widget.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              widget.artist,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppTheme.textMuted,
+                fontSize: 10.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
