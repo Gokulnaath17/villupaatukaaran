@@ -349,6 +349,27 @@ class PlayerController extends GetxController {
     }
   }
 
+  /// Get list of recently played songs ordered most recent first
+  List<SongItem> getRecentlyPlayed() {
+    try {
+      final keys = _historyBox.keys.toList()..sort();
+      final reversedKeys = keys.reversed.toList();
+      final list = <SongItem>[];
+      for (final k in reversedKeys) {
+        final val = _historyBox.get(k);
+        if (val is Map) {
+          final s = SongItem.fromJson(Map<String, dynamic>.from(val));
+          if (s.videoId.isNotEmpty) {
+            list.add(s);
+          }
+        }
+      }
+      return list;
+    } catch (e) {
+      return [];
+    }
+  }
+
   void saveSession() => _audioHandler.saveSession();
 
   @override

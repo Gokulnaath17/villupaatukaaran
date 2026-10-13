@@ -55,23 +55,4 @@ class AppAssets {
   static const String cardThumb4 = 'assets/images/card_thumb_4.svg';
   static const String cardThumb5 = 'assets/images/card_thumb_5.svg';
 
-  // ---------------------------------------------------------------------------
-  // Pick Up Where You Left Off Album Covers
-  // ---------------------------------------------------------------------------
-  static const String albumLeo = 'assets/images/album_leo.jpg';
-  static const String albumJailer = 'assets/images/album_jailer.jpg';
-  static const String albumPs1 = 'assets/images/album_ps1.jpg';
-  static const String albumVikram = 'assets/images/album_vikram.jpg';
-  static const String albumThalapathi = 'assets/images/album_thalapathi.jpg';
-
-  static const String albumLeoUrl =
-      'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/13/a8/70/13a87001-28ba-1bc7-0ca6-52cf10dd6f52/196871556415.jpg/600x600bb.jpg';
-  static const String albumJailerUrl =
-      'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/2c/df/14/2cdf140e-6d11-a98d-bfbf-bc5e30c3c4a1/197189528187.jpg/600x600bb.jpg';
-  static const String albumPs1Url =
-      'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/46/ce/4c/46ce4c81-59d8-eae6-18ac-c10746aed240/8901854097036.png/600x600bb.jpg';
-  static const String albumVikramUrl =
-      'https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/41/41/01/41410135-baa0-1aab-7417-f6746b0f3c25/196589186973.jpg/600x600bb.jpg';
-  static const String albumThalapathiUrl =
-      'https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/72/c2/95/72c295f9-ccec-c74e-1ddb-083b649133dd/8905750030999.jpg/600x600bb.jpg';
 }
