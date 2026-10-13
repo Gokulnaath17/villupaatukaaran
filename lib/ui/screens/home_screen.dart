@@ -194,106 +194,114 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Absolutely nothing at the top - starts directly with the navigation hierarchy!
-
-          // 1. HOME
-          _buildParentNavItem(
-            label: 'Home',
-            icon: Icons.home_rounded,
-            isActive: _activeNavKey == 'home',
-            onTap: () {
-              setState(() {
-                _activeNavKey = 'home';
-                _selectedPlaylistId = null;
-              });
-            },
-          ),
-          const SizedBox(height: 6),
-
-          // 2. LIBRARY (Hierarchical Dropdown)
-          Obx(() {
-            return _buildHierarchicalDropdown(
-              title: 'Library',
-              icon: Icons.library_music_rounded,
-              isExpanded: _isLibraryExpanded,
-              onToggle: () {
-                setState(() => _isLibraryExpanded = !_isLibraryExpanded);
-              },
-              children: [
-                _buildChildNavItem(
-                  label: 'All Songs',
-                  icon: Icons.grid_view_rounded,
-                  navKey: 'library_all',
-                  badge: '${libraryService.allSongs.length}',
-                ),
-                _buildChildNavItem(
-                  label: 'Downloaded',
-                  icon: Icons.download_done_rounded,
-                  navKey: 'library_downloaded',
-                  badge: '${libraryService.downloadedSongs.length}',
-                ),
-                _buildChildNavItem(
-                  label: 'Cached',
-                  icon: Icons.bolt_rounded,
-                  navKey: 'library_cached',
-                  badge: '${cacheService.cachedSongsCount.value}',
-                ),
-                _buildChildNavItem(
-                  label: 'Local Files',
-                  icon: Icons.folder_rounded,
-                  navKey: 'library_local',
-                  badge: '${libraryService.localSongs.length}',
-                ),
-                _buildChildNavItem(
-                  label: 'Liked Songs',
-                  icon: Icons.favorite_rounded,
-                  navKey: 'library_liked',
-                  badge: '${libraryService.likedSongs.length}',
-                  accentColor: AppTheme.trafficRed,
-                ),
-              ],
-            );
-          }),
-          const SizedBox(height: 6),
-
-          // 3. PLAYLISTS (Hierarchical Dropdown)
-          Obx(() {
-            final playlists = libraryService.playlists;
-
-            return _buildHierarchicalDropdown(
-              title: 'Playlists',
-              icon: Icons.playlist_play_rounded,
-              isExpanded: _isPlaylistsExpanded,
-              onToggle: () {
-                setState(() => _isPlaylistsExpanded = !_isPlaylistsExpanded);
-              },
-              onAdd: () => _showCreatePlaylistDialog(context, libraryService),
-              children: [
-                _buildChildNavItem(
-                  label: 'All Playlists',
-                  icon: Icons.dashboard_rounded,
-                  navKey: 'playlists_all',
-                  badge: '${playlists.length}',
-                ),
-                ...playlists.map((pl) {
-                  return _buildChildNavItem(
-                    label: pl.title,
-                    icon: Icons.queue_music_rounded,
-                    navKey: 'playlist_${pl.id}',
-                    badge: '${pl.songCount}',
-                    onCustomTap: () {
+          // Scrollable Navigation Hierarchy
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. HOME
+                  _buildParentNavItem(
+                    label: 'Home',
+                    icon: Icons.home_rounded,
+                    isActive: _activeNavKey == 'home',
+                    onTap: () {
                       setState(() {
-                        _activeNavKey = 'playlist_${pl.id}';
-                        _selectedPlaylistId = pl.id;
+                        _activeNavKey = 'home';
+                        _selectedPlaylistId = null;
                       });
                     },
-                  );
-                }),
-              ],
-            );
-          }),
+                  ),
+                  const SizedBox(height: 6),
 
-          const Spacer(),
+                  // 2. LIBRARY (Hierarchical Dropdown)
+                  Obx(() {
+                    return _buildHierarchicalDropdown(
+                      title: 'Library',
+                      icon: Icons.library_music_rounded,
+                      isExpanded: _isLibraryExpanded,
+                      onToggle: () {
+                        setState(() => _isLibraryExpanded = !_isLibraryExpanded);
+                      },
+                      children: [
+                        _buildChildNavItem(
+                          label: 'All Songs',
+                          icon: Icons.grid_view_rounded,
+                          navKey: 'library_all',
+                          badge: '${libraryService.allSongs.length}',
+                        ),
+                        _buildChildNavItem(
+                          label: 'Downloaded',
+                          icon: Icons.download_done_rounded,
+                          navKey: 'library_downloaded',
+                          badge: '${libraryService.downloadedSongs.length}',
+                        ),
+                        _buildChildNavItem(
+                          label: 'Cached',
+                          icon: Icons.bolt_rounded,
+                          navKey: 'library_cached',
+                          badge: '${cacheService.cachedSongsCount.value}',
+                        ),
+                        _buildChildNavItem(
+                          label: 'Local Files',
+                          icon: Icons.folder_rounded,
+                          navKey: 'library_local',
+                          badge: '${libraryService.localSongs.length}',
+                        ),
+                        _buildChildNavItem(
+                          label: 'Liked Songs',
+                          icon: Icons.favorite_rounded,
+                          navKey: 'library_liked',
+                          badge: '${libraryService.likedSongs.length}',
+                          accentColor: AppTheme.trafficRed,
+                        ),
+                      ],
+                    );
+                  }),
+                  const SizedBox(height: 6),
+
+                  // 3. PLAYLISTS (Hierarchical Dropdown)
+                  Obx(() {
+                    final playlists = libraryService.playlists;
+
+                    return _buildHierarchicalDropdown(
+                      title: 'Playlists',
+                      icon: Icons.playlist_play_rounded,
+                      isExpanded: _isPlaylistsExpanded,
+                      onToggle: () {
+                        setState(() => _isPlaylistsExpanded = !_isPlaylistsExpanded);
+                      },
+                      onAdd: () => _showCreatePlaylistDialog(context, libraryService),
+                      children: [
+                        _buildChildNavItem(
+                          label: 'All Playlists',
+                          icon: Icons.dashboard_rounded,
+                          navKey: 'playlists_all',
+                          badge: '${playlists.length}',
+                        ),
+                        ...playlists.map((pl) {
+                          return _buildChildNavItem(
+                            label: pl.title,
+                            icon: Icons.queue_music_rounded,
+                            navKey: 'playlist_${pl.id}',
+                            badge: '${pl.songCount}',
+                            onCustomTap: () {
+                              setState(() {
+                                _activeNavKey = 'playlist_${pl.id}';
+                                _selectedPlaylistId = pl.id;
+                              });
+                            },
+                          );
+                        }),
+                      ],
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 8),
 
           // 4. SETTINGS
           _buildParentNavItem(
@@ -307,7 +315,7 @@ class _HomeScreenState extends State<HomeScreen> {
               });
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
           // Bottom Offline Cache Card
           Obx(() {
@@ -366,12 +374,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                                 const SizedBox(width: 4),
-                                Text(
-                                  '$cachedCount/$maxLimit Tracks • Ready',
-                                  style: const TextStyle(
-                                    color: AppTheme.trafficGreen,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
+                                Expanded(
+                                  child: Text(
+                                    '$cachedCount/$maxLimit Tracks • Ready',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: AppTheme.trafficGreen,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -679,71 +691,81 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Container(
       height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: const BoxDecoration(
         color: AppTheme.windowBg,
         border: Border(bottom: BorderSide(color: AppTheme.borderSubtle, width: 1)),
       ),
       child: Row(
         children: [
-          // Breadcrumb text
-          Text(
-            breadcrumb,
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.0,
-            ),
-          ),
-          const Spacer(),
-
-          // Search Field
-          Container(
-            width: 250,
-            height: 34,
-            decoration: BoxDecoration(
-              color: const Color(0xFF181A25),
-              borderRadius: AppTheme.radiusSmall,
-              border: Border.all(color: AppTheme.borderSubtle, width: 1),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Row(
-              children: [
-                const Icon(Icons.search_rounded, size: 15, color: AppTheme.textMuted),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    style: const TextStyle(color: AppTheme.textWhite, fontSize: 12),
-                    decoration: const InputDecoration(
-                      hintText: 'Search songs, bards...',
-                      hintStyle: TextStyle(color: AppTheme.textMuted, fontSize: 12),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    onSubmitted: (query) {
-                      if (query.trim().isNotEmpty) {
-                        Get.find<DiscoverController>().search(query.trim());
-                        setState(() => _activeNavKey = 'search');
-                      }
-                    },
-                  ),
-                ),
-                if (_searchController.text.isNotEmpty)
-                  GestureDetector(
-                    onTap: () {
-                      _searchController.clear();
-                      Get.find<DiscoverController>().clearSearch();
-                      setState(() => _activeNavKey = 'home');
-                    },
-                    child: const Icon(Icons.close_rounded, size: 14, color: AppTheme.textMuted),
-                  ),
-              ],
+          // Breadcrumb text (flexibly truncated)
+          Flexible(
+            child: Text(
+              breadcrumb,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.0,
+              ),
             ),
           ),
           const SizedBox(width: 12),
+          const Spacer(),
+
+          // Search Field
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 240, minWidth: 100),
+            child: SizedBox(
+              width: 200,
+              height: 34,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF181A25),
+                  borderRadius: AppTheme.radiusSmall,
+                  border: Border.all(color: AppTheme.borderSubtle, width: 1),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Row(
+                  children: [
+                    const Icon(Icons.search_rounded, size: 15, color: AppTheme.textMuted),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        style: const TextStyle(color: AppTheme.textWhite, fontSize: 12),
+                        decoration: const InputDecoration(
+                          hintText: 'Search songs, bards...',
+                          hintStyle: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        onSubmitted: (query) {
+                          if (query.trim().isNotEmpty) {
+                            Get.find<DiscoverController>().search(query.trim());
+                            setState(() => _activeNavKey = 'search');
+                          }
+                        },
+                      ),
+                    ),
+                    if (_searchController.text.isNotEmpty)
+                      GestureDetector(
+                        onTap: () {
+                          _searchController.clear();
+                          Get.find<DiscoverController>().clearSearch();
+                          setState(() => _activeNavKey = 'home');
+                        },
+                        child: const Icon(Icons.close_rounded, size: 14, color: AppTheme.textMuted),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
 
           // Download Status Pill / Drawer Toggle
           Builder(builder: (_) {
@@ -760,7 +782,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: AppTheme.radiusSmall,
                   child: Container(
                     height: 32,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     decoration: BoxDecoration(
                       color: AppTheme.blueAccent.withOpacity(0.15),
                       borderRadius: AppTheme.radiusSmall,
@@ -777,12 +799,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: AppTheme.blueAccent,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Text(
                           '$activeCount DOWNLOADING',
                           style: const TextStyle(
                             color: AppTheme.blueAccent,
-                            fontSize: 10.5,
+                            fontSize: 10,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 0.5,
                           ),
@@ -900,91 +922,103 @@ class _HomeScreenState extends State<HomeScreen> {
           _buildAlbumCarouselRow(),
           const SizedBox(height: 32),
 
-          // ================= LOWER TWO-COLUMN SPLIT =================
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Left Column: Popular Songs
-              Expanded(
-                flex: 12,
-                child: Column(
+          // ================= LOWER SPLIT (RESPONSIVE) =================
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 880;
+
+              final popularColumn = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Popular Tracks',
+                        style: TextStyle(
+                          color: AppTheme.textWhite,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      Text(
+                        '${songs.length} tracks',
+                        style: const TextStyle(
+                          color: AppTheme.textMuted,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // List of Popular Tracks
+                  if (songs.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Text(
+                        'No songs loaded. Try searching or switching spotlight.',
+                        style: TextStyle(color: AppTheme.textMuted),
+                      ),
+                    )
+                  else
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: songs.length > 5 ? 5 : songs.length,
+                      itemBuilder: (ctx, i) {
+                        return SongTile(
+                          song: songs[i],
+                          showIndex: false,
+                          onTap: () {
+                            Get.find<PlayerController>().playSong(
+                              songs[i],
+                              queueContext: songs,
+                              index: i,
+                            );
+                          },
+                        );
+                      },
+                    ),
+                ],
+              );
+
+              final curatedColumn = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Curated Playlists',
+                    style: TextStyle(
+                      color: AppTheme.textWhite,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildPlaylists2x2Grid(),
+                ],
+              );
+
+              if (isCompact) {
+                return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Popular Tracks',
-                          style: TextStyle(
-                            color: AppTheme.textWhite,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        Text(
-                          '${songs.length} tracks',
-                          style: const TextStyle(
-                            color: AppTheme.textMuted,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-
-                    // List of Popular Tracks
-                    if (songs.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.all(20),
-                        child: Text(
-                          'No songs loaded. Try searching or switching spotlight.',
-                          style: TextStyle(color: AppTheme.textMuted),
-                        ),
-                      )
-                    else
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: songs.length > 5 ? 5 : songs.length,
-                        itemBuilder: (ctx, i) {
-                          return SongTile(
-                            song: songs[i],
-                            showIndex: false,
-                            onTap: () {
-                              Get.find<PlayerController>().playSong(
-                                songs[i],
-                                queueContext: songs,
-                                index: i,
-                              );
-                            },
-                          );
-                        },
-                      ),
+                    popularColumn,
+                    const SizedBox(height: 28),
+                    curatedColumn,
                   ],
-                ),
-              ),
-              const SizedBox(width: 28),
+                );
+              }
 
-              // Right Column: 2x2 Photographic Curated Playlists
-              Expanded(
-                flex: 11,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Curated Playlists',
-                      style: TextStyle(
-                        color: AppTheme.textWhite,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildPlaylists2x2Grid(),
-                  ],
-                ),
-              ),
-            ],
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 12, child: popularColumn),
+                  const SizedBox(width: 28),
+                  Expanded(flex: 11, child: curatedColumn),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 20),
         ],
@@ -994,211 +1028,223 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Hero Spotlight Banner with Cutout Silhouette, Badges, and Action Buttons
   Widget _buildHeroBanner(Map<String, String> artist) {
-    return SizedBox(
-      height: 210,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Back button
-          Positioned(
-            top: 0,
-            left: 0,
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _switchArtist('subbu'),
-                borderRadius: BorderRadius.circular(100),
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppTheme.borderSubtle, width: 1),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bannerWidth = constraints.maxWidth;
+        final isCompact = bannerWidth < 760;
+
+        return SizedBox(
+          height: isCompact ? 230 : 210,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Back button
+              Positioned(
+                top: 0,
+                left: 0,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => _switchArtist('subbu'),
+                    borderRadius: BorderRadius.circular(100),
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.06),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppTheme.borderSubtle, width: 1),
+                      ),
+                      child: const Icon(Icons.arrow_back_rounded, size: 16, color: Colors.white),
+                    ),
                   ),
-                  child: const Icon(Icons.arrow_back_rounded, size: 16, color: Colors.white),
                 ),
               ),
-            ),
-          ),
 
-          // Cutout Silhouette of Bard with Villu Bow
-          Positioned(
-            left: 50,
-            bottom: -10,
-            child: SizedBox(
-              width: 190,
-              height: 210,
-              child: Stack(
-                alignment: Alignment.bottomCenter,
-                children: [
-                  // Ambient Blue/Amber glow behind silhouette
-                  Container(
-                    width: 140,
-                    height: 140,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          AppTheme.blueAccent.withOpacity(0.25),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Logo / Bard Cutout Image
-                  Image.asset(
-                    AppAssets.logo,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.person_pin_rounded,
-                      size: 110,
-                      color: AppTheme.blueAccent,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Artist Details and Controls (Title, Subtitle, Shuffle & Play buttons)
-          Positioned(
-            left: 260,
-            right: 0,
-            bottom: 12,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+              // Cutout Silhouette of Bard with Villu Bow
+              Positioned(
+                left: isCompact ? 10 : 50,
+                bottom: -10,
+                child: SizedBox(
+                  width: isCompact ? 140 : 190,
+                  height: isCompact ? 170 : 210,
+                  child: Stack(
+                    alignment: Alignment.bottomCenter,
                     children: [
-                      Row(
-                        children: [
-                          Text(
-                            artist['name'] ?? '',
-                            style: const TextStyle(
-                              color: AppTheme.textWhite,
-                              fontSize: 30,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.5,
-                            ),
+                      // Ambient Blue/Amber glow behind silhouette
+                      Container(
+                        width: isCompact ? 110 : 140,
+                        height: isCompact ? 110 : 140,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              AppTheme.blueAccent.withOpacity(0.25),
+                              Colors.transparent,
+                            ],
                           ),
-                          const SizedBox(width: 10),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: AppTheme.blueAccent.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(100),
-                              border: Border.all(
-                                color: AppTheme.blueAccent.withOpacity(0.4),
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              artist['badge'] ?? '',
-                              style: const TextStyle(
-                                color: AppTheme.blueLight,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        artist['subtitle'] ?? '',
-                        style: const TextStyle(
-                          color: AppTheme.textMuted,
-                          fontSize: 12.5,
                         ),
                       ),
-                      const SizedBox(height: 10),
-
-                      // Quick Spotlight Pills
-                      Row(
-                        children: [
-                          const Text(
-                            'Quick spotlight: ',
-                            style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
-                          ),
-                          _buildArtistPill('subbu', 'Subbu Arumugam'),
-                          const SizedBox(width: 6),
-                          _buildArtistPill('raaja', 'Ilaiyaraaja'),
-                          const SizedBox(width: 6),
-                          _buildArtistPill('rahman', 'AR Rahman'),
-                          const SizedBox(width: 6),
-                          _buildArtistPill('anirudh', 'Anirudh'),
-                        ],
+                      // Logo / Bard Cutout Image
+                      Image.asset(
+                        AppAssets.logo,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.person_pin_rounded,
+                          size: 110,
+                          color: AppTheme.blueAccent,
+                        ),
                       ),
                     ],
                   ),
                 ),
+              ),
 
-                // Shuffle & Play Buttons
-                Row(
-                  mainAxisSize: MainAxisSize.min,
+              // Artist Details and Controls (Title, Subtitle, Shuffle & Play buttons)
+              Positioned(
+                left: isCompact ? 160 : 260,
+                right: 0,
+                bottom: 12,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: _shuffleArtist,
-                        borderRadius: BorderRadius.circular(100),
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.06),
-                            border: Border.all(color: AppTheme.borderSubtle, width: 1),
-                          ),
-                          child: const Icon(
-                            Icons.shuffle_rounded,
-                            size: 18,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: _playArtistTop,
-                        borderRadius: BorderRadius.circular(100),
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: AppTheme.blueGradient,
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.blueGlow,
-                                blurRadius: 18,
-                                spreadRadius: 2,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: [
+                              Text(
+                                artist['name'] ?? '',
+                                style: TextStyle(
+                                  color: AppTheme.textWhite,
+                                  fontSize: isCompact ? 22 : 30,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.blueAccent.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(100),
+                                  border: Border.all(
+                                    color: AppTheme.blueAccent.withOpacity(0.4),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  artist['badge'] ?? '',
+                                  style: const TextStyle(
+                                    color: AppTheme.blueLight,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.play_arrow_rounded,
-                            size: 26,
-                            color: Colors.white,
+                          const SizedBox(height: 4),
+                          Text(
+                            artist['subtitle'] ?? '',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppTheme.textMuted,
+                              fontSize: 12.5,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+
+                          // Quick Spotlight Pills (Wrap-based for zero overflow)
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              const Text(
+                                'Quick spotlight: ',
+                                style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                              ),
+                              _buildArtistPill('subbu', 'Subbu Arumugam'),
+                              _buildArtistPill('raaja', 'Ilaiyaraaja'),
+                              _buildArtistPill('rahman', 'AR Rahman'),
+                              _buildArtistPill('anirudh', 'Anirudh'),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Shuffle & Play Buttons
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _shuffleArtist,
+                            borderRadius: BorderRadius.circular(100),
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withOpacity(0.06),
+                                border: Border.all(color: AppTheme.borderSubtle, width: 1),
+                              ),
+                              child: const Icon(
+                                Icons.shuffle_rounded,
+                                size: 18,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        const SizedBox(width: 10),
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _playArtistTop,
+                            borderRadius: BorderRadius.circular(100),
+                            child: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: AppTheme.blueGradient,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppTheme.blueGlow,
+                                    blurRadius: 18,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.play_arrow_rounded,
+                                size: 26,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -1463,6 +1509,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 Positioned(
                   left: 12,
+                  right: 12,
                   bottom: 10,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1470,6 +1517,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 13,
@@ -1481,6 +1530,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       Text(
                         subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.7),
                           fontSize: 10,
@@ -1559,22 +1610,50 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: const Icon(Icons.music_note_rounded, size: 15, color: Colors.white),
               ),
               const SizedBox(width: 8),
-              const Text(
-                'Villupaatukaaran',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14),
+              const Flexible(
+                child: Text(
+                  'Villupaatukaaran',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14),
+                ),
               ),
               const Spacer(),
               IconButton(
+                icon: const Icon(Icons.downloading_rounded, color: Colors.white, size: 20),
+                onPressed: _toggleDownloads,
+                tooltip: 'Download Queue',
+              ),
+              IconButton(
                 icon: const Icon(Icons.queue_music_rounded, color: Colors.white),
                 onPressed: _toggleQueue,
+                tooltip: 'Play Queue',
               ),
             ],
           ),
         ),
 
-        // Content
+        // Content (Viewport + Drawers)
         Expanded(
-          child: _buildMainViewport(),
+          child: Stack(
+            children: [
+              _buildMainViewport(),
+              if (_isQueueOpen)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: QueueDrawer(onClose: _toggleQueue),
+                ),
+              if (_isDownloadsOpen)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: DownloadQueueDrawer(onClose: _toggleDownloads),
+                ),
+            ],
+          ),
         ),
 
         // Attached Bottom Player Dock

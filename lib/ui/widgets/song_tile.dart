@@ -60,201 +60,211 @@ class SongTile extends StatelessWidget {
                       ]
                     : null,
               ),
-              child: Row(
-                children: [
-                  if (showIndex && index != null) ...[
-                    SizedBox(
-                      width: 24,
-                      child: Text(
-                        '${index! + 1}',
-                        style: TextStyle(
-                          color: isCurrent ? AppTheme.blueAccent : AppTheme.textMuted,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                  ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final tileWidth = constraints.maxWidth;
+                  final isCompact = tileWidth < 460;
+                  final isVeryCompact = tileWidth < 340;
 
-                  // Rounded Album Art Thumbnail
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      width: 42,
-                      height: 42,
-                      color: const Color(0xFF252838),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          if (song.thumbnailUrl != null && song.thumbnailUrl!.isNotEmpty)
-                            Image.network(
-                              song.thumbnailUrl!,
-                              fit: BoxFit.cover,
-                              width: 42,
-                              height: 42,
-                              errorBuilder: (_, __, ___) => Image.asset(
-                                AppAssets.defaultCover,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          else
-                            Image.asset(
-                              AppAssets.defaultCover,
-                              fit: BoxFit.cover,
+                  return Row(
+                    children: [
+                      if (showIndex && index != null && !isVeryCompact) ...[
+                        SizedBox(
+                          width: 24,
+                          child: Text(
+                            '${index! + 1}',
+                            style: TextStyle(
+                              color: isCurrent ? AppTheme.blueAccent : AppTheme.textMuted,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
                             ),
-
-                          // Equalizer overlay if currently playing
-                          if (isPlaying)
-                            Container(
-                              color: Colors.black.withOpacity(0.55),
-                              alignment: Alignment.center,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  _buildEqBar(10),
-                                  const SizedBox(width: 2),
-                                  _buildEqBar(16),
-                                  const SizedBox(width: 2),
-                                  _buildEqBar(8),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-
-                  // Title and Artist
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          song.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: isCurrent ? Colors.white : AppTheme.textPrimary,
-                            fontSize: 13.5,
-                            fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(width: 8),
+                      ],
+
+                      // Rounded Album Art Thumbnail
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          width: isVeryCompact ? 36 : 42,
+                          height: isVeryCompact ? 36 : 42,
+                          color: const Color(0xFF252838),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              if (song.thumbnailUrl != null && song.thumbnailUrl!.isNotEmpty)
+                                Image.network(
+                                  song.thumbnailUrl!,
+                                  fit: BoxFit.cover,
+                                  width: isVeryCompact ? 36 : 42,
+                                  height: isVeryCompact ? 36 : 42,
+                                  errorBuilder: (_, __, ___) => Image.asset(
+                                    AppAssets.defaultCover,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              else
+                                Image.asset(
+                                  AppAssets.defaultCover,
+                                  fit: BoxFit.cover,
+                                ),
+
+                              // Equalizer overlay if currently playing
+                              if (isPlaying)
+                                Container(
+                                  color: Colors.black.withOpacity(0.55),
+                                  alignment: Alignment.center,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      _buildEqBar(10),
+                                      const SizedBox(width: 2),
+                                      _buildEqBar(16),
+                                      const SizedBox(width: 2),
+                                      _buildEqBar(8),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+
+                      // Title and Artist
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              song.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: isCurrent ? Colors.white : AppTheme.textPrimary,
+                                fontSize: 13.5,
+                                fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              song.artist,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: AppTheme.textMuted,
+                                fontSize: 11.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Duration
+                      if (!isVeryCompact && song.duration != null && song.duration!.isNotEmpty) ...[
                         Text(
-                          song.artist,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          song.duration!,
                           style: const TextStyle(
                             color: AppTheme.textMuted,
-                            fontSize: 11.5,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
+                        const SizedBox(width: 8),
                       ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
 
-                  // Duration
-                  if (song.duration != null && song.duration!.isNotEmpty) ...[
-                    Text(
-                      song.duration!,
-                      style: const TextStyle(
-                        color: AppTheme.textMuted,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                      // Quick "+" Add to Queue Button (hidden on compact widths)
+                      if (!isCompact)
+                        IconButton(
+                          icon: const Icon(Icons.add, size: 18),
+                          color: AppTheme.textMuted,
+                          hoverColor: Colors.white.withOpacity(0.1),
+                          splashRadius: 16,
+                          tooltip: 'Add to Queue',
+                          onPressed: () {
+                            playerController.addToQueue(song);
+                            Get.snackbar(
+                              'Added to Queue',
+                              '${song.title} added to queue',
+                              snackPosition: SnackPosition.BOTTOM,
+                              duration: const Duration(seconds: 1),
+                              backgroundColor: AppTheme.cardSurfaceElevated,
+                              colorText: AppTheme.textPrimary,
+                            );
+                          },
+                        ),
+
+                      // Download Status Indicator (Progress ring or completed badge)
+                      Builder(builder: (_) {
+                        final downloadService = Get.isRegistered<DownloadService>() ? Get.find<DownloadService>() : null;
+                        if (downloadService == null) return const SizedBox.shrink();
+
+                        return Obx(() {
+                          final task = downloadService.getTask(song.videoId);
+                          final isDownloading = task != null && task.status.value == DownloadStatus.downloading;
+                          final isDownloaded = downloadService.isSongDownloaded(song.videoId) || song.isDownloaded;
+
+                          if (isDownloading) {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 6),
+                              child: SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  value: task.progress.value > 0 ? task.progress.value : null,
+                                  strokeWidth: 2,
+                                  color: AppTheme.blueAccent,
+                                  backgroundColor: AppTheme.borderSubtle,
+                                ),
+                              ),
+                            );
+                          }
+
+                          if (isDownloaded) {
+                            return const Padding(
+                              padding: EdgeInsets.only(right: 6),
+                              child: Icon(
+                                Icons.check_circle_rounded,
+                                size: 14,
+                                color: AppTheme.blueLight,
+                              ),
+                            );
+                          }
+
+                          return const SizedBox.shrink();
+                        });
+                      }),
+
+                      // Like Shortcut Button (hidden on compact widths)
+                      if (!isCompact)
+                        IconButton(
+                          icon: Icon(
+                            isLiked ? Icons.favorite : Icons.favorite_border,
+                            size: 17,
+                            color: isLiked ? const Color(0xFFFF3366) : AppTheme.textMuted,
+                          ),
+                          splashRadius: 16,
+                          tooltip: isLiked ? 'Liked' : 'Like',
+                          onPressed: () => playerController.toggleLike(song),
+                        ),
+
+                      // 3-Dot Action Menu
+                      IconButton(
+                        icon: const Icon(
+                          Icons.more_vert,
+                          size: 17,
+                          color: AppTheme.textMuted,
+                        ),
+                        splashRadius: 16,
+                        onPressed: () => _showSongActions(context, song),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-
-                  // Quick "+" Add to Queue Button (as in mod.png)
-                  IconButton(
-                    icon: const Icon(Icons.add, size: 18),
-                    color: AppTheme.textMuted,
-                    hoverColor: Colors.white.withOpacity(0.1),
-                    splashRadius: 16,
-                    tooltip: 'Add to Queue',
-                    onPressed: () {
-                      playerController.addToQueue(song);
-                      Get.snackbar(
-                        'Added to Queue',
-                        '${song.title} added to queue',
-                        snackPosition: SnackPosition.BOTTOM,
-                        duration: const Duration(seconds: 1),
-                        backgroundColor: AppTheme.cardSurfaceElevated,
-                        colorText: AppTheme.textPrimary,
-                      );
-                    },
-                  ),
-
-                  // Download Status Indicator (Progress ring or completed badge)
-                  Builder(builder: (_) {
-                    final downloadService = Get.isRegistered<DownloadService>() ? Get.find<DownloadService>() : null;
-                    if (downloadService == null) return const SizedBox.shrink();
-
-                    return Obx(() {
-                      final task = downloadService.getTask(song.videoId);
-                      final isDownloading = task != null && task.status.value == DownloadStatus.downloading;
-                      final isDownloaded = downloadService.isSongDownloaded(song.videoId) || song.isDownloaded;
-
-                      if (isDownloading) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 6),
-                          child: SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              value: task.progress.value > 0 ? task.progress.value : null,
-                              strokeWidth: 2,
-                              color: AppTheme.blueAccent,
-                              backgroundColor: AppTheme.borderSubtle,
-                            ),
-                          ),
-                        );
-                      }
-
-                      if (isDownloaded) {
-                        return const Padding(
-                          padding: EdgeInsets.only(right: 6),
-                          child: Icon(
-                            Icons.check_circle_rounded,
-                            size: 14,
-                            color: AppTheme.blueLight,
-                          ),
-                        );
-                      }
-
-                      return const SizedBox.shrink();
-                    });
-                  }),
-
-                  // Like Shortcut Button
-                  IconButton(
-                    icon: Icon(
-                      isLiked ? Icons.favorite : Icons.favorite_border,
-                      size: 17,
-                      color: isLiked ? const Color(0xFFFF3366) : AppTheme.textMuted,
-                    ),
-                    splashRadius: 16,
-                    tooltip: isLiked ? 'Liked' : 'Like',
-                    onPressed: () => playerController.toggleLike(song),
-                  ),
-
-                  // 3-Dot Action Menu
-                  IconButton(
-                    icon: const Icon(
-                      Icons.more_vert,
-                      size: 17,
-                      color: AppTheme.textMuted,
-                    ),
-                    splashRadius: 16,
-                    onPressed: () => _showSongActions(context, song),
-                  ),
-                ],
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -281,6 +291,7 @@ class SongTile extends StatelessWidget {
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: AppTheme.windowBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -288,8 +299,9 @@ class SongTile extends StatelessWidget {
       ),
       builder: (ctx) {
         return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
             children: [
               // Header
               Container(
@@ -459,8 +471,9 @@ class SongTile extends StatelessWidget {
               const SizedBox(height: 8),
             ],
           ),
-        );
-      },
+        ),
+      );
+    },
     );
   }
 

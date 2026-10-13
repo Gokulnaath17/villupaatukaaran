@@ -148,25 +148,32 @@ class _LibraryViewState extends State<LibraryView> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'ALL SONGS (${songs.length})',
-                  style: const TextStyle(
-                    color: AppTheme.textWhite,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'ALL SONGS (${songs.length})',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppTheme.textWhite,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  'Combined library of liked, cached, downloaded, and local tracks',
-                  style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Combined library of liked, cached, downloaded, and local tracks',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(width: 8),
             if (songs.isNotEmpty)
               BoxyButton(
                 label: 'PLAY ALL',
@@ -211,25 +218,32 @@ class _LibraryViewState extends State<LibraryView> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'DOWNLOADED SONGS (${downloaded.length})',
-                  style: const TextStyle(
-                    color: AppTheme.textWhite,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'DOWNLOADED SONGS (${downloaded.length})',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppTheme.textWhite,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  'Saved tracks available for permanently offline playback',
-                  style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Saved tracks available for permanently offline playback',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(width: 8),
             if (downloaded.isNotEmpty)
               BoxyButton(
                 label: 'PLAY ALL',
@@ -273,29 +287,38 @@ class _LibraryViewState extends State<LibraryView> {
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'CACHED OFFLINE TRACKS (${cached.length})',
-                  style: const TextStyle(
-                    color: AppTheme.textWhite,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'CACHED OFFLINE TRACKS (${cached.length})',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppTheme.textWhite,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  'Auto-cached in the local vault for instant zero-buffer replays',
-                  style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Auto-cached in the local vault for instant zero-buffer replays',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(width: 8),
             if (cached.isNotEmpty)
-              Row(
-                mainAxisSize: MainAxisSize.min,
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
                   BoxyButton(
                     label: 'MOVE ALL TO DOWNLOADS',
@@ -318,7 +341,6 @@ class _LibraryViewState extends State<LibraryView> {
                       );
                     },
                   ),
-                  const SizedBox(width: 8),
                   BoxyButton(
                     label: 'PLAY ALL OFFLINE',
                     icon: Icons.play_arrow_rounded,
@@ -461,6 +483,7 @@ class _LibraryViewState extends State<LibraryView> {
                 children: [
                   // Base directory chip
                   Container(
+                    constraints: const BoxConstraints(maxWidth: 320),
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.04),
@@ -472,9 +495,13 @@ class _LibraryViewState extends State<LibraryView> {
                       children: [
                         const Icon(Icons.home_work_rounded, size: 13, color: AppTheme.blueLight),
                         const SizedBox(width: 6),
-                        Text(
-                          'Base: ${cacheService.baseDir.value}',
-                          style: const TextStyle(color: AppTheme.textPrimary, fontSize: 11),
+                        Flexible(
+                          child: Text(
+                            'Base: ${cacheService.baseDir.value}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: AppTheme.textPrimary, fontSize: 11),
+                          ),
                         ),
                       ],
                     ),
@@ -658,19 +685,23 @@ class _LibraryViewState extends State<LibraryView> {
                           const SizedBox(height: 2),
                           Row(
                             children: [
-                              Text(
-                                song.artist,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                              Flexible(
+                                child: Text(
+                                  song.artist,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                                ),
                               ),
                               if (song.album != null && song.album!.isNotEmpty) ...[
                                 const Text(' • ', style: TextStyle(color: AppTheme.textMuted, fontSize: 11)),
-                                Text(
-                                  song.album!,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(color: AppTheme.blueLight, fontSize: 11),
+                                Flexible(
+                                  child: Text(
+                                    song.album!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(color: AppTheme.blueLight, fontSize: 11),
+                                  ),
                                 ),
                               ],
                             ],
@@ -768,25 +799,32 @@ class _LibraryViewState extends State<LibraryView> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'LIKED SONGS (${liked.length})',
-                  style: const TextStyle(
-                    color: AppTheme.textWhite,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'LIKED SONGS (${liked.length})',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppTheme.textWhite,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  'Your favorite bards, tracks, and villu paatu recordings',
-                  style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Your favorite bards, tracks, and villu paatu recordings',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(width: 8),
             if (liked.isNotEmpty)
               BoxyButton(
                 label: 'PLAY ALL',
@@ -831,15 +869,20 @@ class _LibraryViewState extends State<LibraryView> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'YOUR PLAYLISTS (${playlists.length})',
-              style: const TextStyle(
-                color: AppTheme.textWhite,
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.5,
+            Expanded(
+              child: Text(
+                'YOUR PLAYLISTS (${playlists.length})',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppTheme.textWhite,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
+            const SizedBox(width: 8),
             BoxyButton(
               label: 'NEW PLAYLIST',
               icon: Icons.add_rounded,
@@ -895,6 +938,8 @@ class _LibraryViewState extends State<LibraryView> {
                         children: [
                           Text(
                             playlist.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               color: AppTheme.textWhite,
                               fontWeight: FontWeight.w700,
@@ -947,6 +992,8 @@ class _LibraryViewState extends State<LibraryView> {
                 children: [
                   Text(
                     playlist.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: AppTheme.textWhite,
                       fontSize: 18,

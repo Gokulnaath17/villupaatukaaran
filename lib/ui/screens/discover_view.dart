@@ -57,15 +57,20 @@ class DiscoverView extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'SEARCH RESULTS (${results.length})',
-                      style: const TextStyle(
-                        color: AppTheme.blueLight,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
+                    Expanded(
+                      child: Text(
+                        'SEARCH RESULTS (${results.length})',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppTheme.blueLight,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 8),
                     BoxyButton(
                       label: 'PLAY ALL',
                       icon: Icons.play_arrow_rounded,
@@ -95,21 +100,28 @@ class DiscoverView extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
-                children: [
-                  Icon(Icons.local_fire_department_rounded, color: AppTheme.blueAccent, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'TOP SONGS & FOLK CLASSICS',
-                    style: TextStyle(
-                      color: AppTheme.textWhite,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
+              const Expanded(
+                child: Row(
+                  children: [
+                    Icon(Icons.local_fire_department_rounded, color: AppTheme.blueAccent, size: 20),
+                    SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'TOP SONGS & FOLK CLASSICS',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppTheme.textWhite,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               if (controller.topSongs.isNotEmpty)
                 BoxyButton(
                   label: 'PLAY ALL',
@@ -144,21 +156,28 @@ class DiscoverView extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
-                children: [
-                  Icon(Icons.auto_awesome_rounded, color: AppTheme.blueAccent, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'QUICK PICKS FOR YOU',
-                    style: TextStyle(
-                      color: AppTheme.textWhite,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
+              const Expanded(
+                child: Row(
+                  children: [
+                    Icon(Icons.auto_awesome_rounded, color: AppTheme.blueAccent, size: 20),
+                    SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'QUICK PICKS FOR YOU',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppTheme.textWhite,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               if (controller.quickPicks.isNotEmpty)
                 BoxyButton(
                   label: 'PLAY ALL',

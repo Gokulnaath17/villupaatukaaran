@@ -355,23 +355,27 @@ class TrayAndWindowService extends GetxService with TrayListener, WindowListener
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Text(
-                            'Do not ask again (can be changed in Settings)',
-                            style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                          const Flexible(
+                            child: Text(
+                              'Do not ask again (can be changed in Settings)',
+                              style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                            ),
                           ),
                         ],
                       ),
                     ),
                   )),
               const SizedBox(height: 22),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   TextButton(
                     onPressed: () => Get.back(),
                     child: const Text('Cancel', style: TextStyle(color: AppTheme.textMuted)),
                   ),
-                  const SizedBox(width: 8),
                   BoxyButton(
                     label: 'EXIT APP',
                     icon: Icons.power_settings_new_rounded,
@@ -383,7 +387,6 @@ class TrayAndWindowService extends GetxService with TrayListener, WindowListener
                       await quitApp();
                     },
                   ),
-                  const SizedBox(width: 8),
                   BoxyButton(
                     label: 'PLAY IN BACKGROUND',
                     icon: Icons.headphones_rounded,

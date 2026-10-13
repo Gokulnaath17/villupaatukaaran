@@ -173,10 +173,15 @@ class SettingsView extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Current usage: ${controller.cachedSongsCount.value} tracks • ${controller.cachedTotalSize.value}',
-                        style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                      Expanded(
+                        child: Text(
+                          'Current usage: ${controller.cachedSongsCount.value} tracks • ${controller.cachedTotalSize.value}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       BoxyButton(
                         label: 'CLEAR CACHE',
                         onPressed: controller.clearCache,
@@ -361,23 +366,25 @@ class SettingsView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Villupaatukaaran',
-                        style: TextStyle(
-                          color: AppTheme.textWhite,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 16,
-                          letterSpacing: 0.3,
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Villupaatukaaran',
+                          style: TextStyle(
+                            color: AppTheme.textWhite,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            letterSpacing: 0.3,
+                          ),
                         ),
-                      ),
-                      Text(
-                        'v1.0.0 • Modern Glass Desktop Edition',
-                        style: TextStyle(color: AppTheme.blueLight, fontSize: 12),
-                      ),
-                    ],
+                        Text(
+                          'v1.0.0 • Modern Glass Desktop Edition',
+                          style: TextStyle(color: AppTheme.blueLight, fontSize: 12),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -446,17 +453,22 @@ class SettingsView extends StatelessWidget {
             borderRadius: AppTheme.radiusLarge,
             side: const BorderSide(color: AppTheme.trafficRed, width: 1.5),
           ),
+          actionsOverflowDirection: VerticalDirection.down,
           title: const Row(
             children: [
               Icon(Icons.warning_rounded, color: AppTheme.trafficRed, size: 22),
               SizedBox(width: 10),
-              Text(
-                'RESET VILLUPAATUKAARAN?',
-                style: TextStyle(
-                  color: AppTheme.textWhite,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.8,
+              Expanded(
+                child: Text(
+                  'RESET VILLUPAATUKAARAN?',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: AppTheme.textWhite,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
+                  ),
                 ),
               ),
             ],
@@ -563,13 +575,17 @@ class SettingsView extends StatelessWidget {
       children: [
         Icon(icon, size: 16, color: AppTheme.blueAccent),
         const SizedBox(width: 8),
-        Text(
-          title,
-          style: const TextStyle(
-            color: AppTheme.textHeading,
-            fontSize: 11,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.0,
+        Flexible(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: AppTheme.textHeading,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.0,
+            ),
           ),
         ),
       ],

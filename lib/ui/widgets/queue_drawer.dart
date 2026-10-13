@@ -18,8 +18,11 @@ class QueueDrawer extends StatelessWidget {
       final queue = controller.queue;
       final currentSong = controller.currentSong.value;
 
+      final screenWidth = MediaQuery.of(context).size.width;
+      final drawerWidth = screenWidth < 400 ? (screenWidth * 0.9).clamp(280.0, 360.0) : 360.0;
+
       return Container(
-        width: 360,
+        width: drawerWidth,
         decoration: BoxDecoration(
           color: const Color(0xF211131B), // 95% translucent dark drawer
           border: const Border(
@@ -41,27 +44,33 @@ class QueueDrawer extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'UP NEXT QUEUE (${queue.length})',
-                      style: const TextStyle(
-                        color: AppTheme.textWhite,
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'UP NEXT QUEUE (${queue.length})',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppTheme.textWhite,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    const Text(
-                      'Seamless gapless transitions enabled',
-                      style: TextStyle(
-                        color: AppTheme.textMuted,
-                        fontSize: 11,
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Seamless gapless transitions enabled',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppTheme.textMuted,
+                          fontSize: 11,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close_rounded, size: 20, color: AppTheme.textSecondary),

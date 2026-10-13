@@ -26,8 +26,10 @@ class DownloadQueueDrawer extends StatelessWidget {
           t.status.value == DownloadStatus.completed ||
           t.status.value == DownloadStatus.cancelled);
 
+      final drawerWidth = MediaQuery.of(context).size.width.clamp(280.0, 380.0);
+
       return Container(
-        width: 380,
+        width: drawerWidth,
         decoration: BoxDecoration(
           color: const Color(0xF211131B), // 95% translucent dark graphite slate
           border: const Border(
@@ -49,34 +51,42 @@ class DownloadQueueDrawer extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.downloading_rounded, size: 18, color: AppTheme.blueAccent),
-                        const SizedBox(width: 8),
-                        Text(
-                          'DOWNLOAD QUEUE (${queue.length})',
-                          style: const TextStyle(
-                            color: AppTheme.textWhite,
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.downloading_rounded, size: 18, color: AppTheme.blueAccent),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'DOWNLOAD QUEUE (${queue.length})',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: AppTheme.textWhite,
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      activeCount > 0 ? '$activeCount downloading now' : 'All downloads up to date',
-                      style: TextStyle(
-                        color: activeCount > 0 ? AppTheme.blueAccent : AppTheme.textMuted,
-                        fontSize: 11,
-                        fontWeight: activeCount > 0 ? FontWeight.w600 : FontWeight.normal,
+                        ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 2),
+                      Text(
+                        activeCount > 0 ? '$activeCount downloading now' : 'All downloads up to date',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: activeCount > 0 ? AppTheme.blueAccent : AppTheme.textMuted,
+                          fontSize: 11,
+                          fontWeight: activeCount > 0 ? FontWeight.w600 : FontWeight.normal,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close_rounded, size: 20, color: AppTheme.textSecondary),
@@ -119,9 +129,13 @@ class DownloadQueueDrawer extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      '${queue.where((t) => t.status.value == DownloadStatus.completed).length} COMPLETED',
-                      style: const TextStyle(color: AppTheme.textMuted, fontSize: 10.5, fontWeight: FontWeight.w700),
+                    Flexible(
+                      child: Text(
+                        '${queue.where((t) => t.status.value == DownloadStatus.completed).length} COMPLETED',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: AppTheme.textMuted, fontSize: 10.5, fontWeight: FontWeight.w700),
+                      ),
                     ),
                     TextButton.icon(
                       style: TextButton.styleFrom(
@@ -336,13 +350,17 @@ class DownloadQueueDrawer extends StatelessWidget {
               ),
             ] else if (status == DownloadStatus.completed) ...[
               const SizedBox(height: 6),
-              const Row(
+              Row(
                 children: [
-                  Icon(Icons.check_circle_rounded, size: 12, color: AppTheme.trafficGreen),
-                  SizedBox(width: 4),
-                  Text(
-                    'Saved to Offline Storage',
-                    style: TextStyle(color: AppTheme.trafficGreen, fontSize: 10, fontWeight: FontWeight.w600),
+                  const Icon(Icons.check_circle_rounded, size: 12, color: AppTheme.trafficGreen),
+                  const SizedBox(width: 4),
+                  const Expanded(
+                    child: Text(
+                      'Saved to Offline Storage',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: AppTheme.trafficGreen, fontSize: 10, fontWeight: FontWeight.w600),
+                    ),
                   ),
                 ],
               ),
