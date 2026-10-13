@@ -9,7 +9,6 @@ import '../../services/discover_controller.dart';
 import '../../services/download_service.dart';
 import '../../services/library_service.dart';
 import '../../services/player_controller.dart';
-import '../../utils/app_assets.dart';
 import '../theme/theme_controller.dart';
 import '../widgets/download_queue_drawer.dart';
 import '../widgets/player_dock_bar.dart';
@@ -606,34 +605,14 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Row(
           mainAxisAlignment: isCompact ? MainAxisAlignment.center : MainAxisAlignment.start,
           children: [
-            // Brand Mark: Gradient rounded box with Tamil "வ"
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFFFF6A78), Color(0xFFDF183D)],
-                ),
-                borderRadius: BorderRadius.circular(11),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFF32949).withOpacity(0.24),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Center(
-                child: Text(
-                  'வ',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
+            // Brand Mark: App icon with rounded corners
+            ClipRRect(
+              borderRadius: BorderRadius.circular(11),
+              child: Image.asset(
+                'assets/icons/app_icon.png',
+                width: 34,
+                height: 34,
+                fit: BoxFit.cover,
               ),
             ),
             if (!isCompact) ...[
@@ -1074,11 +1053,11 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 18),
 
           // ================= HERO FEATURED BANNER =================
-          _buildHeroBanner(artist),
+          _buildHeroBanner(artist, featuredSong: songs.isNotEmpty ? songs.first : null),
           const SizedBox(height: 28),
 
           // ================= 5-ALBUM CAROUSEL ("Pick up where you left off") =================
-          _buildAlbumsSection(),
+          _buildAlbumsSection(songs),
           const SizedBox(height: 28),
 
           // ================= LOWER SPLIT (Popular Tracks + Made for your mood) =================
@@ -1235,7 +1214,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Hero Banner directly reproducing CSS from villupaatukaaran-redesign.html
-  Widget _buildHeroBanner(Map<String, String> artist) {
+  Widget _buildHeroBanner(Map<String, String> artist, {SongItem? featuredSong}) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: AppTheme.radiusLarge,
@@ -1300,8 +1279,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: Center(
                   child: Container(
-                    width: 60,
-                    height: 60,
+                    width: 66,
+                    height: 66,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: const RadialGradient(
@@ -1311,17 +1290,38 @@ class _HomeScreenState extends State<HomeScreen> {
                           Color(0xFF50264A),
                         ],
                       ),
-                      border: Border.all(color: const Color(0xFF29222C), width: 4),
+                      border: Border.all(color: const Color(0xFF29222C), width: 3),
                     ),
-                    child: const Center(
-                      child: Text(
-                        '♪',
-                        style: TextStyle(
-                          color: Color(0xFFF9D8CF),
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                    child: Center(
+                      child: (featuredSong != null && (featuredSong.thumbnailUrl?.isNotEmpty ?? false))
+                          ? ClipOval(
+                              child: CachedNetworkImage(
+                                imageUrl: featuredSong.thumbnailUrl!,
+                                fit: BoxFit.cover,
+                                width: 66,
+                                height: 66,
+                                errorWidget: (_, __, ___) => const Center(
+                                  child: Text(
+                                    '♪',
+                                    style: TextStyle(
+                                      color: Color(0xFFF9D8CF),
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          : const Center(
+                              child: Text(
+                                '♪',
+                                style: TextStyle(
+                                  color: Color(0xFFF9D8CF),
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
                     ),
                   ),
                 ),
@@ -1500,8 +1500,40 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// 5-Album Carousel Row ("Pick up where you left off")
-  Widget _buildAlbumsSection() {
+  /// 5-Card Dynamic Row ("Pick up where you left off")
+  Widget _buildAlbumsSection(List<SongItem> topSongs) {
+    final playerController = Get.find<PlayerController>();
+    final recent = playerController.getRecentlyPlayed();
+    final combined = <SongItem>[];
+    final seenIds = <String>{};
+
+    for (final song in recent) {
+      if (seenIds.add(song.videoId)) {
+        combined.add(song);
+        if (combined.length >= 5) break;
+      }
+    }
+    if (combined.length < 5) {
+      for (final song in topSongs) {
+        if (seenIds.add(song.videoId)) {
+          combined.add(song);
+          if (combined.length >= 5) break;
+        }
+      }
+    }
+
+    if (combined.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    const cardGradients = [
+      [Color(0xFFC77753), Color(0xFF632F35), Color(0xFF191A29)],
+      [Color(0xFF2B443A), Color(0xFFB77A4D), Color(0xFF351B23)],
+      [Color(0xFF5E315E), Color(0xFFC47464), Color(0xFF211E36)],
+      [Color(0xFF202C38), Color(0xFF8D3438), Color(0xFF15151B)],
+      [Color(0xFF6A784C), Color(0xFFC1A36A), Color(0xFF29362B)],
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1545,101 +1577,42 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height: 12),
 
-        // 5-Card Row
+        // 5-Card Dynamic Row
         Row(
           children: [
-            Expanded(
-              child: _buildAlbumCard(
-                title: 'Leo',
-                artist: 'Anirudh Ravichander',
-                badge: 'FILM · 2023',
-                coverTitle: 'LEO',
-                imageAsset: AppAssets.albumLeo,
-                imageUrl: AppAssets.albumLeoUrl,
-                gradientColors: const [Color(0xFFC77753), Color(0xFF632F35), Color(0xFF191A29)],
-                query: 'Leo Tamil Songs',
+            for (int i = 0; i < combined.length; i++) ...[
+              if (i > 0) const SizedBox(width: 14),
+              Expanded(
+                child: _buildDynamicSongCard(
+                  song: combined[i],
+                  playlist: combined,
+                  gradientColors: cardGradients[i % cardGradients.length],
+                ),
               ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: _buildAlbumCard(
-                title: 'Jailer',
-                artist: 'Anirudh Ravichander',
-                badge: 'FILM · 2023',
-                coverTitle: 'JAILER',
-                imageAsset: AppAssets.albumJailer,
-                imageUrl: AppAssets.albumJailerUrl,
-                gradientColors: const [Color(0xFF2B443A), Color(0xFFB77A4D), Color(0xFF351B23)],
-                query: 'Jailer Tamil Songs',
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: _buildAlbumCard(
-                title: 'Ponniyin Selvan',
-                artist: 'A. R. Rahman',
-                badge: 'FILM · 2022',
-                coverTitle: 'PONNIYIN SELVAN',
-                imageAsset: AppAssets.albumPs1,
-                imageUrl: AppAssets.albumPs1Url,
-                gradientColors: const [Color(0xFF5E315E), Color(0xFFC47464), Color(0xFF211E36)],
-                query: 'Ponniyin Selvan Songs',
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: _buildAlbumCard(
-                title: 'Vikram',
-                artist: 'Anirudh Ravichander',
-                badge: 'FILM · 2022',
-                coverTitle: 'VIKRAM',
-                imageAsset: AppAssets.albumVikram,
-                imageUrl: AppAssets.albumVikramUrl,
-                gradientColors: const [Color(0xFF202C38), Color(0xFF8D3438), Color(0xFF15151B)],
-                query: 'Vikram Tamil Songs',
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: _buildAlbumCard(
-                title: 'Thalapathi',
-                artist: 'Ilaiyaraaja',
-                badge: 'CLASSIC · 1991',
-                coverTitle: 'THALAPATHI',
-                imageAsset: AppAssets.albumThalapathi,
-                imageUrl: AppAssets.albumThalapathiUrl,
-                gradientColors: const [Color(0xFF6A784C), Color(0xFFC1A36A), Color(0xFF29362B)],
-                query: 'Thalapathi Tamil Songs',
-              ),
-            ),
+            ],
           ],
         ),
       ],
     );
   }
 
-  Widget _buildAlbumCard({
-    required String title,
-    required String artist,
-    required String badge,
-    required String coverTitle,
+  Widget _buildDynamicSongCard({
+    required SongItem song,
+    required List<SongItem> playlist,
     required List<Color> gradientColors,
-    required String query,
-    String? imageAsset,
-    String? imageUrl,
   }) {
+    final cleanTitle = song.title.split('(').first.split('[').first.trim();
+    final badge = (song.duration != null && song.duration!.isNotEmpty) ? song.duration! : 'TRACK';
+
     return _AlbumHoverCard(
-      title: title,
-      artist: artist,
+      title: song.title,
+      artist: song.artist,
       badge: badge,
-      coverTitle: coverTitle,
+      coverTitle: cleanTitle.toUpperCase(),
       gradientColors: gradientColors,
-      query: query,
-      imageAsset: imageAsset,
-      imageUrl: imageUrl,
+      imageUrl: song.thumbnailUrl,
       onTap: () {
-        Get.find<DiscoverController>().search(query);
-        _navigateTo('search');
+        Get.find<PlayerController>().playSong(song, queueContext: playlist);
       },
     );
   }
@@ -1938,8 +1911,6 @@ class _AlbumHoverCard extends StatefulWidget {
   final String badge;
   final String coverTitle;
   final List<Color> gradientColors;
-  final String query;
-  final String? imageAsset;
   final String? imageUrl;
   final VoidCallback onTap;
 
@@ -1949,8 +1920,6 @@ class _AlbumHoverCard extends StatefulWidget {
     required this.badge,
     required this.coverTitle,
     required this.gradientColors,
-    required this.query,
-    this.imageAsset,
     this.imageUrl,
     required this.onTap,
   });
@@ -2009,23 +1978,8 @@ class _AlbumHoverCardState extends State<_AlbumHoverCard> {
                         ),
                       ),
 
-                      // Thumbnail Artwork (Local Asset with Network Fallback)
-                      if (widget.imageAsset != null)
-                        Image.asset(
-                          widget.imageAsset!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (ctx, err, stack) {
-                            if (widget.imageUrl != null) {
-                              return CachedNetworkImage(
-                                imageUrl: widget.imageUrl!,
-                                fit: BoxFit.cover,
-                                errorWidget: (_, __, ___) => const SizedBox.shrink(),
-                              );
-                            }
-                            return const SizedBox.shrink();
-                          },
-                        )
-                      else if (widget.imageUrl != null)
+                      // Thumbnail Artwork (Remote URL with graceful fallback)
+                      if (widget.imageUrl != null && widget.imageUrl!.isNotEmpty)
                         CachedNetworkImage(
                           imageUrl: widget.imageUrl!,
                           fit: BoxFit.cover,
