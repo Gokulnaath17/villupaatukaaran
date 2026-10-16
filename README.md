@@ -53,4 +53,6 @@ bash scripts/build_deb.sh 1.3.0  # package .deb
 
 ## License
 
+<img src="ding.jpg" alt="Everything is open source when you know reverse engineering" width="320">
+
 [MIT](LICENSE)
