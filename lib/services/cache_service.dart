@@ -65,7 +65,26 @@ class CacheService extends GetxService {
     // Initialize unified base directory
     final savedBaseDir = _prefsBox.get(Constant.prefBaseStorageDir) as String?;
     final defaultBase = await resolveDefaultBaseDir();
-    final effectiveBase = (savedBaseDir != null && savedBaseDir.isNotEmpty) ? savedBaseDir : defaultBase;
+    String effectiveBase = defaultBase;
+
+    if (savedBaseDir != null && savedBaseDir.isNotEmpty) {
+      final isDesktopPath = savedBaseDir.startsWith('/home') ||
+          savedBaseDir.contains(':\\') ||
+          savedBaseDir.startsWith('/Users');
+      if (Constant.isMobile && isDesktopPath) {
+        effectiveBase = defaultBase;
+      } else {
+        try {
+          final dir = Directory(savedBaseDir);
+          if (!await dir.exists()) {
+            await dir.create(recursive: true);
+          }
+          effectiveBase = savedBaseDir;
+        } catch (_) {
+          effectiveBase = defaultBase;
+        }
+      }
+    }
 
     await setBaseDir(effectiveBase);
     await updateCacheStats();
@@ -74,16 +93,24 @@ class CacheService extends GetxService {
 
   /// Update unified base storage directory and its subfolders
   Future<void> setBaseDir(String path) async {
-    baseDir.value = path;
-    downloadsDir.value = '$path/${Constant.downloadDirName}';
-    cacheDir.value = '$path/${Constant.tempCacheDirName}';
+    try {
+      baseDir.value = path;
+      downloadsDir.value = '$path/${Constant.downloadDirName}';
+      cacheDir.value = '$path/${Constant.tempCacheDirName}';
 
-    await _prefsBox.put(Constant.prefBaseStorageDir, path);
+      await _prefsBox.put(Constant.prefBaseStorageDir, path);
 
-    // Ensure subdirectories exist
-    await Directory(downloadsDir.value).create(recursive: true);
-    await Directory(cacheDir.value).create(recursive: true);
-    await updateCacheStats();
+      // Ensure subdirectories exist
+      await Directory(downloadsDir.value).create(recursive: true);
+      await Directory(cacheDir.value).create(recursive: true);
+      await updateCacheStats();
+    } catch (e) {
+      debugPrint('[CacheService] Failed to set base dir $path: $e');
+      final defaultBase = await resolveDefaultBaseDir();
+      if (path != defaultBase) {
+        await setBaseDir(defaultBase);
+      }
+    }
   }
 
   // Backward compatibility setters
@@ -122,7 +149,7 @@ class CacheService extends GetxService {
         audioUrl,
         savePath,
         options: Options(headers: {
-          'User-Agent': Constant.innertubeUserAgent,
+          'User-Agent': Constant.audioUserAgent,
         }),
         deleteOnError: true,
       );

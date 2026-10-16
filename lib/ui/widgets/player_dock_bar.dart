@@ -9,11 +9,13 @@ import '../theme/theme_controller.dart';
 class PlayerDockBar extends StatelessWidget {
   final VoidCallback onToggleQueue;
   final bool isQueueOpen;
+  final VoidCallback? onOpenFullPlayer;
 
   const PlayerDockBar({
     super.key,
     required this.onToggleQueue,
     this.isQueueOpen = false,
+    this.onOpenFullPlayer,
   });
 
   String _formatDuration(Duration d) {
@@ -50,14 +52,14 @@ class PlayerDockBar extends StatelessWidget {
           final isMobile = totalWidth < 600;
 
           return Container(
-            height: isMobile ? 68 : 82,
-            padding: EdgeInsets.symmetric(horizontal: isNarrow ? 12 : 24),
+            height: isMobile ? 64 : 82,
+            padding: EdgeInsets.symmetric(horizontal: isNarrow ? 10 : 24),
             decoration: const BoxDecoration(
               color: AppTheme.dockBg,
               border: Border(top: BorderSide(color: AppTheme.borderSubtle, width: 1.0)),
             ),
             child: isMobile
-                ? _buildMobilePlayer(song, isPlaying, isLiked, controller)
+                ? _buildMobilePlayer(context, song, isPlaying, isLiked, seekRatio, controller)
                 : _buildDesktopPlayer(
                     song,
                     isPlaying,
@@ -80,100 +82,138 @@ class PlayerDockBar extends StatelessWidget {
     });
   }
 
-  /// Compact single-row mobile layout (<600px)
+  /// Compact single-row mobile layout (<600px) with tap-to-expand and progress bar
   Widget _buildMobilePlayer(
+    BuildContext context,
     dynamic song,
     bool isPlaying,
     bool isLiked,
+    double seekRatio,
     PlayerController controller,
   ) {
-    return Row(
-      children: [
-        // Art
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            width: 42,
-            height: 42,
-            color: const Color(0xFF1F1F24),
-            child: song?.thumbnailUrl != null && song!.thumbnailUrl!.isNotEmpty
-                ? Image.network(
-                    song.thumbnailUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Image.asset(
-                      AppAssets.defaultCover,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                : Image.asset(
-                    AppAssets.defaultCover,
-                    fit: BoxFit.cover,
-                  ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        // Title & Artist
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                song?.title ?? 'No Track Playing',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                song?.artist ?? 'Select a song',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 11,
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Like button
-        IconButton(
-          icon: Icon(
-            isLiked ? Icons.favorite : Icons.favorite_border,
-            size: 18,
-            color: isLiked ? AppTheme.redAccent : AppTheme.textQuiet,
-          ),
-          onPressed: () {
-            if (song != null) controller.toggleLike(song);
-          },
-        ),
-        // Play / Pause Circle
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: controller.togglePlayPause,
-            borderRadius: BorderRadius.circular(100),
-            child: Container(
-              width: 34,
-              height: 34,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                size: 20,
-                color: const Color(0xFF18181A),
-              ),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onOpenFullPlayer,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Thin sleek progress indicator along top of miniplayer
+          ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: LinearProgressIndicator(
+              value: seekRatio.clamp(0.0, 1.0),
+              minHeight: 2.2,
+              backgroundColor: Colors.white.withOpacity(0.08),
+              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.redAccent),
             ),
           ),
-        ),
-      ],
+          Expanded(
+            child: Row(
+              children: [
+                // Art thumbnail
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    color: const Color(0xFF1F1F24),
+                    child: song?.thumbnailUrl != null && song!.thumbnailUrl!.isNotEmpty
+                        ? Image.network(
+                            song.thumbnailUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Image.asset(
+                              AppAssets.defaultCover,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Image.asset(
+                            AppAssets.defaultCover,
+                            fit: BoxFit.cover,
+                          ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // Title & Artist
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        song?.title ?? 'No Track Playing',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        song?.artist ?? 'Tap to select music',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Like / Favorite Button
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  icon: Icon(
+                    isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                    size: 20,
+                    color: isLiked ? AppTheme.redAccent : AppTheme.textQuiet,
+                  ),
+                  onPressed: () {
+                    if (song != null) controller.toggleLike(song);
+                  },
+                ),
+                // Play / Pause Circle
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: controller.togglePlayPause,
+                    borderRadius: BorderRadius.circular(100),
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                        size: 22,
+                        color: const Color(0xFF18181A),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                // Next Track Button
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  icon: const Icon(
+                    Icons.skip_next_rounded,
+                    size: 24,
+                    color: Colors.white,
+                  ),
+                  onPressed: controller.skipToNext,
+                  tooltip: 'Next Track',
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

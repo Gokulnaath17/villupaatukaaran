@@ -18,6 +18,7 @@ import '../widgets/tamil_bell_loader.dart';
 import 'discover_view.dart';
 import 'library_view.dart';
 import 'settings_view.dart';
+import '../widgets/mobile_now_playing_sheet.dart';
 
 /// Redesigned Villupaatukaaran Main Desktop Shell & Content Viewport
 /// Styled directly after villupaatukaaran-redesign.html
@@ -179,31 +180,67 @@ class _HomeScreenState extends State<HomeScreen> {
     return 'Good evening';
   }
 
+  bool _handleAndroidBack() {
+    if (_isQueueOpen) {
+      setState(() => _isQueueOpen = false);
+      return false;
+    }
+    if (_isDownloadsOpen) {
+      setState(() => _isDownloadsOpen = false);
+      return false;
+    }
+    if (_selectedPlaylistId != null) {
+      setState(() => _selectedPlaylistId = null);
+      return false;
+    }
+    if (_activeNavKey != 'home') {
+      if (_navHistoryIndex > 0) {
+        _navigateBack();
+      } else {
+        setState(() => _activeNavKey = 'home');
+      }
+      return false;
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return CallbackShortcuts(
-      bindings: {
-        const SingleActivator(LogicalKeyboardKey.keyK, control: true): () {
-          _searchFocusNode.requestFocus();
-        },
-        const SingleActivator(LogicalKeyboardKey.keyK, meta: true): () {
-          _searchFocusNode.requestFocus();
-        },
-      },
-      child: Focus(
-        autofocus: true,
-        child: Scaffold(
-          backgroundColor: AppTheme.canvasBg,
-          body: LayoutBuilder(
-            builder: (context, constraints) {
-              final isWideScreen = constraints.maxWidth >= 600;
+    final canPop = _activeNavKey == 'home' &&
+        !_isQueueOpen &&
+        !_isDownloadsOpen &&
+        _selectedPlaylistId == null;
 
-              if (isWideScreen) {
-                return _buildDesktopWindow(constraints.maxWidth);
-              } else {
-                return _buildMobileLayout();
-              }
-            },
+    return PopScope(
+      canPop: canPop,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _handleAndroidBack();
+      },
+      child: CallbackShortcuts(
+        bindings: {
+          const SingleActivator(LogicalKeyboardKey.keyK, control: true): () {
+            _searchFocusNode.requestFocus();
+          },
+          const SingleActivator(LogicalKeyboardKey.keyK, meta: true): () {
+            _searchFocusNode.requestFocus();
+          },
+        },
+        child: Focus(
+          autofocus: true,
+          child: Scaffold(
+            backgroundColor: AppTheme.canvasBg,
+            body: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWideScreen = constraints.maxWidth >= 600;
+
+                if (isWideScreen) {
+                  return _buildDesktopWindow(constraints.maxWidth);
+                } else {
+                  return _buildMobileLayout();
+                }
+              },
+            ),
           ),
         ),
       ),
@@ -1020,7 +1057,10 @@ class _HomeScreenState extends State<HomeScreen> {
       final songs = discoverController.topSongs;
 
       return ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 34, vertical: 24),
+        padding: EdgeInsets.symmetric(
+          horizontal: MediaQuery.of(context).size.width < 600 ? 16 : 34,
+          vertical: MediaQuery.of(context).size.width < 600 ? 16 : 24,
+        ),
         children: [
           // Eyebrow & Dynamic Greeting
           const Text(
@@ -1215,257 +1255,284 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Hero Banner directly reproducing CSS from villupaatukaaran-redesign.html
   Widget _buildHeroBanner(Map<String, String> artist, {SongItem? featuredSong}) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: AppTheme.radiusLarge,
-        border: Border.all(color: AppTheme.borderSubtle, width: 1),
-        gradient: const LinearGradient(
-          begin: Alignment(-0.8, -0.6),
-          end: Alignment(0.9, 0.8),
-          colors: [
-            Color(0xFF331F2D),
-            Color(0xFF251C2A),
-            Color(0xFF191821),
-          ],
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: AppTheme.radiusLarge,
-        child: Stack(
-          children: [
-            // Background Vinyl Record / Radial Rings Geometry (Right Aligned)
-            Positioned(
-              right: -20,
-              top: -30,
-              child: Container(
-                width: 260,
-                height: 260,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.redAccent.withOpacity(0.18),
-                      blurRadius: 60,
-                      spreadRadius: 8,
-                    ),
-                  ],
-                ),
-              ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: AppTheme.radiusLarge,
+            border: Border.all(color: AppTheme.borderSubtle, width: 1),
+            gradient: const LinearGradient(
+              begin: Alignment(-0.8, -0.6),
+              end: Alignment(0.9, 0.8),
+              colors: [
+                Color(0xFF331F2D),
+                Color(0xFF251C2A),
+                Color(0xFF191821),
+              ],
             ),
-            Positioned(
-              right: 25,
-              top: 15,
-              child: Container(
-                width: 170,
-                height: 170,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: const RadialGradient(
-                    colors: [
-                      Color(0xFF20191F),
-                      Color(0xFF39303B),
-                      Color(0xFF17151B),
-                    ],
-                  ),
-                  border: Border.all(color: const Color(0xFF16151A), width: 5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.45),
-                      blurRadius: 35,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Container(
-                    width: 66,
-                    height: 66,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const RadialGradient(
-                        colors: [
-                          Color(0xFFFFB4A2),
-                          Color(0xFFD64E73),
-                          Color(0xFF50264A),
+          ),
+          child: ClipRRect(
+            borderRadius: AppTheme.radiusLarge,
+            child: Stack(
+              children: [
+                // Background Vinyl Record / Radial Rings Geometry (Right Aligned)
+                Positioned(
+                  right: isMobile ? -50 : -20,
+                  top: isMobile ? -20 : -30,
+                  child: Opacity(
+                    opacity: isMobile ? 0.35 : 1.0,
+                    child: Container(
+                      width: isMobile ? 200 : 260,
+                      height: isMobile ? 200 : 260,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.redAccent.withOpacity(0.18),
+                            blurRadius: 60,
+                            spreadRadius: 8,
+                          ),
                         ],
                       ),
-                      border: Border.all(color: const Color(0xFF29222C), width: 3),
-                    ),
-                    child: Center(
-                      child: (featuredSong != null && (featuredSong.thumbnailUrl?.isNotEmpty ?? false))
-                          ? ClipOval(
-                              child: CachedNetworkImage(
-                                imageUrl: featuredSong.thumbnailUrl!,
-                                fit: BoxFit.cover,
-                                width: 66,
-                                height: 66,
-                                errorWidget: (_, __, ___) => const Center(
-                                  child: Text(
-                                    '♪',
-                                    style: TextStyle(
-                                      color: Color(0xFFF9D8CF),
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            )
-                          : const Center(
-                              child: Text(
-                                '♪',
-                                style: TextStyle(
-                                  color: Color(0xFFF9D8CF),
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
                     ),
                   ),
                 ),
-              ),
-            ),
-
-            // Foreground Text Copy & Actions
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 26),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'FEATURED MIX · ${artist['badge'] ?? 'TAMIL ESSENTIALS'}',
-                    style: const TextStyle(
-                      color: Color(0xFFFFB0BA),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    artist['name'] == 'Trending Tamil Hits' ? 'Every beat has\na story.' : artist['name']!,
-                    style: const TextStyle(
-                      color: AppTheme.textPrimary,
-                      fontSize: 30,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.9,
-                      height: 1.08,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 380),
-                    child: Text(
-                      artist['subtitle'] ?? '',
-                      style: const TextStyle(
-                        color: Color(0xFFD1C2CC),
-                        fontSize: 12,
-                        height: 1.5,
+                Positioned(
+                  right: isMobile ? 10 : 25,
+                  top: isMobile ? 10 : 15,
+                  child: Opacity(
+                    opacity: isMobile ? 0.35 : 1.0,
+                    child: Container(
+                      width: isMobile ? 130 : 170,
+                      height: isMobile ? 130 : 170,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const RadialGradient(
+                          colors: [
+                            Color(0xFF20191F),
+                            Color(0xFF39303B),
+                            Color(0xFF17151B),
+                          ],
+                        ),
+                        border: Border.all(color: const Color(0xFF16151A), width: 5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.45),
+                            blurRadius: 35,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-
-                  // Actions: Primary "Play mix" + Secondary "Shuffle"
-                  Row(
-                    children: [
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: _playArtistTop,
-                          borderRadius: BorderRadius.circular(100),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
-                            decoration: BoxDecoration(
-                              color: AppTheme.redAccent,
-                              borderRadius: BorderRadius.circular(100),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppTheme.redAccent.withOpacity(0.3),
-                                  blurRadius: 18,
-                                  offset: const Offset(0, 4),
-                                ),
+                      child: Center(
+                        child: Container(
+                          width: isMobile ? 50 : 66,
+                          height: isMobile ? 50 : 66,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: const RadialGradient(
+                              colors: [
+                                Color(0xFFFFB4A2),
+                                Color(0xFFD64E73),
+                                Color(0xFF50264A),
                               ],
                             ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.play_arrow_rounded, size: 16, color: Colors.white),
-                                SizedBox(width: 6),
-                                Text(
-                                  'Play mix',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w700,
+                            border: Border.all(color: const Color(0xFF29222C), width: 3),
+                          ),
+                          child: Center(
+                            child: (featuredSong != null && (featuredSong.thumbnailUrl?.isNotEmpty ?? false))
+                                ? ClipOval(
+                                    child: CachedNetworkImage(
+                                      imageUrl: featuredSong.thumbnailUrl!,
+                                      fit: BoxFit.cover,
+                                      width: isMobile ? 50 : 66,
+                                      height: isMobile ? 50 : 66,
+                                      errorWidget: (_, __, ___) => const Center(
+                                        child: Text(
+                                          '♪',
+                                          style: TextStyle(
+                                            color: Color(0xFFF9D8CF),
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : const Center(
+                                    child: Text(
+                                      '♪',
+                                      style: TextStyle(
+                                        color: Color(0xFFF9D8CF),
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: _shuffleArtist,
-                          borderRadius: BorderRadius.circular(100),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.08),
+                    ),
+                  ),
+                ),
+
+                // Foreground Text Copy & Actions
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 18 : 28,
+                    vertical: isMobile ? 18 : 26,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'FEATURED MIX · ${artist['badge'] ?? 'TAMIL ESSENTIALS'}',
+                        style: const TextStyle(
+                          color: Color(0xFFFFB0BA),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        artist['name'] == 'Trending Tamil Hits' ? 'Every beat has\na story.' : artist['name']!,
+                        style: TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontSize: isMobile ? 22 : 30,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.9,
+                          height: 1.1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: isMobile ? 280 : 380),
+                        child: Text(
+                          artist['subtitle'] ?? '',
+                          style: const TextStyle(
+                            color: Color(0xFFD1C2CC),
+                            fontSize: 11.5,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Actions: Primary "Play mix" + Secondary "Shuffle"
+                      Row(
+                        children: [
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: _playArtistTop,
                               borderRadius: BorderRadius.circular(100),
-                              border: Border.all(color: Colors.white.withOpacity(0.12), width: 1),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.shuffle_rounded, size: 15, color: Colors.white),
-                                SizedBox(width: 6),
-                                Text(
-                                  'Shuffle',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: isMobile ? 14 : 18,
+                                  vertical: isMobile ? 8 : 9,
                                 ),
-                              ],
+                                decoration: BoxDecoration(
+                                  color: AppTheme.redAccent,
+                                  borderRadius: BorderRadius.circular(100),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppTheme.redAccent.withOpacity(0.3),
+                                      blurRadius: 18,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.play_arrow_rounded, size: 16, color: Colors.white),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      'Play mix',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
+                          const SizedBox(width: 10),
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: _shuffleArtist,
+                              borderRadius: BorderRadius.circular(100),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: isMobile ? 12 : 16,
+                                  vertical: isMobile ? 8 : 9,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.08),
+                                  borderRadius: BorderRadius.circular(100),
+                                  border: Border.all(color: Colors.white.withOpacity(0.12), width: 1),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.shuffle_rounded, size: 15, color: Colors.white),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      'Shuffle',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Quick Spotlight Pills (Horizontally scrollable on mobile)
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        child: Row(
+                          children: [
+                            const Text(
+                              'Spotlight: ',
+                              style: TextStyle(color: Color(0xFFD1C2CC), fontSize: 10.5),
+                            ),
+                            const SizedBox(width: 4),
+                            _buildArtistPill('trending', 'Top Hits'),
+                            const SizedBox(width: 6),
+                            _buildArtistPill('anirudh', 'Anirudh'),
+                            const SizedBox(width: 6),
+                            _buildArtistPill('rahman', 'A.R. Rahman'),
+                            const SizedBox(width: 6),
+                            _buildArtistPill('raaja', 'Ilaiyaraaja'),
+                            const SizedBox(width: 6),
+                            _buildArtistPill('yuvan', 'Yuvan'),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
-
-                  // Quick Spotlight Pills
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      const Text(
-                        'Spotlight: ',
-                        style: TextStyle(color: Color(0xFFD1C2CC), fontSize: 10.5),
-                      ),
-                      _buildArtistPill('trending', 'Top Hits'),
-                      _buildArtistPill('anirudh', 'Anirudh'),
-                      _buildArtistPill('rahman', 'A.R. Rahman'),
-                      _buildArtistPill('raaja', 'Ilaiyaraaja'),
-                      _buildArtistPill('yuvan', 'Yuvan'),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -1577,20 +1644,49 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height: 12),
 
-        // 5-Card Dynamic Row
-        Row(
-          children: [
-            for (int i = 0; i < combined.length; i++) ...[
-              if (i > 0) const SizedBox(width: 14),
-              Expanded(
-                child: _buildDynamicSongCard(
-                  song: combined[i],
-                  playlist: combined,
-                  gradientColors: cardGradients[i % cardGradients.length],
+        // 5-Card Dynamic Row (Horizontal ListView on Mobile, Row on Desktop)
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isMobile = constraints.maxWidth < 650;
+            if (isMobile) {
+              return SizedBox(
+                height: 195,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: combined.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, i) {
+                    return SizedBox(
+                      width: 135,
+                      child: _buildDynamicSongCard(
+                        song: combined[i],
+                        playlist: combined,
+                        index: i,
+                        gradientColors: cardGradients[i % cardGradients.length],
+                      ),
+                    );
+                  },
                 ),
-              ),
-            ],
-          ],
+              );
+            }
+
+            return Row(
+              children: [
+                for (int i = 0; i < combined.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 14),
+                  Expanded(
+                    child: _buildDynamicSongCard(
+                      song: combined[i],
+                      playlist: combined,
+                      index: i,
+                      gradientColors: cardGradients[i % cardGradients.length],
+                    ),
+                  ),
+                ],
+              ],
+            );
+          },
         ),
       ],
     );
@@ -1599,6 +1695,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildDynamicSongCard({
     required SongItem song,
     required List<SongItem> playlist,
+    required int index,
     required List<Color> gradientColors,
   }) {
     final cleanTitle = song.title.split('(').first.split('[').first.trim();
@@ -1612,7 +1709,7 @@ class _HomeScreenState extends State<HomeScreen> {
       gradientColors: gradientColors,
       imageUrl: song.thumbnailUrl,
       onTap: () {
-        Get.find<PlayerController>().playSong(song, queueContext: playlist);
+        Get.find<PlayerController>().playSong(song, queueContext: playlist, index: index);
       },
     );
   }
@@ -1820,86 +1917,265 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Compact Mobile / Narrow Screen Layout
+  /// Compact Mobile / Android Phone Layout
   Widget _buildMobileLayout() {
-    return Column(
-      children: [
-        // Mobile Top Bar
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: const BoxDecoration(
-            color: AppTheme.sidebarBg,
-            border: Border(bottom: BorderSide(color: AppTheme.borderSubtle)),
+    return SafeArea(
+      bottom: false,
+      child: Column(
+        children: [
+          // 1. Sleek Mobile Top Bar
+          _buildMobileTopBar(),
+
+          // 2. Active Content Area (Viewport + Slide-out Drawers)
+          Expanded(
+            child: Stack(
+              children: [
+                _buildActiveContentView(),
+                if (_isQueueOpen)
+                  Positioned.fill(
+                    child: QueueDrawer(onClose: _toggleQueue),
+                  ),
+                if (_isDownloadsOpen)
+                  Positioned.fill(
+                    child: DownloadQueueDrawer(onClose: _toggleDownloads),
+                  ),
+              ],
+            ),
           ),
-          child: Row(
-            children: [
-              Container(
+
+          // 3. Attached Docked Miniplayer with tap-to-expand modal sheet
+          PlayerDockBar(
+            onToggleQueue: _toggleQueue,
+            isQueueOpen: _isQueueOpen,
+            onOpenFullPlayer: () => MobileNowPlayingSheet.show(context, onOpenQueue: _toggleQueue),
+          ),
+
+          // 4. Modern Android Bottom Navigation Bar
+          _buildMobileBottomNav(),
+        ],
+      ),
+    );
+  }
+
+  /// Clean Mobile Top Bar with Branding, Page Title, Search shortcut, and Drawer Triggers
+  Widget _buildMobileTopBar() {
+    final downloadService = Get.isRegistered<DownloadService>() ? Get.find<DownloadService>() : null;
+    final isHome = _activeNavKey == 'home';
+
+    String titleText = 'Villupaatukaaran';
+    if (_activeNavKey == 'discover' || _activeNavKey == 'search') {
+      titleText = 'Discover & Search';
+    } else if (_activeNavKey.startsWith('library') || _activeNavKey.startsWith('playlist')) {
+      titleText = 'Your Library';
+    } else if (_activeNavKey == 'settings') {
+      titleText = 'Settings';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: const BoxDecoration(
+        color: AppTheme.sidebarBg,
+        border: Border(bottom: BorderSide(color: AppTheme.borderSubtle, width: 1.0)),
+      ),
+      child: Row(
+        children: [
+          if (!isHome) ...[
+            IconButton(
+              icon: const Icon(Icons.arrow_back_rounded, color: AppTheme.textPrimary, size: 22),
+              splashRadius: 20,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              onPressed: () {
+                if (_selectedPlaylistId != null) {
+                  setState(() => _selectedPlaylistId = null);
+                } else if (_navHistoryIndex > 0) {
+                  _navigateBack();
+                } else {
+                  setState(() => _activeNavKey = 'home');
+                }
+              },
+            ),
+            const SizedBox(width: 6),
+          ] else ...[
+            // Brand Icon
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/icons/app_icon.png',
                 width: 28,
                 height: 28,
-                decoration: BoxDecoration(
-                  gradient: AppTheme.redGradient,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Center(
-                  child: Text(
-                    'வ',
-                    style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                ),
+                fit: BoxFit.cover,
               ),
-              const SizedBox(width: 8),
-              const Flexible(
-                child: Text(
-                  'Villupaatukaaran',
+            ),
+            const SizedBox(width: 8),
+          ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  titleText,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14),
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                    letterSpacing: -0.3,
+                  ),
                 ),
-              ),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.download_rounded, color: Colors.white, size: 20),
+                if (isHome)
+                  const Text(
+                    'MUSIC, WITH ROOTS',
+                    style: TextStyle(
+                      color: AppTheme.textQuiet,
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          // Search quick jump button
+          if (_activeNavKey != 'discover' && _activeNavKey != 'search')
+            IconButton(
+              icon: const Icon(Icons.search_rounded, color: AppTheme.textSecondary, size: 21),
+              splashRadius: 20,
+              tooltip: 'Search',
+              onPressed: () => _navigateTo('discover'),
+            ),
+          // Download Queue Button
+          if (downloadService != null)
+            Obx(() {
+              final activeCount = downloadService.activeDownloadsCount.value;
+              return IconButton(
+                icon: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Icon(
+                      Icons.download_rounded,
+                      size: 21,
+                      color: _isDownloadsOpen || activeCount > 0 ? AppTheme.redAccent : AppTheme.textSecondary,
+                    ),
+                    if (activeCount > 0)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            color: AppTheme.redAccent,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                splashRadius: 20,
+                tooltip: 'Downloads',
                 onPressed: _toggleDownloads,
-                tooltip: 'Download Queue',
-              ),
-              IconButton(
-                icon: const Icon(Icons.queue_music_rounded, color: Colors.white, size: 20),
-                onPressed: _toggleQueue,
-                tooltip: 'Play Queue',
-              ),
-            ],
+              );
+            }),
+          // Play Queue Button
+          IconButton(
+            icon: Icon(
+              Icons.queue_music_rounded,
+              size: 21,
+              color: _isQueueOpen ? AppTheme.redAccent : AppTheme.textSecondary,
+            ),
+            splashRadius: 20,
+            tooltip: 'Queue',
+            onPressed: _toggleQueue,
           ),
-        ),
+        ],
+      ),
+    );
+  }
 
-        // Content (Viewport + Drawers)
-        Expanded(
-          child: Stack(
+  /// Modern Android Bottom Navigation Bar
+  Widget _buildMobileBottomNav() {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF141318),
+        border: Border(top: BorderSide(color: AppTheme.borderSubtle, width: 1.0)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildMainViewport(),
-              if (_isQueueOpen)
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: QueueDrawer(onClose: _toggleQueue),
-                ),
-              if (_isDownloadsOpen)
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: DownloadQueueDrawer(onClose: _toggleDownloads),
-                ),
+              _buildMobileNavItem(
+                icon: Icons.home_rounded,
+                label: 'Home',
+                isActive: _activeNavKey == 'home',
+                onTap: () => _navigateTo('home'),
+              ),
+              _buildMobileNavItem(
+                icon: Icons.explore_rounded,
+                label: 'Discover',
+                isActive: _activeNavKey == 'discover' || _activeNavKey == 'search',
+                onTap: () => _navigateTo('discover'),
+              ),
+              _buildMobileNavItem(
+                icon: Icons.library_music_rounded,
+                label: 'Library',
+                isActive: _activeNavKey.startsWith('library') || _activeNavKey.startsWith('playlist'),
+                onTap: () => _navigateTo('library_all'),
+              ),
+              _buildMobileNavItem(
+                icon: Icons.settings_rounded,
+                label: 'Settings',
+                isActive: _activeNavKey == 'settings',
+                onTap: () => _navigateTo('settings'),
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
 
-        // Attached Bottom Player Dock
-        PlayerDockBar(
-          onToggleQueue: _toggleQueue,
-          isQueueOpen: _isQueueOpen,
+  Widget _buildMobileNavItem({
+    required IconData icon,
+    required String label,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive ? AppTheme.redAccent.withOpacity(0.18) : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
         ),
-      ],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 22,
+              color: isActive ? AppTheme.redLight : AppTheme.textMuted,
+            ),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: TextStyle(
+                color: isActive ? Colors.white : AppTheme.textMuted,
+                fontSize: 10.5,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

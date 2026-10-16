@@ -24,6 +24,10 @@ class Constant {
   static const String innertubeClientVersion = '1.20241201.01.00'; // Date-based version
   static const String innertubeUserAgent =
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36';
+  static const String mobileAudioUserAgent =
+      'com.google.android.youtube/20.10.38 (Linux; U; Android 11) gzip';
+  static String get audioUserAgent =>
+      isMobile ? mobileAudioUserAgent : innertubeUserAgent;
   static const String innertubeOrigin = 'https://music.youtube.com';
   static const String innertubeCookie = 'CONSENT=YES+1';
 

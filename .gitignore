@@ -1,28 +1,14 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-Thumbs.db
-.atom/
-.buildlog/
-.history
-.svn/
-migrate_working_dir/
+# Only Linux platform source is tracked in this repo
+android/
+windows/
+macos/
+ios/
+web/
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
+# Windows build output
+win_build/
 
-# Visual Studio Code
-.vscode/
-
-# Flutter / Dart / Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# Flutter / Dart / Pub
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
@@ -31,32 +17,8 @@ migrate_working_dir/
 .pub/
 /build/
 
-# Android related
-**/android/**/gradle-wrapper.jar
-**/android/.gradle
-**/android/captures/
-**/android/gradlew
-**/android/gradlew.bat
-**/android/local.properties
-**/android/**/GeneratedPluginRegistrant.java
-
-# Linux ephemeral
+# Linux ephemeral files
 linux/flutter/ephemeral/
-
-# Windows ephemeral
-windows/flutter/ephemeral/
-
-# macOS / iOS ephemeral
-macos/Flutter/ephemeral/
-**/ios/**/Pods/
-**/ios/**/.symlinks/
-**/ios/**/profile
-**/ios/**/xcuserdata
-**/ios/.generated/
-**/ios/Flutter/App.framework
-**/ios/Flutter/Flutter.framework
-**/ios/Flutter/Generated.xcconfig
-**/ios/Flutter/flutter_export_environment.sh
 
 # Build outputs & release packages
 dist/
@@ -80,25 +42,32 @@ CMakeUserPresets.json
 cachedSongs/
 downloads/
 
-# Ephemeral design artifacts & editor backups
-mod.png
-design_prototype.html
+# Editors & OS junk
+.idea/
+.vscode/
+*.iml
+*.swp
 *.bak
 *.orig
 *.env*
+*.class
+*.log
+*.pyc
+.DS_Store
+Thumbs.db
 .directory
 
-# Design prototypes, specs, and agent docs
+# Docs, design artifacts & agent files (README.md is the only tracked markdown)
 *.md
 !README.md
 *.html
 *.txt
 !linux/CMakeLists.txt
 !linux/flutter/CMakeLists.txt
-!windows/CMakeLists.txt
-!windows/flutter/CMakeLists.txt
-!windows/runner/CMakeLists.txt
 architecture/
+legacy_plans/
+mod.png
+design_prototype.html
 villupaatukaaran-agent-redesign-prompt.txt
 villupaatukaaran-redesign.html
 AGENTS.md

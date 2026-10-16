@@ -13,7 +13,10 @@ import '../models/song_item.dart';
 
 /// Audio handler bridging just_audio and audio_service
 class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
-  final AudioPlayer _player = AudioPlayer();
+  final AudioPlayer _player = AudioPlayer(
+    userAgent: Constant.audioUserAgent,
+    useProxyForRequestHeaders: false,
+  );
   late final StreamService _streamService;
 
   // Stale-request guard for rapid song switching
@@ -34,35 +37,49 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         : await StreamService().init();
 
     // Listen to player state and broadcast through audio_service
-    _player.playbackEventStream.listen(_broadcastState);
+    _player.playbackEventStream.listen(
+      _broadcastState,
+      onError: (Object e, StackTrace st) {
+        debugPrint('[AudioHandler] playbackEventStream error: $e');
+      },
+    );
 
     // Listen to true decoded stream duration from player and patch mediaItem
-    _player.durationStream.listen((dur) {
-      if (dur != null && dur > Duration.zero) {
-        final current = mediaItem.value;
-        if (current != null && current.duration != dur) {
-          mediaItem.add(current.copyWith(duration: dur));
+    _player.durationStream.listen(
+      (dur) {
+        if (dur != null && dur > Duration.zero) {
+          final current = mediaItem.value;
+          if (current != null && current.duration != dur) {
+            mediaItem.add(current.copyWith(duration: dur));
+          }
         }
-      }
-    });
+      },
+      onError: (e) => debugPrint('[AudioHandler] durationStream error: $e'),
+    );
 
     // Seamless preloading: when current track is near end (< 20s remaining), preload next in queue
-    _player.positionStream.listen((pos) {
-      final dur = _player.duration;
-      if (dur != null && dur > const Duration(seconds: 30)) {
-        final remaining = dur - pos;
-        if (remaining < const Duration(seconds: 20) && remaining > Duration.zero) {
-          _preloadNextInQueue();
+    _player.positionStream.listen(
+      (pos) {
+        final dur = _player.duration;
+        if (dur != null && dur > const Duration(seconds: 30)) {
+          final remaining = dur - pos;
+          if (remaining < const Duration(seconds: 20) && remaining > Duration.zero) {
+            _preloadNextInQueue();
+          }
         }
-      }
-    });
+      },
+      onError: (e) => debugPrint('[AudioHandler] positionStream error: $e'),
+    );
 
     // Listen to player completion
-    _player.processingStateStream.listen((state) {
-      if (state == ProcessingState.completed) {
-        skipToNext();
-      }
-    });
+    _player.processingStateStream.listen(
+      (state) {
+        if (state == ProcessingState.completed) {
+          skipToNext();
+        }
+      },
+      onError: (e) => debugPrint('[AudioHandler] processingStateStream error: $e'),
+    );
   }
 
   /// Preload next song in queue for seamless transition
@@ -224,14 +241,50 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         }
       }
 
+      debugPrint('[AudioHandler] videoId=$videoId isLocal=$isLocalFile url=$resolvedPathOrUrl');
+
       // Check if another request superseded this one while resolving URL
       if (reqId != _currentRequestId) return;
 
       AudioSource source = isLocalFile
           ? AudioSource.file(resolvedPathOrUrl, tag: targetItem)
-          : AudioSource.uri(Uri.parse(resolvedPathOrUrl), tag: targetItem);
+          : AudioSource.uri(
+              Uri.parse(resolvedPathOrUrl),
+              tag: targetItem,
+              headers: {
+                'User-Agent': Constant.audioUserAgent,
+                'Accept': '*/*',
+              },
+            );
 
-      await _player.setAudioSource(source);
+      try {
+        await _player.setAudioSource(source);
+      } catch (sourceError) {
+        // If it failed and was an online stream, cached URL might be expired or blocked (e.g. 403)
+        if (!isLocalFile) {
+          debugPrint('[AudioHandler] setAudioSource error: $sourceError. Invalidate cache and retry...');
+          await _streamService.invalidateUrlCache(videoId);
+          final freshData = await _streamService.getStreamingData(videoId, generateNewUrl: true);
+          final freshUrl = freshData.high?.url ?? freshData.low?.url;
+          debugPrint('[AudioHandler] Retrying with fresh URL: $freshUrl');
+          if (freshUrl != null && freshUrl.isNotEmpty && reqId == _currentRequestId) {
+            resolvedPathOrUrl = freshUrl;
+            final freshSource = AudioSource.uri(
+              Uri.parse(freshUrl),
+              tag: targetItem,
+              headers: {
+                'User-Agent': Constant.audioUserAgent,
+                'Accept': '*/*',
+              },
+            );
+            await _player.setAudioSource(freshSource);
+          } else {
+            rethrow;
+          }
+        } else {
+          rethrow;
+        }
+      }
 
       // Check once more before starting playback
       if (reqId != _currentRequestId) return;

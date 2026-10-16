@@ -135,20 +135,35 @@ class StreamService extends GetxService {
       }
     }
 
-    // Tier 4: Fetch via yt-dlp first (fast, handles signature ciphers reliably)
-    final ytdlpData = await _fetchFromYtDlp(videoId);
-    if (ytdlpData.playable) {
-      return ytdlpData;
+    // Tier 4: Fetch via yt-dlp first (fast, handles signature ciphers reliably on desktop)
+    if (Constant.isDesktop) {
+      final ytdlpData = await _fetchFromYtDlp(videoId);
+      if (ytdlpData.playable) {
+        return ytdlpData;
+      }
     }
 
-    // Tier 5: Fallback to youtube_explode
+    // Tier 5: Direct signed stream resolution via youtube_explode with Android and iOS clients
     return await _fetchFromYouTube(videoId);
+  }
+
+  /// Invalidate cached URL for a video ID (e.g. after a 403 or playback error)
+  Future<void> invalidateUrlCache(String videoId) async {
+    try {
+      await _urlCacheBox.delete(videoId);
+    } catch (_) {}
   }
 
   /// Fetch stream info from YouTube using youtube_explode
   Future<HMStreamingData> _fetchFromYouTube(String videoId) async {
     try {
-      final manifest = await _youtubeExplode.videos.streamsClient.getManifest(videoId);
+      final manifest = await _youtubeExplode.videos.streamsClient.getManifest(
+        videoId,
+        ytClients: [
+          YoutubeApiClient.androidSdkless,
+          YoutubeApiClient.ios,
+        ],
+      );
       final audioOnly = manifest.audioOnly.toList();
 
       if (audioOnly.isEmpty) {

@@ -21,16 +21,14 @@ dependencies:
   audio_service: ^0.18.12
   just_audio_media_kit: ^2.1.0
   media_kit: ^1.1.11
-  media_kit_libs_video: ^1.0.7
   media_kit_libs_audio: ^1.0.7
 
   # Networking
   dio: ^5.4.3+1
   http: ^1.2.1
 
-  # YouTube stream resolution (forked youtube_explode_dart)
-  # We'll use the standard one for now, may need fork later
-  youtube_explode_dart: ^3.0.0
+  # YouTube stream resolution (latest with androidSdkless/safari/mediaConnect clients)
+  youtube_explode_dart: ^3.1.0
 
   # Permissions & platform
   permission_handler: ^12.0.3
@@ -86,6 +84,10 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   hive_generator: ^2.0.1
   build_runner: ^2.4.8
+
+# Pinned because Flutter 3.24 flutter_test pins path: 1.9.0 while youtube_explode_dart 3.1.0 specifies ^1.9.1
+dependency_overrides:
+  path: 1.9.0
 
 flutter:
   uses-material-design: true

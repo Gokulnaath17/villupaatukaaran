@@ -16,102 +16,189 @@ class SettingsView extends StatelessWidget {
     final controller = Get.find<SettingsController>();
 
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.symmetric(
+        horizontal: MediaQuery.of(context).size.width < 600 ? 16 : 24,
+        vertical: 16,
+      ),
       children: [
         // Section: Storage Folders
         _buildSectionHeader('BASE STORAGE DIRECTORY', Icons.folder_special_rounded),
         const SizedBox(height: 12),
 
         // Unified Base Directory Card
-        Obx(() => BoxyCard(
-              borderRadius: AppTheme.radiusMedium,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Unified Music & Storage Vault',
-                              style: TextStyle(
-                                color: AppTheme.textPrimary,
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w700,
-                              ),
+        BoxyCard(
+          borderRadius: AppTheme.radiusMedium,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 460;
+
+              return Obx(() {
+                final base = controller.baseDir.value;
+                final dl = controller.downloadsDir.value;
+                final cache = controller.cacheDir.value;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (isNarrow) ...[
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Unified Music & Storage Vault',
+                            style: TextStyle(
+                              color: AppTheme.textPrimary,
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w700,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              controller.baseDir.value.isEmpty
-                                  ? 'Default: ~/Music/Villupaatukaaran'
-                                  : controller.baseDir.value,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: AppTheme.redLight,
-                                fontSize: 12,
-                                fontFamily: 'monospace',
-                              ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            base.isEmpty
+                                ? (Constant.isDesktop
+                                    ? 'Default: ~/Music/Villupaatukaaran'
+                                    : 'Default: App Internal Storage')
+                                : base,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppTheme.redLight,
+                              fontSize: 12,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                          if (Constant.isDesktop) ...[
+                            const SizedBox(height: 10),
+                            BoxyButton(
+                              label: 'CHANGE FOLDER',
+                              icon: Icons.folder_open_rounded,
+                              onPressed: controller.pickBaseDirectory,
                             ),
                           ],
-                        ),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      BoxyButton(
-                        label: 'CHANGE FOLDER',
-                        icon: Icons.folder_open_rounded,
-                        onPressed: controller.pickBaseDirectory,
+                    ] else ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Unified Music & Storage Vault',
+                                  style: TextStyle(
+                                    color: AppTheme.textPrimary,
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  base.isEmpty
+                                      ? (Constant.isDesktop
+                                          ? 'Default: ~/Music/Villupaatukaaran'
+                                          : 'Default: App Internal Storage')
+                                      : base,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: AppTheme.redLight,
+                                    fontSize: 12,
+                                    fontFamily: 'monospace',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (Constant.isDesktop) ...[
+                            const SizedBox(width: 12),
+                            BoxyButton(
+                              label: 'CHANGE FOLDER',
+                              icon: Icons.folder_open_rounded,
+                              onPressed: controller.pickBaseDirectory,
+                            ),
+                          ],
+                        ],
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 12),
-                  const Divider(color: AppTheme.borderSubtle),
-                  const SizedBox(height: 8),
-                  // Subfolder layout explanation
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              '• Downloads Subfolder',
-                              style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600),
-                            ),
-                            Text(
-                              controller.downloadsDir.value,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
-                            ),
-                          ],
-                        ),
+                    const SizedBox(height: 12),
+                    const Divider(color: AppTheme.borderSubtle),
+                    const SizedBox(height: 8),
+                    // Subfolder layout explanation
+                    if (isNarrow) ...[
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '• Downloads Subfolder',
+                            style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600),
+                          ),
+                          Text(
+                            dl,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            '• Cache Subfolder',
+                            style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600),
+                          ),
+                          Text(
+                            cache,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              '• Cache Subfolder',
-                              style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600),
+                    ] else ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  '• Downloads Subfolder',
+                                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600),
+                                ),
+                                Text(
+                                  dl,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                                ),
+                              ],
                             ),
-                            Text(
-                              controller.cacheDir.value,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  '• Cache Subfolder',
+                                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600),
+                                ),
+                                Text(
+                                  cache,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ],
-                  ),
-                ],
-              ),
-            )),
+                  ],
+                );
+              });
+            },
+          ),
+        ),
         const SizedBox(height: 28),
 
         // Section: Cache Management
@@ -405,37 +492,56 @@ class SettingsView extends StatelessWidget {
         BoxyCard(
           borderRadius: AppTheme.radiusMedium,
           padding: const EdgeInsets.all(16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Reset Entire Application',
-                      style: TextStyle(
-                        color: AppTheme.textWhite,
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w700,
-                      ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 480;
+
+              final textBlock = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'Reset Entire Application',
+                    style: TextStyle(
+                      color: AppTheme.textWhite,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
                     ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Permanently erase all offline downloads, cached songs, custom playlists, likes, playback history, and restore settings to defaults.',
-                      style: TextStyle(color: AppTheme.textMuted, fontSize: 12, height: 1.3),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              BoxyButton(
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Permanently erase all offline downloads, cached songs, custom playlists, likes, playback history, and restore settings to defaults.',
+                    style: TextStyle(color: AppTheme.textMuted, fontSize: 12, height: 1.3),
+                  ),
+                ],
+              );
+
+              final actionButton = BoxyButton(
                 label: 'RESET ENTIRE APP',
                 icon: Icons.delete_forever_rounded,
                 isPrimary: true,
                 onPressed: () => _showResetConfirmationDialog(context, controller),
-              ),
-            ],
+              );
+
+              if (isNarrow) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    textBlock,
+                    const SizedBox(height: 12),
+                    actionButton,
+                  ],
+                );
+              }
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(child: textBlock),
+                  const SizedBox(width: 16),
+                  actionButton,
+                ],
+              );
+            },
           ),
         ),
         const SizedBox(height: 32),

@@ -44,17 +44,30 @@ class _LibraryViewState extends State<LibraryView> {
   bool _isReorderMode = false;
 
   Future<void> _pickAndAddFolder(LibraryService libraryService) async {
-    final selectedDirectory = await FilePicker.getDirectoryPath(
-      dialogTitle: 'Select Music Folder to Grant Access',
-    );
-    if (selectedDirectory != null && selectedDirectory.isNotEmpty) {
-      await libraryService.addAdditionalFolder(selectedDirectory);
+    try {
+      final selectedDirectory = await FilePicker.getDirectoryPath(
+        dialogTitle: 'Select Music Folder to Grant Access',
+      );
+      if (selectedDirectory != null && selectedDirectory.isNotEmpty) {
+        await libraryService.addAdditionalFolder(selectedDirectory);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Granted access to: $selectedDirectory'),
+              backgroundColor: const Color(0xE61C1C1E),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('[Library] Directory pick error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Granted access to: $selectedDirectory'),
-            backgroundColor: const Color(0xE61C1C1E),
-            duration: const Duration(seconds: 3),
+          const SnackBar(
+            content: Text('Folder access not supported or cancelled'),
+            backgroundColor: Color(0xE61C1C1E),
+            duration: Duration(seconds: 3),
           ),
         );
       }
@@ -78,10 +91,12 @@ class _LibraryViewState extends State<LibraryView> {
   void initState() {
     super.initState();
     _selectedCategory = widget.initialCategory;
-    if (Get.isRegistered<LibraryService>()) {
-      Get.find<LibraryService>().refreshAll();
-      _resolveInitialPlaylist();
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && Get.isRegistered<LibraryService>()) {
+        Get.find<LibraryService>().refreshAll();
+        _resolveInitialPlaylist();
+      }
+    });
   }
 
   void _resolveInitialPlaylist() {
@@ -110,31 +125,114 @@ class _LibraryViewState extends State<LibraryView> {
     }
   }
 
+  Widget _buildCategoryChips() {
+    final categories = [
+      (LibraryCategory.all, 'All', Icons.library_music_rounded),
+      (LibraryCategory.liked, 'Liked', Icons.favorite_rounded),
+      (LibraryCategory.playlists, 'Playlists', Icons.queue_music_rounded),
+      (LibraryCategory.downloaded, 'Downloaded', Icons.download_done_rounded),
+      (LibraryCategory.cached, 'Cached', Icons.offline_bolt_rounded),
+      (LibraryCategory.local, 'Local', Icons.folder_rounded),
+    ];
+
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: const BoxDecoration(
+        color: AppTheme.canvasBg,
+        border: Border(bottom: BorderSide(color: AppTheme.borderSubtle, width: 0.5)),
+      ),
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: categories.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final (cat, label, icon) = categories[index];
+          final isSelected = _viewingPlaylist == null && _selectedCategory == cat;
+
+          return Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _selectedCategory = cat;
+                  _viewingPlaylist = null;
+                });
+              },
+              borderRadius: BorderRadius.circular(100),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppTheme.redAccent
+                      : Colors.white.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(100),
+                  border: Border.all(
+                    color: isSelected ? AppTheme.redAccent : AppTheme.borderSubtle,
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      icon,
+                      size: 13,
+                      color: isSelected ? Colors.white : AppTheme.textSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : AppTheme.textSecondary,
+                        fontSize: 12,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final libraryService = Get.find<LibraryService>();
     final playerController = Get.find<PlayerController>();
 
-    return Obx(() {
-      if (_viewingPlaylist != null) {
-        return _buildPlaylistDetail(libraryService, playerController);
-      }
+    return Column(
+      children: [
+        _buildCategoryChips(),
+        Expanded(
+          child: Obx(() {
+            if (_viewingPlaylist != null) {
+              return _buildPlaylistDetail(libraryService, playerController);
+            }
 
-      switch (_selectedCategory) {
-        case LibraryCategory.all:
-          return _buildAllSongsTab(libraryService, playerController);
-        case LibraryCategory.downloaded:
-          return _buildDownloadedSongsTab(libraryService, playerController);
-        case LibraryCategory.cached:
-          return _buildCachedSongsTab(libraryService, playerController);
-        case LibraryCategory.local:
-          return _buildLocalSongsTab(libraryService, playerController);
-        case LibraryCategory.liked:
-          return _buildLikedSongsTab(libraryService, playerController);
-        case LibraryCategory.playlists:
-          return _buildPlaylistsTab(libraryService);
-      }
-    });
+            switch (_selectedCategory) {
+              case LibraryCategory.all:
+                return _buildAllSongsTab(libraryService, playerController);
+              case LibraryCategory.downloaded:
+                return _buildDownloadedSongsTab(libraryService, playerController);
+              case LibraryCategory.cached:
+                return _buildCachedSongsTab(libraryService, playerController);
+              case LibraryCategory.local:
+                return _buildLocalSongsTab(libraryService, playerController);
+              case LibraryCategory.liked:
+                return _buildLikedSongsTab(libraryService, playerController);
+              case LibraryCategory.playlists:
+                return _buildPlaylistsTab(libraryService);
+            }
+          }),
+        ),
+      ],
+    );
   }
 
 
