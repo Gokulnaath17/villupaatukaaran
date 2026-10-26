@@ -68,6 +68,7 @@ class Constant {
   static const String prefShowLyrics = 'showLyrics';
   static const String prefBaseStorageDir = 'baseStorageDir';
   static const String prefCloseAction = 'closeAction';
+  static const String prefInitialSetupDone = 'initialSetupDone';
 
   // Window close action types
   static const String closeActionAsk = 'ask';
@@ -110,6 +111,7 @@ class Constant {
 
   // Directories
   static const String baseDirName = 'Villupaatukaaran';
+  static const String dataDirName = 'data';
   static const String tempCacheDirName = 'cache';
   static const String downloadDirName = 'downloads';
 

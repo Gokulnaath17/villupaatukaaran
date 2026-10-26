@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -10,12 +11,17 @@ import '../models/song_item.dart';
 
 /// Service managing Library data: Playlists, Liked Songs, Cached Songs, Downloaded, and Local Files
 class LibraryService extends GetxService {
-  late Box _playlistBox;
-  late Box _favBox;
-  late Box _cacheBox;
-  late Box _downloadsBox;
-  late Box _prefsBox;
+  Box get _playlistBox => Hive.box(Constant.boxLibraryPlaylists);
+  Box get _favBox => Hive.box(Constant.boxLibFav);
+  Box get _cacheBox => Hive.box(Constant.boxSongsCache);
+  Box get _downloadsBox => Hive.box(Constant.boxSongDownloads);
+  Box get _prefsBox => Hive.box(Constant.boxAppPrefs);
   late CacheService _cacheService;
+
+  StreamSubscription? _favSub;
+  StreamSubscription? _cacheSub;
+  StreamSubscription? _playlistSub;
+  StreamSubscription? _downloadsSub;
 
   final RxList<PlaylistItem> playlists = <PlaylistItem>[].obs;
   final RxList<SongItem> likedSongs = <SongItem>[].obs;
@@ -27,26 +33,6 @@ class LibraryService extends GetxService {
   final RxList<SongItem> allSongs = <SongItem>[].obs;
 
   Future<LibraryService> init() async {
-    _playlistBox = Hive.isBoxOpen(Constant.boxLibraryPlaylists)
-        ? Hive.box(Constant.boxLibraryPlaylists)
-        : await Hive.openBox(Constant.boxLibraryPlaylists);
-
-    _favBox = Hive.isBoxOpen(Constant.boxLibFav)
-        ? Hive.box(Constant.boxLibFav)
-        : await Hive.openBox(Constant.boxLibFav);
-
-    _cacheBox = Hive.isBoxOpen(Constant.boxSongsCache)
-        ? Hive.box(Constant.boxSongsCache)
-        : await Hive.openBox(Constant.boxSongsCache);
-
-    _downloadsBox = Hive.isBoxOpen(Constant.boxSongDownloads)
-        ? Hive.box(Constant.boxSongDownloads)
-        : await Hive.openBox(Constant.boxSongDownloads);
-
-    _prefsBox = Hive.isBoxOpen(Constant.boxAppPrefs)
-        ? Hive.box(Constant.boxAppPrefs)
-        : await Hive.openBox(Constant.boxAppPrefs);
-
     _cacheService = Get.find<CacheService>();
 
     // Load saved additional local folders
@@ -56,17 +42,28 @@ class LibraryService extends GetxService {
     }
 
     // Live box watchers to keep reactive lists synchronized automatically
-    _favBox.watch().listen((_) => loadLikedSongs());
-    _cacheBox.watch().listen((_) => loadCachedSongs());
-    _playlistBox.watch().listen((_) => loadPlaylists());
-    _downloadsBox.watch().listen((_) => loadDownloadedSongs());
+    setupWatchers();
 
     await refreshAll();
     return this;
   }
 
+  /// Setup live box watchers
+  void setupWatchers() {
+    _favSub?.cancel();
+    _cacheSub?.cancel();
+    _playlistSub?.cancel();
+    _downloadsSub?.cancel();
+
+    _favSub = _favBox.watch().listen((_) => loadLikedSongs());
+    _cacheSub = _cacheBox.watch().listen((_) => loadCachedSongs());
+    _playlistSub = _playlistBox.watch().listen((_) => loadPlaylists());
+    _downloadsSub = _downloadsBox.watch().listen((_) => loadDownloadedSongs());
+  }
+
   /// Reload all library sections from Hive and disk
   Future<void> refreshAll() async {
+    setupWatchers();
     final savedFolders = _prefsBox.get('additionalLocalFolders');
     if (savedFolders is List) {
       additionalFolders.value = savedFolders.map((e) => e.toString()).toList();

@@ -150,6 +150,17 @@ class SettingsView extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
                           ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            '• Database & Config Subfolder',
+                            style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600),
+                          ),
+                          Text(
+                            controller.dataDir.value.isNotEmpty ? controller.dataDir.value : '$base/data',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                          ),
                         ],
                       ),
                     ] else ...[
@@ -183,6 +194,24 @@ class SettingsView extends StatelessWidget {
                                 ),
                                 Text(
                                   cache,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  '• Database Subfolder',
+                                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600),
+                                ),
+                                Text(
+                                  controller.dataDir.value.isNotEmpty ? controller.dataDir.value : '$base/data',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
@@ -481,6 +510,78 @@ class SettingsView extends StatelessWidget {
                 style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
               ),
             ],
+          ),
+        ),
+        const SizedBox(height: 28),
+
+        // Section: Backup & Restore
+        _buildSectionHeader('BACKUP & RESTORE', Icons.settings_backup_restore_rounded),
+        const SizedBox(height: 12),
+
+        BoxyCard(
+          borderRadius: AppTheme.radiusMedium,
+          padding: const EdgeInsets.all(16),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 540;
+
+              final textBlock = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'Library & Vault Backup',
+                    style: TextStyle(
+                      color: AppTheme.textWhite,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Export all your liked tracks, playlists, downloads, and cache list into a portable single file, or restore from a previous backup file. On restore, downloaded and cached songs will be automatically downloaded and cached into your storage vault.',
+                    style: TextStyle(color: AppTheme.textMuted, fontSize: 12, height: 1.35),
+                  ),
+                ],
+              );
+
+              final actionButtons = Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  BoxyButton(
+                    label: 'EXPORT BACKUP',
+                    icon: Icons.file_upload_outlined,
+                    isPrimary: true,
+                    onPressed: () => controller.exportBackup(),
+                  ),
+                  BoxyButton(
+                    label: 'IMPORT BACKUP',
+                    icon: Icons.file_download_outlined,
+                    onPressed: () => controller.importBackup(context),
+                  ),
+                ],
+              );
+
+              if (isNarrow) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    textBlock,
+                    const SizedBox(height: 14),
+                    actionButtons,
+                  ],
+                );
+              }
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(child: textBlock),
+                  const SizedBox(width: 16),
+                  actionButtons,
+                ],
+              );
+            },
           ),
         ),
         const SizedBox(height: 28),

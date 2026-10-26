@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:audio_service/audio_service.dart';
 
 import 'services/audio_handler.dart';
+import 'services/backup_service.dart';
 import 'services/cache_service.dart';
 import 'services/constant.dart';
 import 'services/discover_controller.dart';
@@ -14,6 +15,7 @@ import 'services/library_service.dart';
 import 'services/music_service.dart';
 import 'services/player_controller.dart';
 import 'services/settings_controller.dart';
+import 'services/storage_service.dart';
 import 'services/stream_service.dart';
 import 'services/tray_and_window_service.dart';
 import 'ui/screens/home_screen.dart';
@@ -35,8 +37,15 @@ Future<void> main() async {
   // Desktop audio engine init
   LinuxAudioInit.ensureInitialized();
 
-  // Initialize Hive storage boxes
-  await initHive();
+  // Initialize unified storage engine
+  final storageService = await StorageService().init();
+  Get.put<StorageService>(storageService, permanent: true);
+
+  // Initialize Hive storage boxes inside single vault folder's data/ subfolder
+  await initHive(storageService.dataDir.value);
+
+  // Register backup & restore engine
+  Get.put<BackupService>(BackupService(), permanent: true);
 
   // Register core network & storage services
   final musicService = await MusicService().init();
@@ -87,20 +96,10 @@ Future<void> main() async {
   runApp(const VillupaatukaranApp());
 }
 
-/// Initialize Hive storage boxes
-Future<void> initHive() async {
-  await Hive.initFlutter();
-
-  // Eager startup boxes
-  await Hive.openBox(Constant.boxSongsCache);
-  await Hive.openBox(Constant.boxSongDownloads);
-  await Hive.openBox(Constant.boxSongsUrlCache);
-  await Hive.openBox(Constant.boxAppPrefs);
-  await Hive.openBox(Constant.boxLibraryPlaylists);
-  await Hive.openBox(Constant.boxLibFav);
-  await Hive.openBox(Constant.boxLibRP);
-  await Hive.openBox(Constant.boxHomeScreenData);
-  await Hive.openBox(Constant.boxPrevSessionData);
+/// Initialize Hive storage boxes inside single vault folder's data/ subfolder
+Future<void> initHive(String dataPath) async {
+  Hive.init(dataPath);
+  await StorageService.openBoxes();
 }
 
 /// Lifecycle handler for session persistence

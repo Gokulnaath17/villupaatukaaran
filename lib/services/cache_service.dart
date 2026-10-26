@@ -3,17 +3,18 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
 
 import 'constant.dart';
 import '../models/song_item.dart';
+import 'storage_service.dart';
+import 'stream_service.dart';
 
 /// Cache & offline storage service
 /// Ensures fast playback with auto-caching and configurable limits
 class CacheService extends GetxService {
-  late Box _prefsBox;
-  late Box _cacheBox;
-  late Box _downloadsBox;
+  Box get _prefsBox => Hive.box(Constant.boxAppPrefs);
+  Box get _cacheBox => Hive.box(Constant.boxSongsCache);
+  Box get _downloadsBox => Hive.box(Constant.boxSongDownloads);
   final Dio _dio = Dio();
 
   final RxString baseDir = ''.obs;
@@ -49,44 +50,46 @@ class CacheService extends GetxService {
         return '$userProfile\\${Constant.baseDirName}';
       }
     }
-    final appDir = await getApplicationDocumentsDirectory();
-    return '${appDir.path}/${Constant.baseDirName}';
+    return '/tmp/${Constant.baseDirName}';
   }
 
   Future<CacheService> init() async {
-    _prefsBox = Hive.box(Constant.boxAppPrefs);
-    _cacheBox = Hive.box(Constant.boxSongsCache);
-    _downloadsBox = Hive.box(Constant.boxSongDownloads);
-
     // Load preferences
     cacheSizeLimit.value = _prefsBox.get('cacheSizeLimit', defaultValue: 350) as int;
     autoCacheEnabled.value = _prefsBox.get(Constant.prefCacheSongs, defaultValue: true) as bool;
 
-    // Initialize unified base directory
-    final savedBaseDir = _prefsBox.get(Constant.prefBaseStorageDir) as String?;
-    final defaultBase = await resolveDefaultBaseDir();
-    String effectiveBase = defaultBase;
+    // Initialize unified base directory from StorageService if available
+    if (Get.isRegistered<StorageService>()) {
+      final storage = Get.find<StorageService>();
+      baseDir.value = storage.baseDir.value;
+      downloadsDir.value = storage.downloadsDir.value;
+      cacheDir.value = storage.cacheDir.value;
+    } else {
+      final savedBaseDir = _prefsBox.get(Constant.prefBaseStorageDir) as String?;
+      final defaultBase = await resolveDefaultBaseDir();
+      String effectiveBase = defaultBase;
 
-    if (savedBaseDir != null && savedBaseDir.isNotEmpty) {
-      final isDesktopPath = savedBaseDir.startsWith('/home') ||
-          savedBaseDir.contains(':\\') ||
-          savedBaseDir.startsWith('/Users');
-      if (Constant.isMobile && isDesktopPath) {
-        effectiveBase = defaultBase;
-      } else {
-        try {
-          final dir = Directory(savedBaseDir);
-          if (!await dir.exists()) {
-            await dir.create(recursive: true);
-          }
-          effectiveBase = savedBaseDir;
-        } catch (_) {
+      if (savedBaseDir != null && savedBaseDir.isNotEmpty) {
+        final isDesktopPath = savedBaseDir.startsWith('/home') ||
+            savedBaseDir.contains(':\\') ||
+            savedBaseDir.startsWith('/Users');
+        if (Constant.isMobile && isDesktopPath) {
           effectiveBase = defaultBase;
+        } else {
+          try {
+            final dir = Directory(savedBaseDir);
+            if (!await dir.exists()) {
+              await dir.create(recursive: true);
+            }
+            effectiveBase = savedBaseDir;
+          } catch (_) {
+            effectiveBase = defaultBase;
+          }
         }
       }
-    }
 
-    await setBaseDir(effectiveBase);
+      await setBaseDir(effectiveBase);
+    }
     await updateCacheStats();
     return this;
   }
@@ -127,6 +130,33 @@ class CacheService extends GetxService {
   Future<void> toggleAutoCache(bool enabled) async {
     autoCacheEnabled.value = enabled;
     await _prefsBox.put(Constant.prefCacheSongs, enabled);
+  }
+
+  /// Cache a specific song on demand (e.g. during backup restore)
+  Future<bool> cacheSong(SongItem song) async {
+    if (isSongCached(song.videoId) || _downloadsBox.containsKey(song.videoId)) {
+      return true;
+    }
+    try {
+      if (!Get.isRegistered<StreamService>()) return false;
+      final streamService = Get.find<StreamService>();
+      final streamData = await streamService.getStreamingData(song.videoId);
+      final streamUrl = streamData.high?.url ?? streamData.low?.url;
+      if (streamUrl != null && streamUrl.isNotEmpty) {
+        // Force caching even if autoCache is disabled
+        final prevAuto = autoCacheEnabled.value;
+        autoCacheEnabled.value = true;
+        try {
+          await autoCacheSong(song, streamUrl);
+        } finally {
+          autoCacheEnabled.value = prevAuto;
+        }
+        return isSongCached(song.videoId);
+      }
+    } catch (e) {
+      debugPrint('[CacheService] cacheSong error for ${song.title}: $e');
+    }
+    return false;
   }
 
   /// Auto-cache a song in the background for fast replay
