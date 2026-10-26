@@ -70,6 +70,17 @@ class Constant {
   static const String prefCloseAction = 'closeAction';
   static const String prefInitialSetupDone = 'initialSetupDone';
 
+  // Auto-update preferences
+  static const String prefAutoUpdateCheck   = 'autoUpdateCheck';
+  static const String prefAutoUpdateInstall = 'autoUpdateInstall';
+  static const String prefLastUpdateCheck   = 'lastUpdateCheck';
+  static const String prefSkippedVersion    = 'skippedUpdateVersion';
+
+  // GitHub release source
+  static const String githubOwner      = 'gokulnaath17';
+  static const String githubRepo       = 'villupaatukaaran';
+  static const String updateAssetName  = 'villupaatukaaran-linux-x64.tar.gz';
+
   // Window close action types
   static const String closeActionAsk = 'ask';
   static const String closeActionBackground = 'background';

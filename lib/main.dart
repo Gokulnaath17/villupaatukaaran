@@ -18,6 +18,7 @@ import 'services/settings_controller.dart';
 import 'services/storage_service.dart';
 import 'services/stream_service.dart';
 import 'services/tray_and_window_service.dart';
+import 'services/update_service.dart';
 import 'ui/screens/home_screen.dart';
 import 'ui/theme/theme_controller.dart';
 import 'utils/linux_audio_init.dart';
@@ -85,6 +86,12 @@ Future<void> main() async {
   if (Constant.isDesktop) {
     final trayService = await TrayAndWindowService().init();
     Get.put<TrayAndWindowService>(trayService, permanent: true);
+  }
+
+  // Initialize UpdateService on Linux
+  if (Constant.isLinux) {
+    final updateService = await UpdateService().init();
+    Get.put<UpdateService>(updateService, permanent: true);
   }
 
   // Lifecycle observer for session saving

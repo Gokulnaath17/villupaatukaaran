@@ -10,6 +10,7 @@ import 'download_service.dart';
 import 'library_service.dart';
 import 'player_controller.dart';
 import 'storage_service.dart';
+import 'update_service.dart';
 import '../ui/theme/theme_controller.dart';
 import '../ui/widgets/boxy_card.dart';
 
@@ -46,6 +47,44 @@ class SettingsController extends GetxController {
   Future<void> setCloseAction(String action) async {
     closeAction.value = action;
     await _prefsBox.put(Constant.prefCloseAction, action);
+  }
+
+  // UpdateService integration
+  bool get isUpdateServiceRegistered => Get.isRegistered<UpdateService>();
+  UpdateService? get updateService => isUpdateServiceRegistered ? Get.find<UpdateService>() : null;
+
+  RxBool get autoUpdateCheck => updateService?.autoCheckEnabled ?? false.obs;
+  RxBool get autoUpdateInstall => updateService?.autoInstallEnabled ?? false.obs;
+  RxBool get updateAvailable => updateService?.updateAvailable ?? false.obs;
+  RxString get currentAppVersion => updateService?.currentVersion ?? '1.12.2'.obs;
+  RxString get latestAppVersion => updateService?.latestVersion ?? ''.obs;
+  Rx<UpdateStatus> get updateStatus => updateService?.updateStatus ?? UpdateStatus.idle.obs;
+  RxString get updateStatusMessage => updateService?.statusMessage ?? ''.obs;
+
+  Future<void> toggleAutoUpdateCheck(bool val) async {
+    if (updateService != null) {
+      await updateService!.setAutoCheck(val);
+    }
+  }
+
+  Future<void> toggleAutoUpdateInstall(bool val) async {
+    if (updateService != null) {
+      await updateService!.setAutoInstall(val);
+    }
+  }
+
+  Future<void> checkForUpdatesManual() async {
+    if (updateService != null) {
+      await updateService!.checkForUpdate(silent: false);
+    } else {
+      _notify('Updates Unavailable', 'Update service is only available on Linux desktop.');
+    }
+  }
+
+  Future<void> applyUpdateManual() async {
+    if (updateService != null) {
+      await updateService!.applyUpdate();
+    }
   }
 
   // Directory getters from CacheService & StorageService
