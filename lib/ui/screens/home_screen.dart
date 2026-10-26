@@ -17,6 +17,8 @@ import '../widgets/song_tile.dart';
 import '../widgets/tamil_bell_loader.dart';
 import 'discover_view.dart';
 import 'library_view.dart';
+import '../../services/storage_service.dart';
+import '../widgets/initial_storage_setup_dialog.dart';
 import 'settings_view.dart';
 import '../widgets/mobile_now_playing_sheet.dart';
 
@@ -79,6 +81,28 @@ class _HomeScreenState extends State<HomeScreen> {
       'query': 'Yuvan Shankar Raja Hits',
     },
   };
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkInitialStorageSetup();
+    });
+  }
+
+  Future<void> _checkInitialStorageSetup() async {
+    if (Get.isRegistered<StorageService>()) {
+      final storage = Get.find<StorageService>();
+      if (!storage.isInitialSetupCompleted.value) {
+        if (!mounted) return;
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => const InitialStorageSetupDialog(),
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {

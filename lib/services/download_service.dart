@@ -54,7 +54,7 @@ class DownloadTask {
 
 /// Service managing the song download queue, background streaming, and offline persistence
 class DownloadService extends GetxService {
-  late final Box _downloadsBox;
+  Box get _downloadsBox => Hive.box(Constant.boxSongDownloads);
   late final CacheService _cacheService;
   late final StreamService _streamService;
   final Dio _dio = Dio();
@@ -64,10 +64,6 @@ class DownloadService extends GetxService {
   final int maxConcurrentDownloads = 2;
 
   Future<DownloadService> init() async {
-    _downloadsBox = Hive.isBoxOpen(Constant.boxSongDownloads)
-        ? Hive.box(Constant.boxSongDownloads)
-        : await Hive.openBox(Constant.boxSongDownloads);
-
     _cacheService = Get.find<CacheService>();
     _streamService = Get.find<StreamService>();
 

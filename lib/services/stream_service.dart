@@ -1,9 +1,10 @@
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import 'package:hive/hive.dart';
 import 'package:get/get.dart';
-import 'package:path_provider/path_provider.dart';
+import 'storage_service.dart';
 import 'cache_service.dart';
 import 'constant.dart';
 import 'settings_controller.dart';
@@ -12,28 +13,29 @@ import 'utils.dart';
 /// Stream service for resolving audio URLs
 class StreamService extends GetxService {
   late YoutubeExplode _youtubeExplode;
-  late Box _urlCacheBox;
-  late Box _songsCacheBox;
-  late Box _songDownloadsBox;
+  Box get _urlCacheBox => Hive.box(Constant.boxSongsUrlCache);
+  Box get _songsCacheBox => Hive.box(Constant.boxSongsCache);
+  Box get _songDownloadsBox => Hive.box(Constant.boxSongDownloads);
   late Directory _tempCacheDir;
   late Directory _downloadDir;
 
   /// Initialize service
   Future<StreamService> init() async {
     _youtubeExplode = YoutubeExplode();
-    _urlCacheBox = Hive.box(Constant.boxSongsUrlCache);
-    _songsCacheBox = Hive.box(Constant.boxSongsCache);
-    _songDownloadsBox = Hive.box(Constant.boxSongDownloads);
 
     // Setup unified directories
     if (Get.isRegistered<CacheService>()) {
       final cacheService = Get.find<CacheService>();
       _tempCacheDir = Directory(cacheService.cacheDir.value);
       _downloadDir = Directory(cacheService.downloadsDir.value);
+    } else if (Get.isRegistered<StorageService>()) {
+      final storage = Get.find<StorageService>();
+      _tempCacheDir = Directory(storage.cacheDir.value);
+      _downloadDir = Directory(storage.downloadsDir.value);
     } else {
-      final appDir = await getApplicationDocumentsDirectory();
-      _tempCacheDir = Directory('${appDir.path}/${Constant.tempCacheDirName}');
-      _downloadDir = Directory('${appDir.path}/${Constant.downloadDirName}');
+      final defaultBase = await StorageService.resolveDefaultBaseDir();
+      _tempCacheDir = Directory('$defaultBase/${Constant.tempCacheDirName}');
+      _downloadDir = Directory('$defaultBase/${Constant.downloadDirName}');
     }
 
     if (!await _tempCacheDir.exists()) {
@@ -143,7 +145,13 @@ class StreamService extends GetxService {
       }
     }
 
-    // Tier 5: Direct signed stream resolution via youtube_explode with Android and iOS clients
+    // Tier 5: Direct Innertube Android player API (fast direct URLs, no cipher needed)
+    final innertubeData = await _fetchFromInnertube(videoId);
+    if (innertubeData.playable) {
+      return innertubeData;
+    }
+
+    // Tier 6: Fallback to youtube_explode
     return await _fetchFromYouTube(videoId);
   }
 
@@ -152,6 +160,109 @@ class StreamService extends GetxService {
     try {
       await _urlCacheBox.delete(videoId);
     } catch (_) {}
+  }
+
+  /// Fetch direct stream info from YouTube Innertube Android player API
+  Future<HMStreamingData> _fetchFromInnertube(String videoId) async {
+    try {
+      final dio = Dio();
+      final response = await dio.post(
+        'https://www.youtube.com/youtubei/v1/player?prettyPrint=false',
+        data: {
+          'context': {
+            'client': {
+              'clientName': 'ANDROID',
+              'clientVersion': '20.10.38',
+              'userAgent': Constant.mobileAudioUserAgent,
+              'hl': 'en',
+              'timeZone': 'UTC',
+              'utcOffsetMinutes': 0,
+              'osName': 'Android',
+              'osVersion': '11',
+            }
+          },
+          'videoId': videoId,
+        },
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': Constant.mobileAudioUserAgent,
+          },
+          sendTimeout: const Duration(seconds: 8),
+          receiveTimeout: const Duration(seconds: 8),
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data is Map) {
+        final data = response.data as Map;
+        final playability = data['playabilityStatus'] as Map?;
+        if (playability != null && playability['status'] != 'OK') {
+          return HMStreamingData(
+            playable: false,
+            statusMsg: playability['reason']?.toString() ?? 'Track unplayable',
+          );
+        }
+
+        final streamingData = data['streamingData'] as Map?;
+        if (streamingData != null) {
+          final formats = <Map>[
+            if (streamingData['adaptiveFormats'] is List)
+              ...(streamingData['adaptiveFormats'] as List).whereType<Map>(),
+            if (streamingData['formats'] is List)
+              ...(streamingData['formats'] as List).whereType<Map>(),
+          ];
+
+          StreamInfo? high;
+          StreamInfo? low;
+
+          for (final f in formats) {
+            final mime = f['mimeType']?.toString().toLowerCase() ?? '';
+            final rawUrl = f['url']?.toString();
+            if (mime.startsWith('audio/') && rawUrl != null && rawUrl.isNotEmpty) {
+              final itag = f['itag'] is int ? f['itag'] as int : int.tryParse(f['itag'].toString()) ?? 0;
+              final bitrate = f['bitrate'] is int ? f['bitrate'] as int : int.tryParse(f['bitrate'].toString()) ?? 0;
+              final codec = mime.contains('webm') || mime.contains('opus') ? 'opus' : 'mp4a';
+              final clen = int.tryParse(f['contentLength']?.toString() ?? '0') ?? 0;
+
+              final streamInfo = StreamInfo(
+                itag: itag,
+                codec: codec,
+                bitrate: bitrate,
+                duration: 0,
+                url: rawUrl,
+                size: clen,
+              );
+
+              // Prefer itag 140 (AAC 128k) or 251 (Opus 160k) for high
+              if (high == null && (itag == 140 || itag == 251 || bitrate >= 128000)) {
+                high = streamInfo;
+              }
+              // Prefer itag 139 (AAC 48k) or 249 (Opus 50k) for low
+              if (low == null && (itag == 139 || itag == 249 || bitrate <= 64000)) {
+                low = streamInfo;
+              }
+            }
+          }
+
+          if (high != null || low != null) {
+            high ??= low;
+            low ??= high;
+            final result = HMStreamingData(
+              playable: true,
+              statusMsg: 'OK',
+              low: low,
+              high: high,
+              qualityIndex: Constant.qualityHigh,
+            );
+            await _urlCacheBox.put(videoId, result.toJson());
+            return result;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[StreamService] Direct Innertube fallback error: $e');
+    }
+    return HMStreamingData(playable: false, statusMsg: 'Innertube resolution failed');
   }
 
   /// Fetch stream info from YouTube using youtube_explode

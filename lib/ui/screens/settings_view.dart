@@ -3,9 +3,11 @@ import 'package:get/get.dart';
 
 import '../../services/constant.dart';
 import '../../services/settings_controller.dart';
+import '../../services/update_service.dart';
 import '../../utils/app_assets.dart';
 import '../theme/theme_controller.dart';
 import '../widgets/boxy_card.dart';
+import '../widgets/update_banner.dart';
 
 /// Settings page for folder selection, cache limits, and playback options
 class SettingsView extends StatelessWidget {
@@ -21,6 +23,9 @@ class SettingsView extends StatelessWidget {
         vertical: 16,
       ),
       children: [
+        // Live Update Banner (active whenever an update is discovered, downloading, or verifying)
+        const UpdateBanner(),
+
         // Section: Storage Folders
         _buildSectionHeader('BASE STORAGE DIRECTORY', Icons.folder_special_rounded),
         const SizedBox(height: 12),
@@ -150,6 +155,17 @@ class SettingsView extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
                           ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            '• Database & Config Subfolder',
+                            style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600),
+                          ),
+                          Text(
+                            controller.dataDir.value.isNotEmpty ? controller.dataDir.value : '$base/data',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                          ),
                         ],
                       ),
                     ] else ...[
@@ -183,6 +199,24 @@ class SettingsView extends StatelessWidget {
                                 ),
                                 Text(
                                   cache,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  '• Database Subfolder',
+                                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600),
+                                ),
+                                Text(
+                                  controller.dataDir.value.isNotEmpty ? controller.dataDir.value : '$base/data',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
@@ -480,6 +514,181 @@ class SettingsView extends StatelessWidget {
                 'A dedicated Tamil folk, classical, and regional music client inspired by the ancient art of Villupaatu (the musical bow). Built with Flutter, MediaKit/libmpv, and GetX.',
                 style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5, height: 1.4),
               ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 28),
+
+        // Section: Backup & Restore
+        _buildSectionHeader('BACKUP & RESTORE', Icons.settings_backup_restore_rounded),
+        const SizedBox(height: 12),
+
+        BoxyCard(
+          borderRadius: AppTheme.radiusMedium,
+          padding: const EdgeInsets.all(16),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 540;
+
+              final textBlock = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'Library & Vault Backup',
+                    style: TextStyle(
+                      color: AppTheme.textWhite,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Export all your liked tracks, playlists, downloads, and cache list into a portable single file, or restore from a previous backup file. On restore, downloaded and cached songs will be automatically downloaded and cached into your storage vault.',
+                    style: TextStyle(color: AppTheme.textMuted, fontSize: 12, height: 1.35),
+                  ),
+                ],
+              );
+
+              final actionButtons = Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  BoxyButton(
+                    label: 'EXPORT BACKUP',
+                    icon: Icons.file_upload_outlined,
+                    isPrimary: true,
+                    onPressed: () => controller.exportBackup(),
+                  ),
+                  BoxyButton(
+                    label: 'IMPORT BACKUP',
+                    icon: Icons.file_download_outlined,
+                    onPressed: () => controller.importBackup(context),
+                  ),
+                ],
+              );
+
+              if (isNarrow) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    textBlock,
+                    const SizedBox(height: 14),
+                    actionButtons,
+                  ],
+                );
+              }
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(child: textBlock),
+                  const SizedBox(width: 16),
+                  actionButtons,
+                ],
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 28),
+
+        // Section: Software Updates
+        _buildSectionHeader('SOFTWARE UPDATES', Icons.system_update_rounded),
+        const SizedBox(height: 12),
+
+        BoxyCard(
+          borderRadius: AppTheme.radiusMedium,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Version & Check Action Row
+              Obx(() {
+                final isChecking = controller.updateStatus.value == UpdateStatus.checking;
+                final currVer = controller.currentAppVersion.value;
+                final statusMsg = controller.updateStatusMessage.value;
+
+                return Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppTheme.redAccent.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppTheme.redAccent.withOpacity(0.25), width: 1),
+                      ),
+                      child: const Icon(Icons.update_rounded, color: AppTheme.redAccent, size: 22),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Version $currVer (Linux x64)',
+                            style: const TextStyle(
+                              color: AppTheme.textWhite,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13.5,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            statusMsg.isNotEmpty ? statusMsg : 'Ready to check for updates',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: AppTheme.textMuted, fontSize: 11.5),
+                          ),
+                        ],
+                      ),
+                    ),
+                    BoxyButton(
+                      label: isChecking ? 'CHECKING...' : 'CHECK FOR UPDATES',
+                      icon: isChecking ? null : Icons.refresh_rounded,
+                      isPrimary: false,
+                      onPressed: isChecking ? null : controller.checkForUpdatesManual,
+                    ),
+                  ],
+                );
+              }),
+
+              const SizedBox(height: 14),
+              const Divider(color: AppTheme.borderSubtle),
+              const SizedBox(height: 8),
+
+              // Auto-check Switch
+              Obx(() => SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    activeColor: AppTheme.redAccent,
+                    title: const Text(
+                      'Auto-Check on Startup',
+                      style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600, fontSize: 13),
+                    ),
+                    subtitle: const Text(
+                      'Silently checks GitHub Releases in the background once every 24 hours',
+                      style: TextStyle(color: AppTheme.textMuted, fontSize: 11.5),
+                    ),
+                    value: controller.autoUpdateCheck.value,
+                    onChanged: controller.toggleAutoUpdateCheck,
+                  )),
+
+              const SizedBox(height: 4),
+
+              // Auto-install Switch
+              Obx(() => SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    activeColor: AppTheme.redAccent,
+                    title: const Text(
+                      'Auto-Install Updates',
+                      style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600, fontSize: 13),
+                    ),
+                    subtitle: const Text(
+                      'Automatically downloads and applies newer releases when discovered',
+                      style: TextStyle(color: AppTheme.textMuted, fontSize: 11.5),
+                    ),
+                    value: controller.autoUpdateInstall.value,
+                    onChanged: controller.toggleAutoUpdateInstall,
+                  )),
             ],
           ),
         ),
