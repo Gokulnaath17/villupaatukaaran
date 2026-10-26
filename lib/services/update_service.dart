@@ -144,8 +144,14 @@ class UpdateService extends GetxService {
         if (name == Constant.updateAssetName) {
           dlUrl  = asset['browser_download_url'] as String?;
           dlSize = asset['size'] as int? ?? 0;
+        } else if (dlUrl == null && name.endsWith('.tar.gz') && !name.endsWith('.sha256')) {
+          dlUrl  = asset['browser_download_url'] as String?;
+          dlSize = asset['size'] as int? ?? 0;
         }
+
         if (name == '${Constant.updateAssetName}.sha256') {
+          shaUrl = asset['browser_download_url'] as String?;
+        } else if (shaUrl == null && name.endsWith('.tar.gz.sha256')) {
           shaUrl = asset['browser_download_url'] as String?;
         }
       }
